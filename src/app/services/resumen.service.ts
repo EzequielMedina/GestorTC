@@ -206,6 +206,71 @@ export class ResumenService {
   }
 
   /**
+   * Obtiene un resumen de gastos por persona para un mes específico
+   */
+  getResumenPorPersonaDelMes$(monthKey: string): Observable<Array<ResumenPersona & { totalMes: number }>> {
+    return this.gastoService.getGastos$().pipe(
+      map(gastos => {
+        const resumenPersonas: { [key: string]: ResumenPersona & { totalMes: number } } = {};
+        
+        // Inicializar con el titular
+        resumenPersonas['Titular'] = {
+          nombre: 'Titular',
+          totalGastos: 0,
+          saldo: 0,
+          totalMes: 0
+        };
+        
+        // Procesar cada gasto
+        gastos.forEach(gasto => {
+          // Calcular montos para el titular y la persona con quien se comparte (si aplica)
+          const montoTitular = this.gastosCompartidosService.calcularMontoTitular(gasto);
+          const montoCompartido = this.gastosCompartidosService.calcularMontoCompartido(gasto);
+          
+          // Calcular impacto del gasto en el mes específico
+          const impactoMes = this.gastoImpactaMes(gasto, monthKey);
+          const impactoMesTitular = montoCompartido > 0 
+            ? (impactoMes * montoTitular) / gasto.monto 
+            : impactoMes;
+          const impactoMesCompartido = montoCompartido > 0 
+            ? (impactoMes * montoCompartido) / gasto.monto 
+            : 0;
+          
+          // Actualizar resumen del titular
+          resumenPersonas['Titular'].totalGastos += montoTitular;
+          resumenPersonas['Titular'].totalMes += impactoMesTitular;
+          
+          // Si el gasto está compartido, actualizar el resumen de la otra persona
+          if (gasto.compartidoCon) {
+            const nombrePersona = gasto.compartidoCon;
+            
+            if (!resumenPersonas[nombrePersona]) {
+              resumenPersonas[nombrePersona] = {
+                nombre: nombrePersona,
+                totalGastos: 0,
+                saldo: 0,
+                totalMes: 0
+              };
+            }
+            
+            resumenPersonas[nombrePersona].totalGastos += montoCompartido;
+            resumenPersonas[nombrePersona].totalMes += impactoMesCompartido;
+            
+            // Actualizar saldos (el titular paga todo inicialmente, los demás le deben su parte)
+            resumenPersonas['Titular'].saldo += montoCompartido; // El titular suma a su saldo (le deben)
+            resumenPersonas[nombrePersona].saldo -= montoCompartido; // El otro resta (debe)
+          }
+        });
+        
+        // Convertir el objeto a array y ordenar por nombre
+        return Object.values(resumenPersonas).sort((a, b) => 
+          a.nombre.localeCompare(b.nombre)
+        );
+      })
+    );
+  }
+
+  /**
    * Obtiene el total de gastos de todas las tarjetas
    */
   getTotalGastos$(): Observable<number> {
@@ -258,6 +323,173 @@ export class ResumenService {
         labels: resumen.map(p => p.nombre),
         datos: resumen.map(p => p.totalGastos)
       }))
+    );
+  }
+
+  /**
+   * Obtiene el detalle de gastos por tarjeta para un mes específico
+   */
+  getDetalleGastosDelMes$(monthKey: string): Observable<Array<{
+    nombreTarjeta: string;
+    descripcion: string;
+    montoOriginal: number;
+    cuotaActual: number;
+    cantidadCuotas: number;
+    montoCuota: number;
+    compartidoCon?: string;
+    porcentajeCompartido?: number;
+  }>> {
+    return combineLatest([
+      this.tarjetaService.getTarjetas$(),
+      this.gastoService.getGastos$()
+    ]).pipe(
+      map(([tarjetas, gastos]) => {
+        const tarjetasMap = new Map(tarjetas.map(t => [t.id, t.nombre] as const));
+        const detalle: Array<{
+          nombreTarjeta: string;
+          descripcion: string;
+          montoOriginal: number;
+          cuotaActual: number;
+          cantidadCuotas: number;
+          montoCuota: number;
+          compartidoCon?: string;
+          porcentajeCompartido?: number;
+        }> = [];
+
+        gastos.forEach(gasto => {
+          const cuotas = Math.max(1, gasto.cantidadCuotas || 1);
+          const montoCuota = gasto.montoPorCuota ?? Math.round((gasto.monto / cuotas) * 100) / 100;
+          
+          if (cuotas <= 1) {
+            // Gasto de una sola vez: solo aparece en el mes de la fecha
+            if (this.monthKeyFromISO(gasto.fecha) === monthKey) {
+              detalle.push({
+                nombreTarjeta: tarjetasMap.get(gasto.tarjetaId) || 'Tarjeta no encontrada',
+                descripcion: gasto.descripcion,
+                montoOriginal: gasto.monto,
+                cuotaActual: 1,
+                cantidadCuotas: 1,
+                montoCuota: gasto.monto,
+                compartidoCon: gasto.compartidoCon,
+                porcentajeCompartido: gasto.porcentajeCompartido
+              });
+            }
+          } else {
+            // Gasto en cuotas: puede aparecer en múltiples meses
+            const firstISO = this.firstMonthISOFromGasto(gasto);
+            for (let i = 0; i < cuotas; i++) {
+              const iso = this.addMonths(firstISO, i);
+              if (iso.slice(0, 7) === monthKey) {
+                detalle.push({
+                  nombreTarjeta: tarjetasMap.get(gasto.tarjetaId) || 'Tarjeta no encontrada',
+                  descripcion: gasto.descripcion,
+                  montoOriginal: gasto.monto,
+                  cuotaActual: i + 1,
+                  cantidadCuotas: cuotas,
+                  montoCuota: montoCuota,
+                  compartidoCon: gasto.compartidoCon,
+                  porcentajeCompartido: gasto.porcentajeCompartido
+                });
+              }
+            }
+          }
+        });
+
+        // Ordenar por tarjeta y luego por descripción
+        return detalle.sort((a, b) => 
+          a.nombreTarjeta.localeCompare(b.nombreTarjeta) || 
+          a.descripcion.localeCompare(b.descripcion)
+        );
+      })
+    );
+  }
+
+  /**
+   * Obtiene el detalle de gastos compartidos para un mes específico
+   */
+  getDetalleGastosCompartidosDelMes$(monthKey: string): Observable<Array<{
+    descripcion: string;
+    montoCuota: number;
+    compartidoCon: string;
+    porcentajeCompartido: number;
+    montoCompartido: number;
+  }>> {
+    return this.gastoService.getGastos$().pipe(
+      map(gastos => {
+        const detalle: Array<{
+          descripcion: string;
+          montoCuota: number;
+          compartidoCon: string;
+          porcentajeCompartido: number;
+          montoCompartido: number;
+        }> = [];
+
+        gastos.forEach(gasto => {
+          // Solo procesar gastos compartidos
+          if (!gasto.compartidoCon || gasto.porcentajeCompartido === undefined) {
+            return;
+          }
+
+          const cuotas = Math.max(1, gasto.cantidadCuotas || 1);
+          const montoCuota = gasto.montoPorCuota ?? Math.round((gasto.monto / cuotas) * 100) / 100;
+          
+          if (cuotas <= 1) {
+            // Gasto de una sola vez: solo aparece en el mes de la fecha
+            if (this.monthKeyFromISO(gasto.fecha) === monthKey) {
+              const montoCompartido = (montoCuota * gasto.porcentajeCompartido) / 100;
+              detalle.push({
+                descripcion: gasto.descripcion,
+                montoCuota: montoCuota,
+                compartidoCon: gasto.compartidoCon,
+                porcentajeCompartido: gasto.porcentajeCompartido,
+                montoCompartido: montoCompartido
+              });
+            }
+          } else {
+            // Gasto en cuotas: puede aparecer en múltiples meses
+            const firstISO = this.firstMonthISOFromGasto(gasto);
+            for (let i = 0; i < cuotas; i++) {
+              const iso = this.addMonths(firstISO, i);
+              if (iso.slice(0, 7) === monthKey) {
+                const montoCompartido = (montoCuota * gasto.porcentajeCompartido) / 100;
+                detalle.push({
+                  descripcion: gasto.descripcion,
+                  montoCuota: montoCuota,
+                  compartidoCon: gasto.compartidoCon,
+                  porcentajeCompartido: gasto.porcentajeCompartido,
+                  montoCompartido: montoCompartido
+                });
+              }
+            }
+          }
+        });
+
+        // Ordenar por descripción
+        return detalle.sort((a, b) => a.descripcion.localeCompare(b.descripcion));
+      })
+    );
+  }
+
+  /**
+   * Obtiene el total que te debe cada persona para un mes específico
+   */
+  getTotalPorPersona$(monthKey: string): Observable<Array<{ persona: string; total: number }>> {
+    return this.getDetalleGastosCompartidosDelMes$(monthKey).pipe(
+      map(detalle => {
+        const totalesPorPersona: { [key: string]: number } = {};
+        
+        detalle.forEach(item => {
+          if (!totalesPorPersona[item.compartidoCon]) {
+            totalesPorPersona[item.compartidoCon] = 0;
+          }
+          totalesPorPersona[item.compartidoCon] += item.montoCompartido;
+        });
+        
+        // Convertir a array y ordenar por nombre
+        return Object.entries(totalesPorPersona)
+          .map(([persona, total]) => ({ persona, total }))
+          .sort((a, b) => a.persona.localeCompare(b.persona));
+      })
     );
   }
 }

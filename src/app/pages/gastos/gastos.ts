@@ -13,148 +13,200 @@ import { Tarjeta } from '../../models/tarjeta.model';
   imports: [CommonModule, ReactiveFormsModule],
   template: `
     <div class="page">
-      <h2>Gastos</h2>
+      <div class="header">
+        <h2>Gastos</h2>
+        <p class="subtitle">Gestiona tus gastos de tarjetas de crédito</p>
+      </div>
 
       <!-- Filtros -->
-      <section class="card">
-        <form [formGroup]="filtrosForm" class="filters" (ngSubmit)="$event.preventDefault()">
-          <label>
-            Tarjeta
-            <select formControlName="tarjetaId">
-              <option value="">(Todas)</option>
-              <option *ngFor="let t of (tarjetas$ | async)" [value]="t.id">{{ t.nombre }}</option>
-            </select>
-          </label>
+      <section class="content-card">
+        <h3 class="card-title">Filtros</h3>
+        <form [formGroup]="filtrosForm" class="filters-form" (ngSubmit)="$event.preventDefault()">
+          <div class="filter-group">
+            <label class="filter-label">
+              <span class="label-text">Tarjeta</span>
+              <select formControlName="tarjetaId" class="filter-input">
+                <option value="">Todas las tarjetas</option>
+                <option *ngFor="let t of (tarjetas$ | async)" [value]="t.id">{{ t.nombre }}</option>
+              </select>
+            </label>
+          </div>
 
-          <label>
-            Desde
-            <input type="date" formControlName="desde" />
-          </label>
+          <div class="filter-group">
+            <label class="filter-label">
+              <span class="label-text">Desde</span>
+              <input type="date" formControlName="desde" class="filter-input" />
+            </label>
+          </div>
 
-          <label>
-            Hasta
-            <input type="date" formControlName="hasta" />
-          </label>
+          <div class="filter-group">
+            <label class="filter-label">
+              <span class="label-text">Hasta</span>
+              <input type="date" formControlName="hasta" class="filter-input" />
+            </label>
+          </div>
         </form>
       </section>
 
       <!-- Listado -->
-      <section class="card">
-        <h3>Listado</h3>
-        <div class="table-wrapper" *ngIf="(gastosFiltrados$ | async) as gastos; else cargando">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Fecha</th>
-              <th>Descripción</th>
-              <th>Tarjeta</th>
-              <th class="right">Monto</th>
-              <th>Cuotas</th>
-              <th>Compartido</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let g of gastos">
-              <td>{{ g.fecha }}</td>
-              <td>{{ g.descripcion }}</td>
-              <td>{{ (tarjetasMap() [g.tarjetaId])?.nombre || '—' }}</td>
-              <td class="right">{{ g.monto | number:'1.2-2' }}</td>
-              <td>
-                <span class="badge" [class.badge-info]="(g.cantidadCuotas || 1) > 1">
-                  {{ g.cantidadCuotas || 1 }}
-                </span>
-              </td>
-              <td>
-                <ng-container *ngIf="g.compartidoCon; else noComp">
-                  <span class="chip">
+      <section class="content-card">
+        <h3 class="card-title">Listado de Gastos</h3>
+        <div class="mobile-table" *ngIf="(gastosFiltrados$ | async) as gastos; else cargando">
+          <div class="mobile-row" *ngFor="let g of gastos">
+            <div class="row-header">
+              <div class="gasto-fecha">{{ g.fecha | date:'dd/MM/yyyy' }}</div>
+              <div class="gasto-monto">{{ g.monto | number:'1.2-2' }}</div>
+            </div>
+            
+            <div class="row-content">
+              <div class="gasto-info">
+                <div class="gasto-descripcion">{{ g.descripcion }}</div>
+                <div class="gasto-tarjeta">{{ (tarjetasMap() [g.tarjetaId])?.nombre || 'Tarjeta no encontrada' }}</div>
+              </div>
+              
+              <div class="gasto-details">
+                <div class="detail-item" *ngIf="(g.cantidadCuotas || 1) > 1">
+                  <span class="detail-label">Cuotas:</span>
+                  <span class="detail-value cuota-badge">{{ g.cantidadCuotas || 1 }}</span>
+                </div>
+                
+                <div class="detail-item" *ngIf="g.compartidoCon">
+                  <span class="detail-label">Compartido:</span>
+                  <span class="detail-value compartido-chip">
                     {{ g.compartidoCon }}
-                    <small *ngIf="g.porcentajeCompartido">{{ g.porcentajeCompartido }}%</small>
+                    <small *ngIf="g.porcentajeCompartido">({{ g.porcentajeCompartido }}%)</small>
                   </span>
-                </ng-container>
-                <ng-template #noComp>—</ng-template>
-              </td>
-              <td>
-                <button type="button" class="btn btn-primary" (click)="editar(g)">Editar</button>
-                <button type="button" class="btn btn-danger" (click)="eliminar(g.id)">Eliminar</button>
-              </td>
-            </tr>
-            <tr *ngIf="gastos.length === 0">
-              <td colspan="7" class="muted">No hay gastos para los filtros seleccionados.</td>
-            </tr>
-          </tbody>
-        </table>
+                </div>
+              </div>
+              
+              <div class="row-actions">
+                <button type="button" class="btn-action btn-edit" (click)="editar(g)">
+                  <span class="btn-icon">✏️</span>
+                  <span class="btn-text">Editar</span>
+                </button>
+                <button type="button" class="btn-action btn-delete" (click)="eliminar(g.id)">
+                  <span class="btn-icon">🗑️</span>
+                  <span class="btn-text">Eliminar</span>
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <div *ngIf="gastos.length === 0" class="empty-state">
+            <div class="empty-icon">📝</div>
+            <div class="empty-text">No hay gastos para los filtros seleccionados</div>
+          </div>
         </div>
+        
         <ng-template #cargando>
-          <p class="muted">Cargando...</p>
+          <div class="loading-state">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Cargando gastos...</div>
+          </div>
         </ng-template>
       </section>
 
       <!-- Formulario -->
-      <section class="card">
-        <h3>{{ editandoId() ? 'Editar gasto' : 'Nuevo gasto' }}</h3>
-        <form [formGroup]="form" (ngSubmit)="guardar()" novalidate>
-          <div class="grid">
-            <label>
-              Tarjeta
-              <select formControlName="tarjetaId" [class.invalid]="campoInvalido('tarjetaId')">
-                <option value="" disabled>Seleccione tarjeta</option>
-                <option *ngFor="let t of (tarjetas$ | async)" [value]="t.id">{{ t.nombre }}</option>
-              </select>
-              <span class="error" *ngIf="campoInvalido('tarjetaId')">Seleccione una tarjeta</span>
-            </label>
+      <section class="content-card">
+        <h3 class="card-title">{{ editandoId() ? 'Editar Gasto' : 'Nuevo Gasto' }}</h3>
+        <form [formGroup]="form" (ngSubmit)="guardar()" class="gasto-form" novalidate>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">
+                <span class="label-text">Tarjeta *</span>
+                <select formControlName="tarjetaId" class="form-input" [class.invalid]="campoInvalido('tarjetaId')">
+                  <option value="" disabled>Seleccione una tarjeta</option>
+                  <option *ngFor="let t of (tarjetas$ | async)" [value]="t.id">{{ t.nombre }}</option>
+                </select>
+                <span class="error-message" *ngIf="campoInvalido('tarjetaId')">Seleccione una tarjeta</span>
+              </label>
+            </div>
 
-            <label>
-              Descripción
-              <input type="text" formControlName="descripcion" [class.invalid]="campoInvalido('descripcion')" />
-              <span class="error" *ngIf="campoInvalido('descripcion')">La descripción es requerida</span>
-            </label>
+            <div class="form-group">
+              <label class="form-label">
+                <span class="label-text">Descripción *</span>
+                <input type="text" formControlName="descripcion" class="form-input" 
+                       [class.invalid]="campoInvalido('descripcion')" 
+                       placeholder="Ej: Supermercado, Netflix, etc." />
+                <span class="error-message" *ngIf="campoInvalido('descripcion')">La descripción es requerida</span>
+              </label>
+            </div>
 
-            <label>
-              Monto
-              <input type="number" step="0.01" formControlName="monto" [class.invalid]="campoInvalido('monto')" />
-              <span class="error" *ngIf="campoInvalido('monto')">Monto > 0</span>
-            </label>
+            <div class="form-group">
+              <label class="form-label">
+                <span class="label-text">Monto *</span>
+                <input type="number" step="0.01" formControlName="monto" class="form-input" 
+                       [class.invalid]="campoInvalido('monto')" 
+                       placeholder="0.00" />
+                <span class="error-message" *ngIf="campoInvalido('monto')">Monto debe ser mayor a 0</span>
+              </label>
+            </div>
 
-            <label>
-              Fecha
-              <input type="date" formControlName="fecha" [class.invalid]="campoInvalido('fecha')" />
-              <span class="error" *ngIf="campoInvalido('fecha')">Fecha requerida</span>
-            </label>
+            <div class="form-group">
+              <label class="form-label">
+                <span class="label-text">Fecha *</span>
+                <input type="date" formControlName="fecha" class="form-input" 
+                       [class.invalid]="campoInvalido('fecha')" />
+                <span class="error-message" *ngIf="campoInvalido('fecha')">Fecha requerida</span>
+              </label>
+            </div>
 
-            <label>
-              Compartido con (opcional)
-              <input type="text" formControlName="compartidoCon" />
-            </label>
+            <div class="form-group">
+              <label class="form-label">
+                <span class="label-text">Compartido con (opcional)</span>
+                <input type="text" formControlName="compartidoCon" class="form-input" 
+                       placeholder="Nombre de la persona" />
+              </label>
+            </div>
 
-            <label>
-              % Compartido (0-100)
-              <input type="number" formControlName="porcentajeCompartido" min="0" max="100" />
-            </label>
+            <div class="form-group">
+              <label class="form-label">
+                <span class="label-text">% Compartido (0-100)</span>
+                <input type="number" formControlName="porcentajeCompartido" class="form-input" 
+                       min="0" max="100" placeholder="50" />
+              </label>
+            </div>
 
-            <!-- Cuotas -->
-            <label>
-              Cantidad de cuotas
-              <input type="number" formControlName="cantidadCuotas" min="1" />
-            </label>
+            <div class="form-group">
+              <label class="form-label">
+                <span class="label-text">Cantidad de cuotas</span>
+                <input type="number" formControlName="cantidadCuotas" class="form-input" 
+                       min="1" placeholder="1" />
+              </label>
+            </div>
 
-            <label>
-              Primer mes de cuota
-              <input type="month" formControlName="primerMesCuota" />
-            </label>
+            <div class="form-group">
+              <label class="form-label">
+                <span class="label-text">Primer mes de cuota</span>
+                <input type="month" formControlName="primerMesCuota" class="form-input" />
+              </label>
+            </div>
           </div>
 
-          <!-- Preview de cuotas (simple) -->
-          <div class="muted" *ngIf="(form.value.cantidadCuotas || 1) > 1">
-            <ng-container *ngIf="calcularPreviewCuotas() as p">
-              Se generarán {{ p.cantidad }} cuotas de {{ p.monto | number:'1.2-2' }} comenzando en {{ p.mes }}
-            </ng-container>
+          <!-- Preview de cuotas -->
+          <div class="cuotas-preview" *ngIf="(form.value.cantidadCuotas || 1) > 1">
+            <div class="preview-icon">📅</div>
+            <div class="preview-content">
+              <ng-container *ngIf="calcularPreviewCuotas() as p">
+                Se generarán <strong>{{ p.cantidad }} cuotas</strong> de <strong>{{ p.monto | number:'1.2-2' }}</strong> 
+                comenzando en <strong>{{ p.mes }}</strong>
+              </ng-container>
+            </div>
           </div>
 
-          <div class="actions">
-            <button type="submit" class="btn btn-primary" [disabled]="form.invalid">{{ editandoId() ? 'Actualizar' : 'Agregar' }}</button>
-            <button type="button" class="btn" (click)="cancelarEdicion()" *ngIf="editandoId()">Cancelar</button>
-            <button type="button" class="btn btn-secondary" (click)="limpiarFormulario()">Limpiar</button>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" [disabled]="form.invalid">
+              <span class="btn-icon">{{ editandoId() ? '💾' : '➕' }}</span>
+              <span class="btn-text">{{ editandoId() ? 'Actualizar' : 'Agregar' }}</span>
+            </button>
+            <button type="button" class="btn btn-secondary" (click)="cancelarEdicion()" *ngIf="editandoId()">
+              <span class="btn-icon">❌</span>
+              <span class="btn-text">Cancelar</span>
+            </button>
+            <button type="button" class="btn btn-outline" (click)="limpiarFormulario()">
+              <span class="btn-icon">🧹</span>
+              <span class="btn-text">Limpiar</span>
+            </button>
           </div>
         </form>
       </section>
@@ -162,44 +214,543 @@ import { Tarjeta } from '../../models/tarjeta.model';
   `,
   styles: `
     :host {
-      --bg: #f6f8fb;
-      --surface: #ffffff;
-      --primary: #2563eb;
+      --bg: var(--color1);
+      --surface: var(--color2);
+      --primary: var(--color3);
       --danger: #dc2626;
       --secondary: #6b7280;
-      --border: #e5e7eb;
+      --border: var(--color5);
       --shadow-sm: 0 1px 2px rgba(0,0,0,0.08);
-      --radius: 10px;
+      --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+      --radius: 12px;
+      --radius-sm: 8px;
     }
-    .page { display: grid; gap: 16px; background: var(--bg); padding: 8px; }
-    h2 { margin: 4px 4px 0; font-weight: 700; }
-    h3 { margin: 0 0 8px; font-weight: 600; }
-    .card { background: var(--surface); padding: 16px; border-radius: var(--radius); box-shadow: var(--shadow-sm); border: 1px solid var(--border); }
-    .filters { display: flex; gap: 12px; flex-wrap: wrap; align-items: end; }
-    label { display: grid; gap: 6px; font-size: 14px; }
-    input, select { padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font: inherit; background: white; outline: none; }
-    input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
-    .table-wrapper { width: 100%; overflow-x: auto; }
-    .table { width: 100%; border-collapse: collapse; min-width: 760px; }
-    .table thead th { position: sticky; top: 0; background: var(--surface); border-bottom: 1px solid var(--border); text-align: left; font-weight: 600; }
-    .table th, .table td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
-    .table tbody tr:hover { background: var(--bg); }
-    .right { text-align: right; }
-    .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; background: var(--color2); color: var(--primary); font-size: 12px; font-weight: 600; }
-    .badge-info { background: var(--color1); color: var(--primary); }
-    .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; background: var(--color2); color: #0f172a; border-radius: 999px; font-size: 12px; }
-    .grid { display: grid; grid-template-columns: repeat(6, minmax(160px, 1fr)); gap: 12px; }
-    .actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-    .btn { padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); cursor: pointer; }
-    .btn:hover { filter: brightness(0.98); }
-    .btn-primary { background: var(--primary); border-color: var(--primary); color: #fff; }
-    .btn-danger { background: var(--danger); border-color: var(--danger); color: #fff; }
-    .btn-secondary { background: var(--color2); color: #111827; }
-    .error { color: #b00020; font-size: 12px; }
-    .invalid { border-color: #b00020; }
-    .muted { color: #666; }
-    @media (max-width: 1100px) { .grid { grid-template-columns: repeat(3, 1fr); } }
-    @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } .filters { flex-direction: column; align-items: stretch; } }
+
+    .page {
+      min-height: 100vh;
+      background: var(--bg);
+      padding: 16px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .header h2 {
+      margin: 0 0 8px 0;
+      font-size: 28px;
+      font-weight: 700;
+      color: #333;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: #666;
+      font-size: 16px;
+    }
+
+    .content-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border);
+    }
+
+    .card-title {
+      margin: 0 0 20px 0;
+      font-size: 20px;
+      font-weight: 600;
+      color: #333;
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 8px;
+    }
+
+    /* Filtros */
+    .filters-form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .filter-label {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .label-text {
+      font-size: 14px;
+      font-weight: 500;
+      color: #333;
+    }
+
+    .filter-input {
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      background: white;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .filter-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+    }
+
+    /* Tabla móvil */
+    .mobile-table {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .mobile-row {
+      background: var(--bg);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      border: 1px solid var(--border);
+      transition: transform 0.2s ease;
+    }
+
+    .mobile-row:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .row-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .gasto-fecha {
+      font-weight: 600;
+      color: #333;
+      font-size: 16px;
+    }
+
+    .gasto-monto {
+      font-weight: 700;
+      color: var(--primary);
+      font-size: 18px;
+    }
+
+    .row-content {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .gasto-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .gasto-descripcion {
+      font-weight: 500;
+      color: #333;
+      font-size: 15px;
+    }
+
+    .gasto-tarjeta {
+      font-size: 14px;
+      color: #666;
+    }
+
+    .gasto-details {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .detail-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .detail-label {
+      font-size: 13px;
+      color: #666;
+    }
+
+    .detail-value {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .cuota-badge {
+      background: var(--primary);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+    }
+
+    .compartido-chip {
+      background: rgba(37,99,235,0.1);
+      color: var(--primary);
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+    }
+
+    .row-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn-action {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex: 1;
+      justify-content: center;
+    }
+
+    .btn-edit {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-edit:hover {
+      background: #1d4ed8;
+      transform: translateY(-1px);
+    }
+
+    .btn-delete {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-delete:hover {
+      background: #b91c1c;
+      transform: translateY(-1px);
+    }
+
+    .btn-icon {
+      font-size: 16px;
+    }
+
+    .btn-text {
+      font-size: 14px;
+    }
+
+    /* Formulario */
+    .gasto-form {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-label {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-input {
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      background: white;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .form-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+    }
+
+    .form-input.invalid {
+      border-color: var(--danger);
+    }
+
+    .error-message {
+      color: var(--danger);
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    .cuotas-preview {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      background: rgba(37,99,235,0.05);
+      border-radius: var(--radius-sm);
+      border-left: 4px solid var(--primary);
+    }
+
+    .preview-icon {
+      font-size: 24px;
+    }
+
+    .preview-content {
+      font-size: 14px;
+      color: #333;
+      line-height: 1.4;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: #1d4ed8;
+    }
+
+    .btn-secondary {
+      background: var(--secondary);
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #4b5563;
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: #666;
+      border: 1px solid var(--border);
+    }
+
+    .btn-outline:hover {
+      background: var(--bg);
+    }
+
+    /* Estados */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #666;
+    }
+
+    .empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    .empty-text {
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    .loading-state {
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid var(--border);
+      border-top: 4px solid var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    .loading-text {
+      color: #666;
+      font-size: 16px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .page {
+        padding: 12px;
+      }
+
+      .header h2 {
+        font-size: 24px;
+      }
+
+      .content-card {
+        padding: 16px;
+        margin-bottom: 16px;
+      }
+
+      .card-title {
+        font-size: 18px;
+        margin-bottom: 16px;
+      }
+
+      .filters-form {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .mobile-row {
+        padding: 12px;
+      }
+
+      .row-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+      }
+
+      .gasto-monto {
+        font-size: 16px;
+      }
+
+      .gasto-details {
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .row-actions {
+        flex-direction: column;
+      }
+
+      .btn-action {
+        justify-content: center;
+      }
+
+      .form-actions {
+        flex-direction: column;
+      }
+
+      .btn {
+        justify-content: center;
+      }
+
+      .cuotas-preview {
+        flex-direction: column;
+        text-align: center;
+        gap: 8px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .page {
+        padding: 8px;
+      }
+
+      .header h2 {
+        font-size: 20px;
+      }
+
+      .subtitle {
+        font-size: 14px;
+      }
+
+      .content-card {
+        padding: 12px;
+      }
+
+      .card-title {
+        font-size: 16px;
+      }
+
+      .mobile-row {
+        padding: 10px;
+      }
+
+      .gasto-descripcion {
+        font-size: 14px;
+      }
+
+      .gasto-tarjeta {
+        font-size: 13px;
+      }
+
+      .btn-action {
+        padding: 6px 10px;
+      }
+
+      .btn-text {
+        font-size: 13px;
+      }
+
+      .form-input {
+        padding: 10px;
+        font-size: 13px;
+      }
+
+      .btn {
+        padding: 10px 16px;
+        font-size: 13px;
+      }
+    }
   `
 })
 export class GastosComponent implements OnInit, OnDestroy {
