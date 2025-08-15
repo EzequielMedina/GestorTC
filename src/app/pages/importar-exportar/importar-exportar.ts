@@ -7,6 +7,19 @@ import { Tarjeta } from '../../models/tarjeta.model';
 import { Gasto } from '../../models/gasto.model';
 import { Subscription } from 'rxjs';
 
+interface ExcelPreview {
+  tarjetas: number;
+  gastos: number;
+  totalGastos: number;
+  gastosCompartidos: number;
+  cuotasPendientes: number;
+  mesesConGastos: string[];
+  archivo: File;
+  nombre: string;
+  tamano: string;
+  fechaModificacion: string;
+}
+
 @Component({
   selector: 'app-importar-exportar',
   standalone: true,
@@ -24,19 +37,60 @@ import { Subscription } from 'rxjs';
           <div class="card-icon">📤</div>
           <div class="card-title-section">
             <h3 class="card-title">Exportar Datos</h3>
-            <p class="card-description">Descarga un archivo Excel con tus tarjetas y gastos actuales</p>
+            <p class="card-description">Descarga un archivo Excel completo con todas tus tarjetas y gastos</p>
           </div>
         </div>
         
         <div class="card-content">
-          <div class="export-info">
-            <div class="info-item">
-              <span class="info-label">Tarjetas:</span>
-              <span class="info-value">{{ tarjetas.length }}</span>
+          <div class="export-stats">
+            <div class="stat-item">
+              <div class="stat-icon">💳</div>
+              <div class="stat-info">
+                <div class="stat-value">{{ tarjetas.length }}</div>
+                <div class="stat-label">Tarjetas</div>
+              </div>
             </div>
-            <div class="info-item">
-              <span class="info-label">Gastos:</span>
-              <span class="info-value">{{ gastos.length }}</span>
+            <div class="stat-item">
+              <div class="stat-icon">💰</div>
+              <div class="stat-info">
+                <div class="stat-value">{{ gastos.length }}</div>
+                <div class="stat-label">Gastos</div>
+              </div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-icon">📊</div>
+              <div class="stat-info">
+                <div class="stat-value">{{ totalGastos | number:'1.0-0' }}</div>
+                <div class="stat-label">Total Gastos</div>
+              </div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-icon">🤝</div>
+              <div class="stat-info">
+                <div class="stat-value">{{ gastosCompartidos }}</div>
+                <div class="stat-label">Compartidos</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="export-features">
+            <div class="feature-list">
+              <div class="feature-item">
+                <span class="feature-icon">📋</span>
+                <span class="feature-text">4 hojas de datos</span>
+              </div>
+              <div class="feature-item">
+                <span class="feature-icon">📅</span>
+                <span class="feature-text">Resumen mensual</span>
+              </div>
+              <div class="feature-item">
+                <span class="feature-icon">💳</span>
+                <span class="feature-text">Detalle de cuotas</span>
+              </div>
+              <div class="feature-item">
+                <span class="feature-icon">📊</span>
+                <span class="feature-text">Estadísticas completas</span>
+              </div>
             </div>
           </div>
           
@@ -58,15 +112,19 @@ import { Subscription } from 'rxjs';
         </div>
         
         <div class="card-content">
-          <div class="file-upload-area" [class.has-file]="archivoSeleccionado">
+          <!-- File Upload Area -->
+          <div class="file-upload-area" [class.has-file]="archivoSeleccionado" [class.dragover]="isDragOver">
             <div class="upload-icon">📁</div>
             <div class="upload-text">
-              <span *ngIf="!archivoSeleccionado">Selecciona un archivo Excel</span>
+              <span *ngIf="!archivoSeleccionado">Arrastra un archivo Excel aquí o haz clic para seleccionar</span>
               <span *ngIf="archivoSeleccionado" class="file-name">{{ archivoSeleccionado.name }}</span>
             </div>
             <input 
               type="file" 
               (change)="onFileSelected($event)" 
+              (dragover)="onDragOver($event)"
+              (dragleave)="onDragLeave($event)"
+              (drop)="onDrop($event)"
               accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
               class="file-input"
               id="fileInput"
@@ -74,21 +132,77 @@ import { Subscription } from 'rxjs';
             <label for="fileInput" class="upload-label">Elegir archivo</label>
           </div>
           
+          <!-- File Preview -->
+          <div class="file-preview" *ngIf="excelPreview">
+            <div class="preview-header">
+              <h4 class="preview-title">Vista previa del archivo</h4>
+              <div class="file-info">
+                                 <span class="file-size">{{ excelPreview.tamano }}</span>
+                <span class="file-date">{{ excelPreview.fechaModificacion }}</span>
+              </div>
+            </div>
+            
+            <div class="preview-stats">
+              <div class="preview-stat">
+                <div class="preview-stat-icon">💳</div>
+                <div class="preview-stat-content">
+                  <div class="preview-stat-value">{{ excelPreview.tarjetas }}</div>
+                  <div class="preview-stat-label">Tarjetas</div>
+                </div>
+              </div>
+              <div class="preview-stat">
+                <div class="preview-stat-icon">💰</div>
+                <div class="preview-stat-content">
+                  <div class="preview-stat-value">{{ excelPreview.gastos }}</div>
+                  <div class="preview-stat-label">Gastos</div>
+                </div>
+              </div>
+              <div class="preview-stat">
+                <div class="preview-stat-icon">📊</div>
+                <div class="preview-stat-content">
+                  <div class="preview-stat-value">{{ excelPreview.totalGastos | number:'1.0-0' }}</div>
+                  <div class="preview-stat-label">Total</div>
+                </div>
+              </div>
+              <div class="preview-stat">
+                <div class="preview-stat-icon">🤝</div>
+                <div class="preview-stat-content">
+                  <div class="preview-stat-value">{{ excelPreview.gastosCompartidos }}</div>
+                  <div class="preview-stat-label">Compartidos</div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="preview-details" *ngIf="excelPreview.cuotasPendientes > 0 || excelPreview.mesesConGastos.length > 0">
+              <div class="detail-section" *ngIf="excelPreview.cuotasPendientes > 0">
+                <div class="detail-title">📅 Cuotas pendientes</div>
+                <div class="detail-value">{{ excelPreview.cuotasPendientes }} cuotas en curso</div>
+              </div>
+              <div class="detail-section" *ngIf="excelPreview.mesesConGastos.length > 0">
+                <div class="detail-title">📆 Período de datos</div>
+                <div class="detail-value">{{ excelPreview.mesesConGastos[0] }} - {{ excelPreview.mesesConGastos[excelPreview.mesesConGastos.length - 1] }}</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Import Actions -->
           <div class="import-actions" *ngIf="archivoSeleccionado">
-            <button class="btn btn-primary" (click)="importar()">
-              <span class="btn-icon">✅</span>
-              <span class="btn-text">Importar</span>
+            <button class="btn btn-primary" (click)="importar()" [disabled]="importando">
+              <span class="btn-icon">{{ importando ? '⏳' : '✅' }}</span>
+              <span class="btn-text">{{ importando ? 'Importando...' : 'Importar Datos' }}</span>
             </button>
-            <button class="btn btn-outline" (click)="limpiarSeleccion()">
+            <button class="btn btn-outline" (click)="limpiarSeleccion()" [disabled]="importando">
               <span class="btn-icon">❌</span>
               <span class="btn-text">Cancelar</span>
             </button>
           </div>
           
+          <!-- Warning Box -->
           <div class="warning-box" *ngIf="archivoSeleccionado">
             <div class="warning-icon">⚠️</div>
-            <div class="warning-text">
-              <strong>¡Atención!</strong> La importación reemplazará todos los datos actuales.
+            <div class="warning-content">
+              <div class="warning-title">¡Atención!</div>
+              <div class="warning-text">La importación reemplazará todos los datos actuales. Se recomienda hacer una copia de seguridad antes de continuar.</div>
             </div>
           </div>
         </div>
@@ -100,7 +214,7 @@ import { Subscription } from 'rxjs';
           <div class="card-icon">📋</div>
           <div class="card-title-section">
             <h3 class="card-title">Descargar Plantilla</h3>
-            <p class="card-description">Descarga una plantilla de Excel con las columnas esperadas</p>
+            <p class="card-description">Descarga una plantilla de Excel con las columnas esperadas y ejemplos</p>
           </div>
         </div>
         
@@ -118,6 +232,26 @@ import { Subscription } from 'rxjs';
               <div class="feature-item">
                 <span class="feature-icon">💡</span>
                 <span class="feature-text">Ejemplos incluidos</span>
+              </div>
+              <div class="feature-item">
+                <span class="feature-icon">✅</span>
+                <span class="feature-text">Validación automática</span>
+              </div>
+            </div>
+            
+            <div class="template-structure">
+              <div class="structure-title">Estructura de la plantilla:</div>
+              <div class="structure-sheets">
+                <div class="sheet-item">
+                  <span class="sheet-icon">📋</span>
+                  <span class="sheet-name">Tarjetas</span>
+                  <span class="sheet-desc">Datos de tarjetas de crédito</span>
+                </div>
+                <div class="sheet-item">
+                  <span class="sheet-icon">💰</span>
+                  <span class="sheet-name">Gastos</span>
+                  <span class="sheet-desc">Registro de gastos y cuotas</span>
+                </div>
               </div>
             </div>
             
@@ -159,7 +293,7 @@ import { Subscription } from 'rxjs';
       min-height: 100vh;
       background: var(--bg);
       padding: 16px;
-      max-width: 800px;
+      max-width: 1000px;
       margin: 0 auto;
     }
 
@@ -230,49 +364,104 @@ import { Subscription } from 'rxjs';
     .card-content {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 20px;
     }
 
     /* Export section */
-    .export-info {
-      display: flex;
-      gap: 24px;
-      margin-bottom: 16px;
+    .export-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 16px;
     }
 
-    .info-item {
+    .stat-item {
       display: flex;
-      flex-direction: column;
       align-items: center;
-      gap: 4px;
+      gap: 12px;
+      padding: 16px;
+      background: var(--bg);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
     }
 
-    .info-label {
+    .stat-icon {
+      font-size: 24px;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--primary);
+      color: white;
+      border-radius: 50%;
+    }
+
+    .stat-info {
+      flex: 1;
+    }
+
+    .stat-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: #333;
+      line-height: 1;
+    }
+
+    .stat-label {
       font-size: 12px;
       color: #666;
-      font-weight: 500;
+      margin-top: 2px;
     }
 
-    .info-value {
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--primary);
+    .export-features {
+      background: var(--bg);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      border: 1px solid var(--border);
+    }
+
+    .feature-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .feature-icon {
+      font-size: 16px;
+    }
+
+    .feature-text {
+      font-size: 14px;
+      color: #333;
     }
 
     /* File upload */
     .file-upload-area {
       border: 2px dashed var(--border);
       border-radius: var(--radius-sm);
-      padding: 32px 20px;
+      padding: 40px 20px;
       text-align: center;
       position: relative;
-      transition: all 0.2s ease;
+      transition: all 0.3s ease;
       background: var(--bg);
+      cursor: pointer;
     }
 
     .file-upload-area:hover {
       border-color: var(--primary);
       background: rgba(37,99,235,0.02);
+    }
+
+    .file-upload-area.dragover {
+      border-color: var(--success);
+      background: rgba(22,163,74,0.05);
+      transform: scale(1.02);
     }
 
     .file-upload-area.has-file {
@@ -323,6 +512,102 @@ import { Subscription } from 'rxjs';
       transform: translateY(-1px);
     }
 
+    /* File preview */
+    .file-preview {
+      background: var(--bg);
+      border-radius: var(--radius-sm);
+      padding: 20px;
+      border: 1px solid var(--border);
+    }
+
+    .preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .preview-title {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .file-info {
+      display: flex;
+      gap: 12px;
+      font-size: 12px;
+      color: #666;
+    }
+
+    .preview-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .preview-stat {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px;
+      background: var(--surface);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+    }
+
+    .preview-stat-icon {
+      font-size: 16px;
+    }
+
+    .preview-stat-content {
+      flex: 1;
+    }
+
+    .preview-stat-value {
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+      line-height: 1;
+    }
+
+    .preview-stat-label {
+      font-size: 11px;
+      color: #666;
+      margin-top: 2px;
+    }
+
+    .preview-details {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .detail-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .detail-section:last-child {
+      border-bottom: none;
+    }
+
+    .detail-title {
+      font-size: 13px;
+      color: #666;
+    }
+
+    .detail-value {
+      font-size: 13px;
+      font-weight: 500;
+      color: #333;
+    }
+
     /* Import actions */
     .import-actions {
       display: flex;
@@ -333,7 +618,7 @@ import { Subscription } from 'rxjs';
     /* Warning box */
     .warning-box {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 12px;
       padding: 16px;
       background: rgba(202,138,4,0.1);
@@ -343,10 +628,22 @@ import { Subscription } from 'rxjs';
 
     .warning-icon {
       font-size: 20px;
+      margin-top: 2px;
+    }
+
+    .warning-content {
+      flex: 1;
+    }
+
+    .warning-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #92400e;
+      margin-bottom: 4px;
     }
 
     .warning-text {
-      font-size: 14px;
+      font-size: 13px;
       color: #92400e;
       line-height: 1.4;
     }
@@ -359,24 +656,52 @@ import { Subscription } from 'rxjs';
     }
 
     .template-features {
-      display: flex;
-      flex-direction: column;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 12px;
     }
 
-    .feature-item {
+    .template-structure {
+      background: var(--bg);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      border: 1px solid var(--border);
+    }
+
+    .structure-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 12px;
+    }
+
+    .structure-sheets {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .sheet-item {
       display: flex;
       align-items: center;
       gap: 12px;
+      padding: 8px 0;
     }
 
-    .feature-icon {
-      font-size: 20px;
+    .sheet-icon {
+      font-size: 16px;
     }
 
-    .feature-text {
+    .sheet-name {
       font-size: 14px;
+      font-weight: 500;
       color: #333;
+      min-width: 80px;
+    }
+
+    .sheet-desc {
+      font-size: 13px;
+      color: #666;
     }
 
     /* Buttons */
@@ -546,17 +871,32 @@ import { Subscription } from 'rxjs';
         font-size: 18px;
       }
 
-      .export-info {
-        justify-content: center;
-        gap: 32px;
+      .export-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
       }
 
-      .info-value {
-        font-size: 20px;
+      .stat-item {
+        padding: 12px;
+      }
+
+      .stat-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 18px;
+      }
+
+      .stat-value {
+        font-size: 16px;
+      }
+
+      .feature-list {
+        grid-template-columns: 1fr;
+        gap: 8px;
       }
 
       .file-upload-area {
-        padding: 24px 16px;
+        padding: 32px 16px;
       }
 
       .upload-icon {
@@ -565,6 +905,15 @@ import { Subscription } from 'rxjs';
 
       .upload-text {
         font-size: 14px;
+      }
+
+      .preview-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+      }
+
+      .preview-stat {
+        padding: 8px;
       }
 
       .import-actions {
@@ -576,19 +925,8 @@ import { Subscription } from 'rxjs';
       }
 
       .template-features {
+        grid-template-columns: 1fr;
         gap: 8px;
-      }
-
-      .feature-item {
-        gap: 8px;
-      }
-
-      .feature-icon {
-        font-size: 16px;
-      }
-
-      .feature-text {
-        font-size: 13px;
       }
 
       .message-container {
@@ -626,16 +964,26 @@ import { Subscription } from 'rxjs';
         font-size: 13px;
       }
 
-      .export-info {
-        gap: 24px;
+      .export-stats {
+        grid-template-columns: 1fr;
       }
 
-      .info-value {
-        font-size: 18px;
+      .stat-item {
+        padding: 10px;
+      }
+
+      .stat-icon {
+        width: 28px;
+        height: 28px;
+        font-size: 16px;
+      }
+
+      .stat-value {
+        font-size: 14px;
       }
 
       .file-upload-area {
-        padding: 20px 12px;
+        padding: 24px 12px;
       }
 
       .upload-icon {
@@ -649,6 +997,14 @@ import { Subscription } from 'rxjs';
       .upload-label {
         padding: 6px 12px;
         font-size: 13px;
+      }
+
+      .preview-stats {
+        grid-template-columns: 1fr;
+      }
+
+      .preview-stat {
+        padding: 6px;
       }
 
       .btn {
@@ -668,11 +1024,24 @@ import { Subscription } from 'rxjs';
         padding: 12px;
       }
 
-      .warning-text {
+      .warning-title {
         font-size: 13px;
       }
 
+      .warning-text {
+        font-size: 12px;
+      }
+
       .feature-text {
+        font-size: 12px;
+      }
+
+      .sheet-name {
+        min-width: 60px;
+        font-size: 13px;
+      }
+
+      .sheet-desc {
         font-size: 12px;
       }
     }
@@ -682,6 +1051,9 @@ export class ImportarExportarComponent implements OnInit, OnDestroy {
   archivoSeleccionado: File | null = null;
   mensaje = '';
   esError = false;
+  importando = false;
+  isDragOver = false;
+  excelPreview: ExcelPreview | null = null;
 
   private sub = new Subscription();
   tarjetas: Tarjeta[] = [];
@@ -702,6 +1074,14 @@ export class ImportarExportarComponent implements OnInit, OnDestroy {
     this.sub.unsubscribe();
   }
 
+  get totalGastos(): number {
+    return this.gastos.reduce((total, gasto) => total + gasto.monto, 0);
+  }
+
+  get gastosCompartidos(): number {
+    return this.gastos.filter(g => g.compartidoCon).length;
+  }
+
   exportar(): void {
     try {
       this.importarExportarService.exportarAExcel(this.tarjetas, this.gastos);
@@ -713,12 +1093,102 @@ export class ImportarExportarComponent implements OnInit, OnDestroy {
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.archivoSeleccionado = (input.files && input.files.length) ? input.files[0] : null;
+    const file = input.files?.[0];
+    if (file) {
+      this.procesarArchivo(file);
+    }
+  }
+
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragOver = true;
+  }
+
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragOver = false;
+  }
+
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragOver = false;
+    
+    const files = event.dataTransfer?.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      if (file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || 
+          file.name.endsWith('.xlsx')) {
+        this.procesarArchivo(file);
+      } else {
+        this.setMensaje('Por favor selecciona un archivo Excel (.xlsx)', true);
+      }
+    }
+  }
+
+  private async procesarArchivo(file: File): Promise<void> {
+    this.archivoSeleccionado = file;
     this.limpiarMensaje();
+    
+    try {
+      // Generar preview del archivo
+      const { tarjetas, gastos } = await this.importarExportarService.importarDesdeExcel(file);
+      
+             this.excelPreview = {
+         tarjetas: tarjetas.length,
+         gastos: gastos.length,
+         totalGastos: gastos.reduce((total, g) => total + g.monto, 0),
+         gastosCompartidos: gastos.filter(g => g.compartidoCon).length,
+         cuotasPendientes: gastos.filter(g => (g.cantidadCuotas || 1) > 1).length,
+         mesesConGastos: this.obtenerMesesConGastos(gastos),
+         archivo: file,
+         nombre: file.name,
+         tamano: this.formatearTamaño(file.size),
+         fechaModificacion: new Date(file.lastModified).toLocaleDateString()
+       };
+      
+    } catch (error: any) {
+      this.setMensaje(error?.message || 'No se pudo procesar el archivo.', true);
+      this.archivoSeleccionado = null;
+      this.excelPreview = null;
+    }
+  }
+
+  private obtenerMesesConGastos(gastos: Gasto[]): string[] {
+    const meses = new Set<string>();
+    
+    gastos.forEach(gasto => {
+      // Mes del gasto original
+      const mesGasto = gasto.fecha.slice(0, 7);
+      meses.add(mesGasto);
+      
+      // Meses de las cuotas si aplica
+      if (gasto.cantidadCuotas && gasto.cantidadCuotas > 1) {
+        const primerMes = gasto.primerMesCuota?.slice(0, 7) || mesGasto;
+        const [year, month] = primerMes.split('-').map(Number);
+        
+        for (let i = 0; i < gasto.cantidadCuotas; i++) {
+          const fecha = new Date(year, month - 1 + i, 1);
+          const mesKey = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
+          meses.add(mesKey);
+        }
+      }
+    });
+    
+    return Array.from(meses).sort();
+  }
+
+  private formatearTamaño(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
   async importar(): Promise<void> {
-    if (!this.archivoSeleccionado) return;
+    if (!this.archivoSeleccionado || !this.excelPreview) return;
+    
+    this.importando = true;
     try {
       const { tarjetas, gastos } = await this.importarExportarService.importarDesdeExcel(this.archivoSeleccionado);
 
@@ -726,10 +1196,12 @@ export class ImportarExportarComponent implements OnInit, OnDestroy {
       this.tarjetaService.reemplazarTarjetas(tarjetas).subscribe();
       this.gastoService.reemplazarGastos(gastos).subscribe();
 
-      this.setMensaje('Datos importados correctamente.');
+      this.setMensaje(`Importación exitosa: ${tarjetas.length} tarjetas y ${gastos.length} gastos importados.`);
       this.limpiarSeleccion();
     } catch (error: any) {
       this.setMensaje(error?.message || 'No se pudo importar el archivo.', true);
+    } finally {
+      this.importando = false;
     }
   }
 
@@ -740,6 +1212,7 @@ export class ImportarExportarComponent implements OnInit, OnDestroy {
 
   limpiarSeleccion(): void {
     this.archivoSeleccionado = null;
+    this.excelPreview = null;
     this.limpiarMensaje();
   }
 

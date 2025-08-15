@@ -1,386 +1,375 @@
-import { Component, Inject } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
-import { MatDialogModule, MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { FormsModule } from '@angular/forms';
 import { Tarjeta } from '../../models/tarjeta.model';
-
-export interface TarjetaDialogData {
-  esEdicion: boolean;
-  tarjeta?: Partial<Tarjeta>;
-}
 
 @Component({
   selector: 'app-tarjeta-dialog',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatDialogModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatIconModule,
-    MatProgressSpinnerModule
-  ],
+  imports: [CommonModule, FormsModule],
   template: `
-    <h2 mat-dialog-title>{{ data.esEdicion ? 'Editar' : 'Agregar' }} Tarjeta</h2>
-
-    <form [formGroup]="tarjetaForm" (ngSubmit)="onSubmit()">
-      <mat-dialog-content>
-        <div class="form-container">
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Nombre de la tarjeta</mat-label>
-            <input
-              matInput
-              formControlName="nombre"
-              placeholder="Ej: Visa Oro, Amex Platinum"
-              required
-            >
-            <mat-error>{{ getErrorMessage('nombre') }}</mat-error>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Banco</mat-label>
-            <input
-              matInput
-              formControlName="banco"
-              placeholder="Ej: Banco Nación, Galicia, Santander"
-              required
-            >
-            <mat-error>{{ getErrorMessage('banco') }}</mat-error>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Límite de crédito</mat-label>
-            <input
-              matInput
-              type="number"
-              formControlName="limite"
-              placeholder="Ej: 50000"
-              min="1"
-              required
-            >
-            <span matTextPrefix>$&nbsp;</span>
-            <mat-error>{{ getErrorMessage('limite') }}</mat-error>
-          </mat-form-field>
-
-          <div class="row">
-            <mat-form-field appearance="outline" class="half-width">
-              <mat-label>Día de cierre</mat-label>
-              <input
-                matInput
-                type="number"
-                formControlName="diaCierre"
-                placeholder="1-31"
-                min="1"
-                max="31"
-                required
-              >
-              <mat-error>{{ getErrorMessage('diaCierre') }}</mat-error>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="half-width">
-              <mat-label>Día de vencimiento</mat-label>
-              <input
-                matInput
-                type="number"
-                formControlName="diaVencimiento"
-                placeholder="1-31"
-                min="1"
-                max="31"
-                required
-              >
-              <mat-error>{{ getErrorMessage('diaVencimiento') }}</mat-error>
-            </mat-form-field>
-          </div>
-
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Últimos 4 dígitos (opcional)</mat-label>
-            <input
-              matInput
-              formControlName="ultimosDigitos"
-              placeholder="Últimos 4 dígitos de la tarjeta"
-              maxlength="4"
-              minlength="4"
-              pattern="\d{4}"
-            >
-            <mat-error>{{ getErrorMessage('ultimosDigitos') }}</mat-error>
-          </mat-form-field>
+    <div class="modal-overlay" (click)="onOverlayClick($event)">
+      <div class="modal-container" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3 class="modal-title">{{ esEdicion ? 'Editar' : 'Agregar' }} Tarjeta</h3>
+          <button class="modal-close" (click)="cancelar()">×</button>
         </div>
-      </mat-dialog-content>
-
-      <mat-dialog-actions align="end">
-        <button mat-button type="button" (click)="onCancel()">Cancelar</button>
-        <button
-          mat-raised-button
-          color="primary"
-          type="submit"
-          [disabled]="!tarjetaForm.valid || loading"
-        >
-          <span *ngIf="loading" class="spinner-button">
-            <mat-spinner diameter="20"></mat-spinner>
-          </span>
-          <span *ngIf="!loading">
-            {{ data.esEdicion ? 'Actualizar' : 'Agregar' }}
-          </span>
-        </button>
-      </mat-dialog-actions>
-    </form>
+        
+        <div class="modal-body">
+          <form (ngSubmit)="guardar()" #tarjetaForm="ngForm">
+            <div class="form-group">
+              <label for="nombre" class="form-label">Nombre de la Tarjeta *</label>
+              <input 
+                type="text" 
+                id="nombre" 
+                name="nombre"
+                [(ngModel)]="tarjeta.nombre" 
+                class="form-input"
+                placeholder="Ej: Visa Oro, Mastercard Gold"
+                required
+                #nombre="ngModel"
+              />
+              <div class="form-error" *ngIf="nombre.invalid && nombre.touched">
+                El nombre es requerido
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="banco" class="form-label">Banco</label>
+              <input 
+                type="text" 
+                id="banco" 
+                name="banco"
+                [(ngModel)]="tarjeta.banco" 
+                class="form-input"
+                placeholder="Ej: Banco Santander, BBVA"
+              />
+            </div>
+            
+            <div class="form-group">
+              <label for="limite" class="form-label">Límite de Crédito *</label>
+              <input 
+                type="number" 
+                id="limite" 
+                name="limite"
+                [(ngModel)]="tarjeta.limite" 
+                class="form-input"
+                placeholder="0.00"
+                min="0"
+                step="0.01"
+                required
+                #limite="ngModel"
+              />
+              <div class="form-error" *ngIf="limite.invalid && limite.touched">
+                El límite es requerido y debe ser mayor a 0
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label for="ultimosDigitos" class="form-label">Últimos 4 Dígitos</label>
+                <input 
+                  type="text" 
+                  id="ultimosDigitos" 
+                  name="ultimosDigitos"
+                  [(ngModel)]="tarjeta.ultimosDigitos" 
+                  class="form-input"
+                  placeholder="1234"
+                  maxlength="4"
+                  pattern="[0-9]{4}"
+                />
+                                 <div class="form-error" *ngIf="tarjeta.ultimosDigitos && tarjeta.ultimosDigitos.length !== 4">
+                   Debe ser exactamente 4 dígitos
+                 </div>
+              </div>
+              
+              <div class="form-group">
+                <label for="diaCierre" class="form-label">Día de Cierre</label>
+                <input 
+                  type="number" 
+                  id="diaCierre" 
+                  name="diaCierre"
+                  [(ngModel)]="tarjeta.diaCierre" 
+                  class="form-input"
+                  placeholder="15"
+                  min="1"
+                  max="31"
+                />
+              </div>
+              
+              <div class="form-group">
+                <label for="diaVencimiento" class="form-label">Día de Vencimiento</label>
+                <input 
+                  type="number" 
+                  id="diaVencimiento" 
+                  name="diaVencimiento"
+                  [(ngModel)]="tarjeta.diaVencimiento" 
+                  class="form-input"
+                  placeholder="20"
+                  min="1"
+                  max="31"
+                />
+              </div>
+            </div>
+            
+            
+          </form>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" (click)="cancelar()">
+            Cancelar
+          </button>
+          <button 
+            type="button" 
+            class="btn btn-primary" 
+            (click)="guardar()"
+            [disabled]="tarjetaForm.invalid"
+          >
+            {{ esEdicion ? 'Actualizar' : 'Agregar' }}
+          </button>
+        </div>
+      </div>
+    </div>
   `,
-  styles: [`
-    .form-container {
-      padding: 16px 0;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      min-width: 400px;
-      max-width: 100%;
-    }
-
-    .full-width {
+  styles: `
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
       width: 100%;
-    }
-
-    .half-width {
-      width: 48%;
-    }
-
-    .row {
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-
-    .spinner-button {
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
       display: flex;
       align-items: center;
       justify-content: center;
+      z-index: 1000;
+      animation: fadeIn 0.3s ease;
     }
 
-    .mat-mdc-form-field {
-      margin-bottom: 8px;
-    }
-
-    .mat-mdc-form-field-error {
-      font-size: 12px;
-      line-height: 1.2;
-      margin-top: 4px;
-      display: block;
-    }
-
-    .mat-mdc-form-field-subscript-wrapper {
-      position: static;
-      margin-top: 4px;
-    }
-
-    .mat-mdc-dialog-actions {
-      padding: 16px 24px 24px;
-      justify-content: flex-end;
-    }
-
-    .mat-mdc-dialog-content {
-      max-height: 70vh;
+    .modal-container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      width: 90%;
+      max-width: 500px;
+      max-height: 90vh;
       overflow-y: auto;
+      animation: slideIn 0.3s ease;
     }
 
-    @media (max-width: 600px) {
-      .form-container {
-        min-width: 100%;
-        padding: 8px 0;
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .modal-title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: #6b7280;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+    }
+
+    .modal-close:hover {
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    .modal-body {
+      padding: 24px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 16px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 6px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      box-sizing: border-box;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .form-input.ng-invalid.ng-touched {
+      border-color: #ef4444;
+    }
+
+    .color-input {
+      width: 60px;
+      height: 40px;
+      padding: 2px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .form-error {
+      font-size: 12px;
+      color: #ef4444;
+      margin-top: 4px;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      padding: 20px 24px;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: #2563eb;
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: #6b7280;
+      border: 1px solid #d1d5db;
+    }
+
+    .btn-outline:hover {
+      background: #f9fafb;
+      color: #374151;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateY(-20px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .modal-container {
+        width: 95%;
+        margin: 20px;
       }
 
-      .row {
+      .modal-header {
+        padding: 16px 20px;
+      }
+
+      .modal-body {
+        padding: 20px;
+      }
+
+      .modal-footer {
+        padding: 16px 20px;
         flex-direction: column;
-        gap: 0;
       }
 
-      .half-width {
+      .form-row {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .btn {
         width: 100%;
+        justify-content: center;
       }
     }
-  `]
+  `
 })
 export class TarjetaDialogComponent {
-  tarjetaForm: FormGroup;
-  loading = false;
+     @Input() tarjeta: Tarjeta = {
+     id: '',
+     nombre: '',
+     banco: '',
+     limite: 0,
+     ultimosDigitos: '',
+     diaCierre: 0,
+     diaVencimiento: 0
+   };
+  
+  @Input() esEdicion = false;
+  
+  @Output() guardarTarjeta = new EventEmitter<Tarjeta>();
+  @Output() cancelarDialog = new EventEmitter<void>();
 
-  constructor(
-    private fb: FormBuilder,
-    private dialogRef: MatDialogRef<TarjetaDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: TarjetaDialogData
-  ) {
-    this.tarjetaForm = this.fb.group({
-      nombre: [
-        '',
-        [
-          Validators.required,
-          Validators.maxLength(50),
-          Validators.pattern(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s-]+$/)
-        ]
-      ],
-      banco: [
-        '',
-        [
-          Validators.required,
-          Validators.maxLength(50),
-          Validators.pattern(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s-]+$/)
-        ]
-      ],
-      limite: [
-        null,
-        [
-          Validators.required,
-          Validators.min(100), // Mínimo $100
-          Validators.max(10000000), // Máximo $10,000,000
-          Validators.pattern(/^\d+(\.\d{1,2})?$/) // Acepta decimales opcionales con hasta 2 decimales
-        ]
-      ],
-      diaCierre: [
-        null,
-        [
-          Validators.required,
-          Validators.min(1),
-          Validators.max(31),
-          Validators.pattern(/^[1-9]|[12][0-9]|3[01]$/) // 1-31 sin ceros a la izquierda
-        ]
-      ],
-      diaVencimiento: [
-        null,
-        [
-          Validators.required,
-          Validators.min(1),
-          Validators.max(31),
-          Validators.pattern(/^[1-9]|[12][0-9]|3[01]$/) // 1-31 sin ceros a la izquierda
-        ]
-      ],
-      ultimosDigitos: [
-        '',
-        [
-          Validators.pattern(/^\d{4}$/),
-          (control: AbstractControl): ValidationErrors | null => {
-            // Validación personalizada para asegurar que no sean todos los dígitos iguales
-            const value = control.value;
-            if (!value) return null;
-            return /^(\d)\1{3}$/.test(value) ? { allSameDigits: true } : null;
-          }
-        ]
-      ]
-    }, {
-      validators: [
-        this.validateDiasCiclo.bind(this)
-      ]
-    });
-
-    if (this.data.esEdicion && this.data.tarjeta) {
-      this.tarjetaForm.patchValue(this.data.tarjeta);
+  guardar(): void {
+    if (this.tarjeta.nombre && this.tarjeta.limite > 0) {
+      this.guardarTarjeta.emit(this.tarjeta);
     }
   }
 
-  // Validador personalizado para verificar la relación entre días de cierre y vencimiento
-  private validateDiasCiclo(formGroup: FormGroup) {
-    const diaCierre = formGroup.get('diaCierre')?.value;
-    const diaVencimiento = formGroup.get('diaVencimiento')?.value;
-
-    if (!diaCierre || !diaVencimiento) {
-      return null;
-    }
-
-    // El día de vencimiento debe ser posterior al día de cierre (considerando el ciclo)
-    if (diaVencimiento <= diaCierre) {
-      formGroup.get('diaVencimiento')?.setErrors({ diaInvalido: true });
-      return { diasInvalidos: true };
-    }
-
-    // Si hay un error previo pero ahora es válido, limpiamos el error
-    if (formGroup.get('diaVencimiento')?.hasError('diaInvalido')) {
-      formGroup.get('diaVencimiento')?.setErrors(null);
-    }
-
-    return null;
+  cancelar(): void {
+    this.cancelarDialog.emit();
   }
 
-  // Obtener mensaje de error para un campo
-  getErrorMessage(controlName: string): string {
-    const control = this.tarjetaForm.get(controlName);
-
-    if (!control || !control.errors) return '';
-
-    if (control.hasError('required')) {
-      return 'Este campo es obligatorio';
-    } else if (control.hasError('min')) {
-      if (controlName === 'limite') return 'El monto mínimo es $100';
-      return `El valor mínimo es ${control.getError('min').min}`;
-    } else if (control.hasError('max')) {
-      if (controlName === 'limite') return 'El monto máximo es $10,000,000';
-      return `El valor máximo es ${control.getError('max').max}`;
-    } else if (control.hasError('pattern')) {
-      if (controlName === 'nombre' || controlName === 'banco') return 'Solo se permiten letras, números, espacios y guiones';
-      return 'Formato inválido';
-    } else if (control.hasError('allSameDigits')) {
-      return 'Los dígitos no pueden ser todos iguales';
+  onOverlayClick(event: Event): void {
+    if (event.target === event.currentTarget) {
+      this.cancelar();
     }
-
-    return 'Valor inválido';
-  }
-
-  // Manejar envío del formulario
-  onSubmit(): void {
-    // Marcar todos los campos como tocados para mostrar errores
-    this.markFormGroupTouched(this.tarjetaForm);
-
-    if (this.tarjetaForm.valid) {
-      this.loading = true;
-      // Simular tiempo de carga
-      setTimeout(() => {
-        const formValue = this.tarjetaForm.value;
-        const payload = {
-          ...formValue,
-          ultimosDigitos: formValue.ultimosDigitos ? formValue.ultimosDigitos : undefined
-        };
-        this.dialogRef.close(payload);
-        this.loading = false;
-      }, 1000);
-    } else {
-      // Enfocar el primer campo con error
-      const firstError = this.findFirstInvalidControl(this.tarjetaForm);
-      if (firstError) {
-        const element = document.querySelector(`[formControlName="${firstError}"]`);
-        if (element) {
-          (element as HTMLElement).focus();
-        }
-      }
-    }
-  }
-
-  // Marcar todos los controles como tocados
-  private markFormGroupTouched(formGroup: FormGroup) {
-    Object.values(formGroup.controls).forEach(control => {
-      control.markAsTouched();
-
-      if (control instanceof FormGroup) {
-        this.markFormGroupTouched(control);
-      }
-    });
-  }
-
-  // Encontrar el primer control inválido
-  private findFirstInvalidControl(group: FormGroup): string | null {
-    for (const controlName in group.controls) {
-      const control = group.get(controlName);
-      if (control?.invalid) {
-        return controlName;
-      }
-    }
-    return null;
-  }
-
-  onCancel(): void {
-    this.dialogRef.close();
   }
 }

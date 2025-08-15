@@ -286,7 +286,7 @@ export class ImportarExportarService {
    * Genera una plantilla de Excel vacía con las columnas correctas
    */
   generarPlantillaExcel(): void {
-    // Crear datos vacíos con las columnas correctas
+    // Crear datos vacíos con las columnas correctas (igual que el export)
     const tarjetasTemplate = [{
       'ID': '(generar automáticamente)',
       'Nombre': 'Ejemplo: Visa Oro',
@@ -300,20 +300,40 @@ export class ImportarExportarService {
       'Monto': 1500.50,
       'Fecha': '2023-01-15',
       'Compartido con': 'Nombre de la persona (opcional)',
-      'Porcentaje Compartido': '50 (opcional, 0-100)',
-      'Cantidad Cuotas': '1 (opcional; >=1)',
-      'Primer Mes Cuota': '2023-02 (opcional; YYYY-MM o YYYY-MM-01)',
-      'Monto Por Cuota': '(opcional; si se omite, monto/cantidad)'
+      'Porcentaje Compartido': 50,
+      'Cantidad Cuotas': 1,
+      'Primer Mes Cuota': '2023-02-01',
+      'Monto Por Cuota': 1500.50
+    }];
+
+    // Crear hojas adicionales como en el export
+    const resumenMensualTemplate = [{
+      'Mes': '2023-01',
+      'ID Tarjeta': '(ID de la tarjeta)',
+      'Tarjeta': 'Nombre de la tarjeta',
+      'Total Mes': 1500.50
+    }];
+
+    const cuotasDetalleTemplate = [{
+      'Mes': '2023-01',
+      'Tarjeta': 'Nombre de la tarjeta',
+      'Descripción': 'Descripción del gasto',
+      'N° Cuota': '1/3',
+      'Monto Cuota': 500.17
     }];
 
     // Crear el libro de trabajo
     const wb = XLSX.utils.book_new();
     const wsTarjetas = XLSX.utils.json_to_sheet(tarjetasTemplate);
     const wsGastos = XLSX.utils.json_to_sheet(gastosTemplate);
+    const wsResumenMensual = XLSX.utils.json_to_sheet(resumenMensualTemplate);
+    const wsCuotasDetalle = XLSX.utils.json_to_sheet(cuotasDetalleTemplate);
     
-    // Añadir instrucciones
+    // Añadir todas las hojas como en el export
     XLSX.utils.book_append_sheet(wb, wsTarjetas, this.HOJA_TARJETAS);
     XLSX.utils.book_append_sheet(wb, wsGastos, this.HOJA_GASTOS);
+    XLSX.utils.book_append_sheet(wb, wsResumenMensual, this.HOJA_RESUMEN_MENSUAL);
+    XLSX.utils.book_append_sheet(wb, wsCuotasDetalle, this.HOJA_CUOTAS_DETALLE);
     
     // Generar el archivo
     const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
