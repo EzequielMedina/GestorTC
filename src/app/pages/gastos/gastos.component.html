@@ -1,0 +1,124 @@
+<div class="page">
+  <div class="header">
+    <h2>Gastos</h2>
+    <p class="subtitle">Gestiona tus gastos y cuotas</p>
+    <button class="btn btn-primary add-btn" (click)="agregarGasto()">
+      <span class="btn-icon">➕</span>
+      <span class="btn-text">Agregar Gasto</span>
+    </button>
+  </div>
+
+  <!-- Filtros -->
+  <section class="content-card">
+    <h3 class="card-title">Filtros</h3>
+    <div class="filters">
+      <div class="filter-group">
+        <label for="filtroTarjeta" class="filter-label">Tarjeta</label>
+        <select id="filtroTarjeta" [(ngModel)]="filtroTarjeta" (change)="aplicarFiltros()" class="filter-select">
+          <option value="">Todas las tarjetas</option>
+          <option *ngFor="let tarjeta of tarjetas" [value]="tarjeta.id">{{ tarjeta.nombre }}</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label for="filtroMes" class="filter-label">Mes</label>
+        <select id="filtroMes" [(ngModel)]="filtroMes" (change)="aplicarFiltros()" class="filter-select">
+          <option value="">Todos los meses</option>
+          <option *ngFor="let mes of mesesDisponibles" [value]="mes">{{ mes }}</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label for="filtroCompartido" class="filter-label">Tipo</label>
+        <select id="filtroCompartido" [(ngModel)]="filtroCompartido" (change)="aplicarFiltros()" class="filter-select">
+          <option value="">Todos</option>
+          <option value="compartido">Compartidos</option>
+          <option value="personal">Personales</option>
+        </select>
+      </div>
+      
+      <button class="btn btn-outline clear-filters-btn" (click)="limpiarFiltros()">
+        <span class="btn-icon">🗑️</span>
+        <span class="btn-text">Limpiar</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Listado de gastos -->
+  <section class="content-card">
+    <div class="card-header">
+      <h3 class="card-title">Mis Gastos</h3>
+      <div class="card-stats">
+        <div class="stat-item">
+          <span class="stat-label">Total:</span>
+          <span class="stat-value">{{ totalFiltrado | number:'1.0-0' }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Mostrando:</span>
+          <span class="stat-value">{{ gastosFiltrados.length }} de {{ gastos.length }}</span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Loading state -->
+    <div *ngIf="loading" class="loading-state">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Cargando gastos...</div>
+    </div>
+
+    <!-- Empty state -->
+    <div *ngIf="!loading && gastosFiltrados.length === 0" class="empty-state">
+      <div class="empty-icon">💰</div>
+      <div class="empty-text">No hay gastos registrados</div>
+      <div class="empty-subtext" *ngIf="hayFiltrosActivos">
+        No se encontraron gastos con los filtros aplicados
+      </div>
+      <div class="empty-subtext" *ngIf="!hayFiltrosActivos">
+        ¡Agrega tu primer gasto para comenzar!
+      </div>
+    </div>
+
+    <!-- Lista de gastos -->
+    <div *ngIf="!loading && gastosFiltrados.length > 0" class="gastos-list">
+      <div class="gasto-card" *ngFor="let gasto of gastosFiltrados">
+        <div class="gasto-header">
+          <div class="gasto-icon">💰</div>
+          <div class="gasto-actions">
+            <button class="btn-action btn-edit" (click)="editarGasto(gasto)" title="Editar">
+              <span class="action-icon">✏️</span>
+            </button>
+            <button class="btn-action btn-delete" (click)="eliminarGasto(gasto)" title="Eliminar">
+              <span class="action-icon">🗑️</span>
+            </button>
+          </div>
+        </div>
+        
+        <div class="gasto-content">
+          <div class="gasto-info">
+            <div class="gasto-descripcion">{{ gasto.descripcion }}</div>
+            <div class="gasto-tarjeta">{{ obtenerNombreTarjeta(gasto.tarjetaId) }}</div>
+            <div class="gasto-fecha">{{ gasto.fecha | date:'dd/MM/yyyy' }}</div>
+          </div>
+          
+          <div class="gasto-monto">
+            <div class="monto-principal">{{ gasto.monto | number:'1.0-0' }}</div>
+            <div class="monto-cuota" *ngIf="gasto.cantidadCuotas && gasto.cantidadCuotas > 1">
+              {{ gasto.montoPorCuota || (gasto.monto / gasto.cantidadCuotas) | number:'1.0-0' }} x {{ gasto.cantidadCuotas }}
+            </div>
+          </div>
+          
+          <div class="gasto-details" *ngIf="gasto.compartidoCon || (gasto.cantidadCuotas && gasto.cantidadCuotas > 1)">
+            <div class="detail-item" *ngIf="gasto.compartidoCon">
+              <span class="detail-label">Compartido con:</span>
+              <span class="detail-value">{{ gasto.compartidoCon }} ({{ gasto.porcentajeCompartido }}%)</span>
+            </div>
+            <div class="detail-item" *ngIf="gasto.cantidadCuotas && gasto.cantidadCuotas > 1">
+              <span class="detail-label">Cuotas:</span>
+              <span class="detail-value">{{ gasto.cantidadCuotas }} cuotas desde {{ gasto.primerMesCuota }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

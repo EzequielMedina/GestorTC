@@ -10,8 +10,8 @@ import { Observable } from 'rxjs';
   template: `
     <div class="page">
       <div class="header">
-        <h2>Resumen</h2>
-        
+      <h2>Resumen</h2>
+
         <!-- Navegación mensual -->
         <div class="month-nav">
           <button class="btn-nav" (click)="prevMonth()" aria-label="Mes anterior">
@@ -29,22 +29,22 @@ import { Observable } from 'rxjs';
         <div class="stat-card">
           <div class="stat-icon">💰</div>
           <div class="stat-content">
-            <div class="stat-label">Total del mes</div>
-            <div class="stat-value">{{ ((totalDelMes$ | async) ?? 0) | number:'1.2-2' }}</div>
-          </div>
+          <div class="stat-label">Total del mes</div>
+          <div class="stat-value">{{ ((totalDelMes$ | async) ?? 0) | number:'1.2-2' }}</div>
+        </div>
         </div>
         <div class="stat-card">
           <div class="stat-icon">💳</div>
           <div class="stat-content">
-            <div class="stat-label">Límite Total</div>
-            <div class="stat-value">{{ ((limiteTotal$ | async) ?? 0) | number:'1.0-0' }}</div>
-          </div>
+          <div class="stat-label">Límite Total</div>
+          <div class="stat-value">{{ ((limiteTotal$ | async) ?? 0) | number:'1.0-0' }}</div>
+        </div>
         </div>
         <div class="stat-card">
           <div class="stat-icon">📊</div>
           <div class="stat-content">
-            <div class="stat-label">Uso del mes</div>
-            <div class="stat-value">{{ ((porcentajeUsoTotalMes$ | async) ?? 0) | number:'1.0-2' }}%</div>
+          <div class="stat-label">Uso del mes</div>
+          <div class="stat-value">{{ ((porcentajeUsoTotalMes$ | async) ?? 0) | number:'1.0-2' }}%</div>
           </div>
         </div>
       </section>
@@ -114,7 +114,7 @@ import { Observable } from 'rxjs';
           <div *ngIf="detalle.length === 0" class="empty-state">
             <div class="empty-icon">📝</div>
             <div class="empty-text">No hay gastos para este mes</div>
-          </div>
+        </div>
         </div>
       </section>
 

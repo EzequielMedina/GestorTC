@@ -1,0 +1,247 @@
+<div class="page">
+  <div class="header">
+    <h2>Importar / Exportar</h2>
+    <p class="subtitle">Gestiona tus datos de tarjetas y gastos</p>
+  </div>
+
+  <!-- Exportar -->
+  <section class="content-card">
+    <div class="card-header">
+      <div class="card-icon">📤</div>
+      <div class="card-title-section">
+        <h3 class="card-title">Exportar Datos</h3>
+        <p class="card-description">Descarga un archivo Excel completo con todas tus tarjetas y gastos</p>
+      </div>
+    </div>
+    
+    <div class="card-content">
+      <div class="export-stats">
+        <div class="stat-item">
+          <div class="stat-icon">💳</div>
+          <div class="stat-info">
+            <div class="stat-value">{{ tarjetas.length }}</div>
+            <div class="stat-label">Tarjetas</div>
+          </div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-icon">💰</div>
+          <div class="stat-info">
+            <div class="stat-value">{{ gastos.length }}</div>
+            <div class="stat-label">Gastos</div>
+          </div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-icon">📊</div>
+          <div class="stat-info">
+            <div class="stat-value">{{ totalGastos | number:'1.0-0' }}</div>
+            <div class="stat-label">Total Gastos</div>
+          </div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-icon">🤝</div>
+          <div class="stat-info">
+            <div class="stat-value">{{ gastosCompartidos }}</div>
+            <div class="stat-label">Compartidos</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="export-features">
+        <div class="feature-list">
+          <div class="feature-item">
+            <span class="feature-icon">📋</span>
+            <span class="feature-text">4 hojas de datos</span>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">📅</span>
+            <span class="feature-text">Resumen mensual</span>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">💳</span>
+            <span class="feature-text">Detalle de cuotas</span>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">📊</span>
+            <span class="feature-text">Estadísticas completas</span>
+          </div>
+        </div>
+      </div>
+      
+      <button class="btn btn-primary export-btn" (click)="exportar()" [disabled]="tarjetas.length === 0 && gastos.length === 0">
+        <span class="btn-icon">📊</span>
+        <span class="btn-text">Exportar a Excel</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Importar -->
+  <section class="content-card">
+    <div class="card-header">
+      <div class="card-icon">📥</div>
+      <div class="card-title-section">
+        <h3 class="card-title">Importar Datos</h3>
+        <p class="card-description">Selecciona un archivo Excel compatible para importar tarjetas y gastos</p>
+      </div>
+    </div>
+    
+    <div class="card-content">
+      <!-- File Upload Area -->
+      <div class="file-upload-area" [class.has-file]="archivoSeleccionado" [class.dragover]="isDragOver">
+        <div class="upload-icon">📁</div>
+        <div class="upload-text">
+          <span *ngIf="!archivoSeleccionado">Arrastra un archivo Excel aquí o haz clic para seleccionar</span>
+          <span *ngIf="archivoSeleccionado" class="file-name">{{ archivoSeleccionado.name }}</span>
+        </div>
+        <input 
+          type="file" 
+          (change)="onFileSelected($event)" 
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave($event)"
+          (drop)="onDrop($event)"
+          accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          class="file-input"
+          id="fileInput"
+        />
+        <label for="fileInput" class="upload-label">Elegir archivo</label>
+      </div>
+      
+      <!-- File Preview -->
+      <div class="file-preview" *ngIf="excelPreview">
+        <div class="preview-header">
+          <h4 class="preview-title">Vista previa del archivo</h4>
+          <div class="file-info">
+            <span class="file-size">{{ excelPreview.tamano }}</span>
+            <span class="file-date">{{ excelPreview.fechaModificacion }}</span>
+          </div>
+        </div>
+        
+        <div class="preview-stats">
+          <div class="preview-stat">
+            <div class="preview-stat-icon">💳</div>
+            <div class="preview-stat-content">
+              <div class="preview-stat-value">{{ excelPreview.tarjetas }}</div>
+              <div class="preview-stat-label">Tarjetas</div>
+            </div>
+          </div>
+          <div class="preview-stat">
+            <div class="preview-stat-icon">💰</div>
+            <div class="preview-stat-content">
+              <div class="preview-stat-value">{{ excelPreview.gastos }}</div>
+              <div class="preview-stat-label">Gastos</div>
+            </div>
+          </div>
+          <div class="preview-stat">
+            <div class="preview-stat-icon">📊</div>
+            <div class="preview-stat-content">
+              <div class="preview-stat-value">{{ excelPreview.totalGastos | number:'1.0-0' }}</div>
+              <div class="preview-stat-label">Total</div>
+            </div>
+          </div>
+          <div class="preview-stat">
+            <div class="preview-stat-icon">🤝</div>
+            <div class="preview-stat-content">
+              <div class="preview-stat-value">{{ excelPreview.gastosCompartidos }}</div>
+              <div class="preview-stat-label">Compartidos</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="preview-details" *ngIf="excelPreview.cuotasPendientes > 0 || excelPreview.mesesConGastos.length > 0">
+          <div class="detail-section" *ngIf="excelPreview.cuotasPendientes > 0">
+            <div class="detail-title">📅 Cuotas pendientes</div>
+            <div class="detail-value">{{ excelPreview.cuotasPendientes }} cuotas en curso</div>
+          </div>
+          <div class="detail-section" *ngIf="excelPreview.mesesConGastos.length > 0">
+            <div class="detail-title">📆 Período de datos</div>
+            <div class="detail-value">{{ excelPreview.mesesConGastos[0] }} - {{ excelPreview.mesesConGastos[excelPreview.mesesConGastos.length - 1] }}</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Import Actions -->
+      <div class="import-actions" *ngIf="archivoSeleccionado">
+        <button class="btn btn-primary" (click)="importar()" [disabled]="importando">
+          <span class="btn-icon">{{ importando ? '⏳' : '✅' }}</span>
+          <span class="btn-text">{{ importando ? 'Importando...' : 'Importar Datos' }}</span>
+        </button>
+        <button class="btn btn-outline" (click)="limpiarSeleccion()" [disabled]="importando">
+          <span class="btn-icon">❌</span>
+          <span class="btn-text">Cancelar</span>
+        </button>
+      </div>
+      
+      <!-- Warning Box -->
+      <div class="warning-box" *ngIf="archivoSeleccionado">
+        <div class="warning-icon">⚠️</div>
+        <div class="warning-content">
+          <div class="warning-title">¡Atención!</div>
+          <div class="warning-text">La importación reemplazará todos los datos actuales. Se recomienda hacer una copia de seguridad antes de continuar.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Plantilla -->
+  <section class="content-card">
+    <div class="card-header">
+      <div class="card-icon">📋</div>
+      <div class="card-title-section">
+        <h3 class="card-title">Descargar Plantilla</h3>
+        <p class="card-description">Descarga una plantilla de Excel con las columnas esperadas y ejemplos</p>
+      </div>
+    </div>
+    
+    <div class="card-content">
+      <div class="template-info">
+        <div class="template-features">
+          <div class="feature-item">
+            <span class="feature-icon">📝</span>
+            <span class="feature-text">Columnas predefinidas</span>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">📊</span>
+            <span class="feature-text">Formato correcto</span>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">💡</span>
+            <span class="feature-text">Ejemplos incluidos</span>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">✅</span>
+            <span class="feature-text">Validación automática</span>
+          </div>
+        </div>
+        
+        <div class="template-structure">
+          <div class="structure-title">Estructura de la plantilla:</div>
+          <div class="structure-sheets">
+            <div class="sheet-item">
+              <span class="sheet-icon">📋</span>
+              <span class="sheet-name">Tarjetas</span>
+              <span class="sheet-desc">Datos de tarjetas de crédito</span>
+            </div>
+            <div class="sheet-item">
+              <span class="sheet-icon">💰</span>
+              <span class="sheet-name">Gastos</span>
+              <span class="sheet-desc">Registro de gastos y cuotas</span>
+            </div>
+          </div>
+        </div>
+        
+        <button class="btn btn-secondary template-btn" (click)="descargarPlantilla()">
+          <span class="btn-icon">📥</span>
+          <span class="btn-text">Descargar Plantilla</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Mensaje de estado -->
+  <div class="message-container" *ngIf="mensaje">
+    <div class="message" [class.error]="esError" [class.success]="!esError">
+      <div class="message-icon">{{ esError ? '❌' : '✅' }}</div>
+      <div class="message-text">{{ mensaje }}</div>
+      <button class="message-close" (click)="limpiarMensaje()">×</button>
+    </div>
+  </div>
+</div>

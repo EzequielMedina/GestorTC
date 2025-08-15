@@ -1,80 +1,81 @@
-<mat-card>
-  <mat-card-header>
-    <mat-card-title>Tarjetas de Crédito</mat-card-title>
-    <button mat-raised-button color="primary" (click)="agregarTarjeta()" class="add-button">
-      <mat-icon>add</mat-icon> <span>Agregar Tarjeta</span>
+<div class="page">
+  <div class="header">
+    <h2>Tarjetas de Crédito</h2>
+    <p class="subtitle">Gestiona tus tarjetas de crédito</p>
+    <button class="btn btn-primary add-btn" (click)="agregarTarjeta()">
+      <span class="btn-icon">➕</span>
+      <span class="btn-text">Agregar Tarjeta</span>
     </button>
-  </mat-card-header>
-  
-  <mat-card-content>
-    <div class="table-container">
-      <!-- Mostrar spinner de carga -->
-      <div *ngIf="loading" class="loading">
-        <mat-spinner diameter="40"></mat-spinner>
-      </div>
+  </div>
 
-      <!-- Mostrar mensaje cuando no hay datos -->
-      <div *ngIf="!loading && tarjetas.length === 0" class="no-data">
-        <p>No hay tarjetas registradas. ¡Agrega tu primera tarjeta!</p>
-      </div>
-
-      <!-- Tabla de tarjetas -->
-      <table *ngIf="!loading && tarjetas.length > 0" mat-table [dataSource]="tarjetas" class="mat-elevation-z1">
-        <!-- Columna Nombre -->
-        <ng-container matColumnDef="nombre">
-          <th mat-header-cell *matHeaderCellDef> Nombre </th>
-          <td mat-cell *matCellDef="let tarjeta"> {{tarjeta.nombre}} </td>
-        </ng-container>
-
-        <!-- Columna Banco -->
-        <ng-container matColumnDef="banco">
-          <th mat-header-cell *matHeaderCellDef> Banco </th>
-          <td mat-cell *matCellDef="let tarjeta"> {{tarjeta.banco}} </td>
-        </ng-container>
-
-        <!-- Columna Últimos 4 Dígitos -->
-        <ng-container matColumnDef="ultimosDigitos">
-          <th mat-header-cell *matHeaderCellDef> Últimos 4 Dígitos </th>
-          <td mat-cell *matCellDef="let tarjeta">
-            <ng-container *ngIf="tarjeta.ultimosDigitos && tarjeta.ultimosDigitos.length === 4; else sinDigitos">
-              ****{{ tarjeta.ultimosDigitos }}
-            </ng-container>
-            <ng-template #sinDigitos>-</ng-template>
-          </td>
-        </ng-container>
-
-        <!-- Columna Vencimiento -->
-        <ng-container matColumnDef="vencimiento">
-          <th mat-header-cell *matHeaderCellDef> Vencimiento </th>
-          <td mat-cell *matCellDef="let tarjeta"> {{tarjeta.diaVencimiento}}/mes </td>
-        </ng-container>
-
-        <!-- Columna Acciones -->
-        <ng-container matColumnDef="acciones">
-          <th mat-header-cell *matHeaderCellDef class="actions-header"> Acciones </th>
-          <td mat-cell *matCellDef="let tarjeta" class="actions-cell">
-            <button mat-icon-button color="primary" (click)="$event.stopPropagation(); editarTarjeta(tarjeta)" matTooltip="Editar">
-              <mat-icon>edit</mat-icon>
-            </button>
-            <button mat-icon-button color="warn" (click)="$event.stopPropagation(); eliminarTarjeta(tarjeta)" matTooltip="Eliminar">
-              <mat-icon>delete</mat-icon>
-            </button>
-          </td>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="columnasMostradas"></tr>
-        <tr mat-row *matRowDef="let row; columns: columnasMostradas;" (click)="editarTarjeta(row)"></tr>
-      </table>
+  <!-- Listado de tarjetas -->
+  <section class="content-card">
+    <h3 class="card-title">Mis Tarjetas</h3>
+    
+    <!-- Loading state -->
+    <div *ngIf="loading" class="loading-state">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Cargando tarjetas...</div>
     </div>
 
-    <!-- Paginador -->
-    <mat-paginator *ngIf="!loading && tarjetas.length > 0"
-      [length]="totalTarjetas"
-      [pageSize]="pageSize"
-      [pageIndex]="pageIndex"
-      [pageSizeOptions]="[5, 10, 25, 100]"
-      (page)="onPageChange($event)"
-      aria-label="Seleccionar página">
-    </mat-paginator>
-  </mat-card-content>
-</mat-card>
+    <!-- Empty state -->
+    <div *ngIf="!loading && tarjetas.length === 0" class="empty-state">
+      <div class="empty-icon">💳</div>
+      <div class="empty-text">No hay tarjetas registradas</div>
+      <div class="empty-subtext">¡Agrega tu primera tarjeta para comenzar!</div>
+    </div>
+
+    <!-- Lista de tarjetas -->
+    <div *ngIf="!loading && tarjetas.length > 0" class="tarjetas-grid">
+      <div class="tarjeta-card" *ngFor="let tarjeta of tarjetas">
+        <div class="tarjeta-header">
+          <div class="tarjeta-icon">💳</div>
+          <div class="tarjeta-actions">
+            <button class="btn-action btn-edit" (click)="editarTarjeta(tarjeta)" title="Editar">
+              <span class="action-icon">✏️</span>
+            </button>
+            <button class="btn-action btn-delete" (click)="eliminarTarjeta(tarjeta)" title="Eliminar">
+              <span class="action-icon">🗑️</span>
+            </button>
+          </div>
+        </div>
+        
+        <div class="tarjeta-content">
+          <div class="tarjeta-nombre">{{ tarjeta.nombre }}</div>
+          <div class="tarjeta-banco">{{ tarjeta.banco }}</div>
+          
+          <div class="tarjeta-details">
+            <div class="detail-item">
+              <span class="detail-label">Límite:</span>
+              <span class="detail-value">{{ tarjeta.limite | number:'1.0-0' }}</span>
+            </div>
+            
+            <div class="detail-item" *ngIf="tarjeta.ultimosDigitos">
+              <span class="detail-label">Últimos dígitos:</span>
+              <span class="detail-value">****{{ tarjeta.ultimosDigitos }}</span>
+            </div>
+            
+            <div class="detail-item">
+              <span class="detail-label">Día de cierre:</span>
+              <span class="detail-value">{{ tarjeta.diaCierre }}</span>
+            </div>
+            
+            <div class="detail-item">
+              <span class="detail-label">Día de vencimiento:</span>
+              <span class="detail-value">{{ tarjeta.diaVencimiento }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- Modal para agregar/editar tarjeta -->
+<app-tarjeta-dialog 
+  *ngIf="mostrarModal"
+  [tarjeta]="tarjetaSeleccionada"
+  [esEdicion]="esEdicion"
+  (guardarTarjeta)="onGuardarTarjeta($event)"
+  (cancelarDialog)="cerrarModal()"
+></app-tarjeta-dialog>

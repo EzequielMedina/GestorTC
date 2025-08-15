@@ -3,6 +3,8 @@
   --surface: var(--color2);
   --primary: var(--color3);
   --danger: #dc2626;
+  --success: #16a34a;
+  --warning: #ca8a04;
   --secondary: #6b7280;
   --border: var(--color5);
   --shadow-sm: 0 1px 2px rgba(0,0,0,0.08);
@@ -71,6 +73,7 @@
   background: var(--surface);
   border-radius: var(--radius);
   padding: 20px;
+  margin-bottom: 24px;
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--border);
 }
@@ -82,6 +85,79 @@
   color: #333;
   border-bottom: 2px solid var(--primary);
   padding-bottom: 8px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.card-stats {
+  display: flex;
+  gap: 16px;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+}
+
+.stat-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Filtros */
+.filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  align-items: end;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.filter-select {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  background: white;
+  transition: all 0.2s ease;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.clear-filters-btn {
+  align-self: end;
 }
 
 /* Loading state */
@@ -134,14 +210,14 @@
   color: #666;
 }
 
-/* Grid de tarjetas */
-.tarjetas-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
+/* Lista de gastos */
+.gastos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.tarjeta-card {
+.gasto-card {
   background: var(--bg);
   border-radius: var(--radius-sm);
   padding: 20px;
@@ -150,19 +226,19 @@
   position: relative;
 }
 
-.tarjeta-card:hover {
+.gasto-card:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
 }
 
-.tarjeta-header {
+.gasto-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
 }
 
-.tarjeta-icon {
+.gasto-icon {
   font-size: 32px;
   width: 60px;
   height: 60px;
@@ -174,7 +250,7 @@
   border-radius: 50%;
 }
 
-.tarjeta-actions {
+.gasto-actions {
   display: flex;
   gap: 8px;
 }
@@ -211,41 +287,68 @@
   font-size: 16px;
 }
 
-.tarjeta-content {
+.gasto-content {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.tarjeta-nombre {
+.gasto-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.gasto-descripcion {
   font-size: 18px;
   font-weight: 600;
   color: #333;
 }
 
-.tarjeta-banco {
+.gasto-tarjeta {
   font-size: 14px;
+  color: var(--primary);
+  font-weight: 500;
+}
+
+.gasto-fecha {
+  font-size: 13px;
+  color: #666;
+}
+
+.gasto-monto {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.monto-principal {
+  font-size: 24px;
+  font-weight: 700;
+  color: #333;
+}
+
+.monto-cuota {
+  font-size: 12px;
   color: #666;
   font-weight: 500;
 }
 
-.tarjeta-details {
+.gasto-details {
   display: flex;
   flex-direction: column;
   gap: 8px;
   margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0,0,0,0.05);
 }
 
 .detail-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid rgba(0,0,0,0.05);
-}
-
-.detail-item:last-child {
-  border-bottom: none;
+  padding: 4px 0;
 }
 
 .detail-label {
@@ -255,9 +358,54 @@
 }
 
 .detail-value {
-  font-size: 14px;
+  font-size: 13px;
   color: #333;
   font-weight: 600;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.btn-outline {
+  background: transparent;
+  color: #666;
+  border: 1px solid var(--border);
+}
+
+.btn-outline:hover:not(:disabled) {
+  background: var(--bg);
 }
 
 /* Responsive Design */
@@ -281,6 +429,7 @@
 
   .content-card {
     padding: 16px;
+    margin-bottom: 16px;
   }
 
   .card-title {
@@ -288,39 +437,56 @@
     margin-bottom: 16px;
   }
 
-  .tarjetas-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
   }
 
-  .tarjeta-card {
+  .card-stats {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .filters {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .clear-filters-btn {
+    align-self: stretch;
+    justify-content: center;
+  }
+
+  .gasto-card {
     padding: 16px;
   }
 
-  .tarjeta-icon {
+  .gasto-icon {
     width: 50px;
     height: 50px;
     font-size: 24px;
   }
 
-  .tarjeta-nombre {
+  .gasto-descripcion {
     font-size: 16px;
   }
 
-  .tarjeta-banco {
+  .gasto-tarjeta {
     font-size: 13px;
   }
 
-  .detail-item {
-    padding: 6px 0;
+  .monto-principal {
+    font-size: 20px;
   }
 
-  .detail-label {
-    font-size: 12px;
+  .btn-action {
+    width: 32px;
+    height: 32px;
   }
 
-  .detail-value {
-    font-size: 13px;
+  .action-icon {
+    font-size: 14px;
   }
 }
 
@@ -354,38 +520,85 @@
     font-size: 16px;
   }
 
-  .tarjeta-card {
+  .card-stats {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .stat-item {
+    justify-content: space-between;
+  }
+
+  .gasto-card {
     padding: 12px;
   }
 
-  .tarjeta-header {
+  .gasto-header {
     margin-bottom: 12px;
   }
 
-  .tarjeta-icon {
+  .gasto-icon {
     width: 40px;
     height: 40px;
     font-size: 20px;
   }
 
-  .btn-action {
-    width: 32px;
-    height: 32px;
-  }
-
-  .action-icon {
-    font-size: 14px;
-  }
-
-  .tarjeta-content {
+  .gasto-content {
     gap: 8px;
   }
 
-  .tarjeta-details {
+  .gasto-info {
+    gap: 2px;
+  }
+
+  .gasto-descripcion {
+    font-size: 15px;
+  }
+
+  .gasto-tarjeta {
+    font-size: 12px;
+  }
+
+  .gasto-fecha {
+    font-size: 12px;
+  }
+
+  .monto-principal {
+    font-size: 18px;
+  }
+
+  .monto-cuota {
+    font-size: 11px;
+  }
+
+  .gasto-details {
     gap: 6px;
+    margin-top: 6px;
+    padding-top: 8px;
   }
 
   .detail-item {
-    padding: 4px 0;
+    padding: 2px 0;
+  }
+
+  .detail-label {
+    font-size: 12px;
+  }
+
+  .detail-value {
+    font-size: 12px;
+  }
+
+  .btn {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .btn-icon {
+    font-size: 14px;
+  }
+
+  .btn-text {
+    font-size: 13px;
   }
 }

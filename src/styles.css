@@ -1,3 +1,6 @@
+@import 'https://fonts.googleapis.com/icon?family=Material+Icons+Round';
+@import 'https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap';
+
 /* Estilos globales para la aplicación */
 :root {
   /* Paleta solicitada */
@@ -22,9 +25,17 @@
   --secondary: var(--color4);
   --danger: var(--color4); /* unificar paleta, sin rojo puro */
   --border: var(--color5);
+  
+  /* Additional utility variables */
+  --danger-red: #dc2626;
+  --success-green: #16a34a;
+  --warning-yellow: #ca8a04;
+  --secondary-gray: #6b7280;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+  --radius: 12px;
+  --radius-sm: 8px;
 }
-@import 'https://fonts.googleapis.com/icon?family=Material+Icons+Round';
-@import 'https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap';
 
 /* Establecer el tamaño de fuente base para rem */
 html {
@@ -167,3 +178,191 @@ body {
 .p-1 { padding: 0.5rem; }
 .p-2 { padding: 1rem; }
 .p-3 { padding: 1.5rem; }
+
+/* Common button styles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.btn-secondary {
+  background: var(--secondary-gray);
+  color: white;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #4b5563;
+}
+
+.btn-outline {
+  background: transparent;
+  color: #666;
+  border: 1px solid var(--border);
+}
+
+.btn-outline:hover:not(:disabled) {
+  background: var(--bg);
+}
+
+.btn-icon {
+  font-size: 16px;
+}
+
+.btn-text {
+  font-size: 14px;
+}
+
+/* Common card styles */
+.content-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.card-icon {
+  font-size: 32px;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary);
+  color: white;
+  border-radius: 50%;
+}
+
+.card-title-section {
+  flex: 1;
+}
+
+.card-title {
+  margin: 0 0 4px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+}
+
+.card-description {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Common stats grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 16px;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.stat-icon {
+  font-size: 24px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary);
+  color: white;
+  border-radius: 50%;
+}
+
+.stat-info {
+  flex: 1;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #333;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #666;
+  margin-top: 2px;
+}
+
+/* Common responsive utilities */
+@media (max-width: 768px) {
+  .content-card { padding: 16px; margin-bottom: 16px; }
+  .card-header { flex-direction: column; text-align: center; gap: 12px; }
+  .card-icon { width: 50px; height: 50px; font-size: 24px; }
+  .card-title { font-size: 18px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .stat-item { padding: 12px; }
+  .stat-icon { width: 32px; height: 32px; font-size: 18px; }
+  .stat-value { font-size: 16px; }
+  .btn { justify-content: center; }
+}
+
+@media (max-width: 480px) {
+  .content-card { padding: 12px; }
+  .card-icon { width: 40px; height: 40px; font-size: 20px; }
+  .card-title { font-size: 16px; }
+  .card-description { font-size: 13px; }
+  .stats-grid { grid-template-columns: 1fr; }
+  .stat-item { padding: 10px; }
+  .stat-icon { width: 28px; height: 28px; font-size: 16px; }
+  .stat-value { font-size: 14px; }
+  .btn { padding: 10px 16px; font-size: 13px; }
+  .btn-icon { font-size: 14px; }
+  .btn-text { font-size: 13px; }
+}
