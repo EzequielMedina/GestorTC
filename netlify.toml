@@ -1,0 +1,12 @@
+[build]
+  command = "npm run build"
+  publish = "dist/gestor-tc"
+
+[build.environment]
+  NODE_VERSION = "20.19.0"
+
+# Single Page App redirect: serve index.html for all routes
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
