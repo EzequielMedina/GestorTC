@@ -1,0 +1,119 @@
+/* Estilos para el contenedor principal */
+.table-container {
+  overflow-x: auto;
+}
+
+/* Estilos para la tabla */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+}
+
+/* Estilos para las celdas de encabezado */
+th.mat-header-cell {
+  background-color: #f5f5f5;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.87);
+  padding: 0 16px;
+  text-align: left;
+}
+
+/* Estilos para las celdas de datos */
+td.mat-cell {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+/* Estilos para las filas al pasar el ratón */
+.mat-row:hover {
+  background-color: #f5f5f5;
+  cursor: pointer;
+}
+
+/* Estilos para el encabezado de la tarjeta */
+mat-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+/* Estilos para el título de la tarjeta */
+mat-card-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+
+/* Estilos para el botón de agregar */
+.add-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Estilos para el contenedor de acciones */
+.actions-header {
+  text-align: center;
+  width: 120px;
+}
+
+.actions-cell {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Estilos para la tarjeta */
+mat-card {
+  margin: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+/* Estilos para los botones de acción */
+button[mat-icon-button] {
+  width: 36px;
+  height: 36px;
+  line-height: 36px;
+}
+
+/* Estilos para mensajes de estado */
+.no-data {
+  text-align: center;
+  padding: 2rem;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+/* Estilos para el mensaje de carga */
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+}
+
+/* Estilos para el paginador */
+.mat-paginator {
+  margin-top: 1rem;
+  background: transparent;
+}
+
+/* Estilos para dispositivos móviles */
+@media (max-width: 600px) {
+  mat-card {
+    margin: 0.5rem;
+    padding: 1rem;
+  }
+  
+  .add-button span {
+    display: none;
+  }
+  
+  .add-button::after {
+    content: '+';
+  }
+}

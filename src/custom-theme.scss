@@ -1,0 +1,31 @@
+
+// Importa las funciones de Angular Material
+@use '@angular/material' as mat;
+
+// Material 3: define un tema claro usando paletas incorporadas
+$theme: mat.define-theme((
+  color: (
+    theme-type: light,
+    primary: mat.$green-palette,
+    tertiary: mat.$red-palette,
+  ),
+  density: (
+    scale: 0,
+  ),
+));
+
+// Incluir núcleo y aplicar tema a todos los componentes
+@include mat.core();
+@include mat.all-component-themes($theme);
+
+// Tema oscuro opcional
+.dark-theme {
+  $dark-theme: mat.define-theme((
+    color: (
+      theme-type: dark,
+      primary: mat.$green-palette,
+      tertiary: mat.$red-palette,
+    ),
+  ));
+  @include mat.all-component-colors($dark-theme);
+}

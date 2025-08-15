@@ -1,0 +1,15 @@
+flowchart TD
+    A[Usuario] -->|Carga archivo Excel| B[Importar Excel]
+    B -->|xlsx.js| C[Memoria en Angular]
+    C --> D[Servicios Angular]
+    D --> E1[Gestor Tarjetas]
+    D --> E2[Gestor Gastos]
+    D --> E3[Compartir Gastos]
+    E1 --> F[Lista de Tarjetas]
+    E2 --> G[Lista de Gastos]
+    E3 --> H[Resumen por Persona]
+    F -->|Guardar/Actualizar| C
+    G -->|Guardar/Actualizar| C
+    H -->|Guardar/Actualizar| C
+    C -->|Exportar Excel| I[Generar XLSX]
+    I -->|Descarga archivo| A

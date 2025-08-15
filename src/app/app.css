@@ -1,0 +1,343 @@
+/* Estilos específicos para el componente principal de la aplicación */
+
+/* Contenedor principal */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--background);
+}
+
+/* Barra de herramientas */
+.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  height: 64px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: var(--surface);
+  color: var(--text-primary);
+}
+
+.toolbar-spacer {
+  flex: 1 1 auto;
+}
+
+/* Navegación en toolbar (desktop) y botón menú (mobile) */
+.desktop-nav {
+  display: none;
+  gap: 4px;
+}
+
+.menu-button {
+  margin-right: 8px;
+}
+
+/* Estado activo en toolbar */
+.desktop-nav a.active {
+  color: var(--primary-color);
+  font-weight: 600;
+  border-bottom: 2px solid var(--primary-color);
+  border-radius: 0;
+}
+
+/* Contenido principal */
+.main-content {
+  flex: 1;
+  padding: 24px;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Barra lateral */
+.sidenav-container {
+  height: 100%;
+  background-color: var(--background);
+}
+
+.sidenav {
+  width: 250px;
+  border-right: 1px solid rgba(0, 0, 0, 0.12);
+  background-color: var(--surface);
+}
+
+.sidenav-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Enlaces de navegación */
+.nav-list {
+  padding-top: 0;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  height: 48px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: background-color 0.2s, color 0.2s;
+  border-left: 4px solid transparent;
+}
+
+.nav-item:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+  color: var(--text-primary);
+}
+
+.nav-item.active {
+  background-color: rgba(0, 0, 0, 0.08);
+  color: var(--primary-color);
+  border-left-color: var(--primary-color);
+  font-weight: 500;
+}
+
+.nav-item mat-icon {
+  margin-right: 16px;
+  color: inherit;
+}
+
+/* Footer */
+.footer {
+  padding: 16px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-secondary);
+  background-color: var(--surface);
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+/* Estilos responsivos */
+@media (max-width: 959px) {
+  .main-content {
+    padding: 16px;
+  }
+  
+  .sidenav {
+    width: 280px;
+  }
+  
+  /* En móviles ocultar navegación de la toolbar */
+  .desktop-nav {
+    display: none;
+  }
+  
+  /* Mostrar botón de menú */
+  .menu-button {
+    display: inline-flex;
+  }
+}
+
+/* En escritorio mostrar navegación en toolbar y ocultar botón menú */
+@media (min-width: 960px) {
+  .desktop-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .menu-button {
+    display: none;
+  }
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* Clases de utilidad */
+.text-muted {
+  color: var(--text-hint);
+}
+
+.text-center {
+  text-align: center;
+}
+
+.full-width {
+  width: 100%;
+}
+
+/* Estilos para la barra de progreso */
+.mat-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}
+
+/* Ajustes para el tema oscuro */
+:host-context(.dark-theme) {
+  .sidenav {
+    border-right-color: rgba(255, 255, 255, 0.12);
+  }
+  
+  .nav-item:hover {
+    background-color: rgba(255, 255, 255, 0.04);
+  }
+  
+  .nav-item.active {
+    background-color: rgba(255, 255, 255, 0.08);
+  }
+  
+  .footer {
+    border-top-color: rgba(255, 255, 255, 0.12);
+  }
+}
+
+/* Estilos para el contenedor de carga */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
+/* Estilos para mensajes de estado */
+.status-message {
+  padding: 16px;
+  border-radius: 4px;
+  margin: 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-message.info {
+  background-color: rgba(33, 150, 243, 0.1);
+  color: #1976d2;
+}
+
+.status-message.success {
+  background-color: rgba(76, 175, 80, 0.1);
+  color: #2e7d32;
+}
+
+.status-message.warning {
+  background-color: rgba(255, 167, 38, 0.1);
+  color: #ed6c02;
+}
+
+.status-message.error {
+  background-color: rgba(244, 67, 54, 0.1);
+  color: #d32f2f;
+}
+
+/* Estilos para tarjetas de resumen */
+.summary-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.summary-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+.summary-card .mat-mdc-card-header {
+  padding: 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.summary-card .mat-mdc-card-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 24px 16px;
+  text-align: center;
+}
+
+.summary-card .stat-value {
+  font-size: 2.5rem;
+  font-weight: 500;
+  line-height: 1.2;
+  margin: 8px 0;
+  color: var(--primary-color);
+}
+
+.summary-card .stat-label {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+/* Estilos para la tabla de datos */
+.data-table {
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.data-table .mat-mdc-header-row {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.data-table .mat-mdc-row:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+/* Estilos para los botones de acción */
+.action-button {
+  margin-left: 8px;
+}
+
+/* Estilos para los diálogos */
+.dialog-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 16px 24px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  font-weight: 500;
+}
+
+.dialog-content {
+  padding: 20px 24px;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 8px 24px 20px;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+/* Ajustes para pantallas pequeñas */
+@media (max-width: 599px) {
+  .toolbar {
+    height: 56px;
+    padding: 0 8px;
+  }
+  
+  .main-content {
+    padding: 12px;
+  }
+  
+  .dialog-content {
+    padding: 16px;
+  }
+  
+  .dialog-actions {
+    padding: 8px 16px 16px;
+  }
+}
