@@ -122,3 +122,13 @@
     </div>
   </section>
 </div>
+
+<!-- Modal para agregar/editar gasto -->
+<app-gasto-dialog
+  *ngIf="mostrarModal"
+  [gasto]="gastoSeleccionado"
+  [tarjetas]="tarjetas"
+  [esEdicion]="esEdicion"
+  (guardarGasto)="onGuardarGasto($event)"
+  (cancelarDialog)="cerrarModal()"
+></app-gasto-dialog>

@@ -5,11 +5,12 @@ import { Tarjeta } from '../../models/tarjeta.model';
 import { Gasto } from '../../models/gasto.model';
 import { TarjetaService } from '../../services/tarjeta';
 import { GastoService } from '../../services/gasto';
+import { GastoDialogComponent } from '../../components/gasto-dialog/gasto-dialog';
 
 @Component({
   selector: 'app-gastos',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, GastoDialogComponent],
   templateUrl: './gastos.component.html',
   styleUrls: ['./gastos.component.css']
 })
@@ -25,6 +26,16 @@ export class GastosComponent implements OnInit {
   
   // Estado
   loading = false;
+  // Estado del modal
+  mostrarModal = false;
+  esEdicion = false;
+  gastoSeleccionado: Gasto = {
+    id: '',
+    tarjetaId: '',
+    descripcion: '',
+    monto: 0,
+    fecha: new Date().toISOString().slice(0, 10)
+  };
   
   // Meses disponibles para filtro
   mesesDisponibles: string[] = [];
@@ -145,13 +156,21 @@ export class GastosComponent implements OnInit {
   }
 
   agregarGasto(): void {
-    // Por ahora solo mostrar un mensaje, luego se puede implementar un modal
-    alert('Función de agregar gasto - Se implementará con un modal');
+    this.esEdicion = false;
+    this.gastoSeleccionado = {
+      id: '',
+      tarjetaId: this.filtroTarjeta || '',
+      descripcion: '',
+      monto: 0,
+      fecha: new Date().toISOString().slice(0, 10)
+    };
+    this.mostrarModal = true;
   }
 
   editarGasto(gasto: Gasto): void {
-    // Por ahora solo mostrar un mensaje, luego se puede implementar un modal
-    alert(`Editar gasto: ${gasto.descripcion}`);
+    this.esEdicion = true;
+    this.gastoSeleccionado = { ...gasto };
+    this.mostrarModal = true;
   }
 
   eliminarGasto(gasto: Gasto): void {
@@ -167,5 +186,51 @@ export class GastosComponent implements OnInit {
         }
       });
     }
+  }
+
+  onGuardarGasto(gasto: Gasto): void {
+    if (this.esEdicion) {
+      const { id, ...cambios } = gasto;
+      this.gastoService.actualizarGasto(id, cambios).subscribe({
+        next: (gastoActualizado) => {
+          if (gastoActualizado) {
+            this.cargarDatos();
+            this.cerrarModal();
+            alert('Gasto actualizado correctamente');
+          } else {
+            alert('No se pudo actualizar el gasto');
+          }
+        },
+        error: (error) => {
+          console.error('Error al actualizar gasto:', error);
+          alert('Error al actualizar el gasto');
+        }
+      });
+    } else {
+      const { id, ...nuevoGasto } = gasto;
+      this.gastoService.agregarGasto(nuevoGasto).subscribe({
+        next: () => {
+          this.cargarDatos();
+          this.cerrarModal();
+          alert('Gasto agregado correctamente');
+        },
+        error: (error) => {
+          console.error('Error al agregar gasto:', error);
+          alert('Error al agregar el gasto');
+        }
+      });
+    }
+  }
+
+  cerrarModal(): void {
+    this.mostrarModal = false;
+    this.esEdicion = false;
+    this.gastoSeleccionado = {
+      id: '',
+      tarjetaId: '',
+      descripcion: '',
+      monto: 0,
+      fecha: new Date().toISOString().slice(0, 10)
+    };
   }
 }
