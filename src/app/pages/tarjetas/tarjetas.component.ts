@@ -93,8 +93,16 @@ export class TarjetasComponent implements OnInit, AfterViewInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.cargarTarjetas();
-        this.mostrarMensaje('Tarjeta agregada correctamente', 'success');
+        this.tarjetaService.agregarTarjeta(result).subscribe({
+          next: () => {
+            this.cargarTarjetas();
+            this.mostrarMensaje('Tarjeta agregada correctamente', 'success');
+          },
+          error: (error) => {
+            console.error('Error al agregar tarjeta:', error);
+            this.mostrarMensaje('Error al agregar la tarjeta', 'error');
+          }
+        });
       }
     });
   }
@@ -112,8 +120,16 @@ export class TarjetasComponent implements OnInit, AfterViewInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.cargarTarjetas();
-        this.mostrarMensaje('Tarjeta actualizada correctamente', 'success');
+        this.tarjetaService.actualizarTarjeta(tarjeta.id, result).subscribe({
+          next: () => {
+            this.cargarTarjetas();
+            this.mostrarMensaje('Tarjeta actualizada correctamente', 'success');
+          },
+          error: (error) => {
+            console.error('Error al actualizar tarjeta:', error);
+            this.mostrarMensaje('Error al actualizar la tarjeta', 'error');
+          }
+        });
       }
     });
   }

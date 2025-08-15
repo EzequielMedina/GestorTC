@@ -41,8 +41,9 @@ export class TarjetaService {
    * @param tarjeta Tarjeta a agregar (sin ID)
    */
   agregarTarjeta(tarjeta: Omit<Tarjeta, 'id'>): Observable<Tarjeta> {
+    const saneada = this.sanitizarTarjetaSinId(tarjeta);
     const nuevaTarjeta: Tarjeta = {
-      ...tarjeta,
+      ...saneada,
       id: uuidv4()
     };
 
@@ -63,9 +64,10 @@ export class TarjetaService {
       return of(undefined);
     }
 
+    const cambiosSaneados = this.sanitizarParcial(cambios);
     const tarjetaActualizada: Tarjeta = {
       ...tarjetaActual,
-      ...cambios,
+      ...cambiosSaneados,
       id // Asegurarse de que el ID no se modifique
     };
 
@@ -134,6 +136,36 @@ export class TarjetaService {
     } catch (error) {
       console.error('Error al guardar tarjetas en el almacenamiento local:', error);
     }
+  }
+
+  /**
+   * Normaliza el campo ultimosDigitos: devuelve undefined si está vacío o solo espacios.
+   */
+  private normalizarUltimosDigitos(valor?: string): string | undefined {
+    if (valor === undefined || valor === null) return undefined;
+    const v = String(valor).trim();
+    return v.length === 0 ? undefined : v;
+  }
+
+  /**
+   * Sanitiza una tarjeta sin ID (para alta)
+   */
+  private sanitizarTarjetaSinId(t: Omit<Tarjeta, 'id'>): Omit<Tarjeta, 'id'> {
+    return {
+      ...t,
+      ultimosDigitos: this.normalizarUltimosDigitos(t.ultimosDigitos)
+    };
+  }
+
+  /**
+   * Sanitiza cambios parciales (para edición)
+   */
+  private sanitizarParcial(cambios: Partial<Omit<Tarjeta, 'id'>>): Partial<Omit<Tarjeta, 'id'>> {
+    const result: Partial<Omit<Tarjeta, 'id'>> = { ...cambios };
+    if ('ultimosDigitos' in result) {
+      result.ultimosDigitos = this.normalizarUltimosDigitos(result.ultimosDigitos as any);
+    }
+    return result;
   }
 
   /**

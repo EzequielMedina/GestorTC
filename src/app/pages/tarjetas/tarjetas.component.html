@@ -35,7 +35,12 @@
         <!-- Columna Últimos 4 Dígitos -->
         <ng-container matColumnDef="ultimosDigitos">
           <th mat-header-cell *matHeaderCellDef> Últimos 4 Dígitos </th>
-          <td mat-cell *matCellDef="let tarjeta"> ****{{tarjeta.ultimosDigitos}} </td>
+          <td mat-cell *matCellDef="let tarjeta">
+            <ng-container *ngIf="tarjeta.ultimosDigitos && tarjeta.ultimosDigitos.length === 4; else sinDigitos">
+              ****{{ tarjeta.ultimosDigitos }}
+            </ng-container>
+            <ng-template #sinDigitos>-</ng-template>
+          </td>
         </ng-container>
 
         <!-- Columna Vencimiento -->

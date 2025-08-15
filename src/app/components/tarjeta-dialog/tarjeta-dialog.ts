@@ -100,7 +100,7 @@ export interface TarjetaDialogData {
           </div>
 
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Últimos 4 dígitos</mat-label>
+            <mat-label>Últimos 4 dígitos (opcional)</mat-label>
             <input
               matInput
               formControlName="ultimosDigitos"
@@ -108,7 +108,6 @@ export interface TarjetaDialogData {
               maxlength="4"
               minlength="4"
               pattern="\d{4}"
-              required
             >
             <mat-error>{{ getErrorMessage('ultimosDigitos') }}</mat-error>
           </mat-form-field>
@@ -261,9 +260,8 @@ export class TarjetaDialogComponent {
         ]
       ],
       ultimosDigitos: [
-        '', 
+        '',
         [
-          Validators.required, 
           Validators.pattern(/^\d{4}$/),
           (control: AbstractControl): ValidationErrors | null => {
             // Validación personalizada para asegurar que no sean todos los dígitos iguales
@@ -322,13 +320,10 @@ export class TarjetaDialogComponent {
       if (controlName === 'limite') return 'El monto máximo es $10,000,000';
       return `El valor máximo es ${control.getError('max').max}`;
     } else if (control.hasError('pattern')) {
-      if (controlName === 'ultimosDigitos') return 'Debe contener exactamente 4 dígitos';
       if (controlName === 'nombre' || controlName === 'banco') return 'Solo se permiten letras, números, espacios y guiones';
       return 'Formato inválido';
     } else if (control.hasError('allSameDigits')) {
       return 'Los dígitos no pueden ser todos iguales';
-    } else if (control.hasError('diaInvalido')) {
-      return 'El día de vencimiento debe ser posterior al día de cierre';
     }
 
     return 'Valor inválido';
@@ -343,7 +338,12 @@ export class TarjetaDialogComponent {
       this.loading = true;
       // Simular tiempo de carga
       setTimeout(() => {
-        this.dialogRef.close(this.tarjetaForm.value);
+        const formValue = this.tarjetaForm.value;
+        const payload = {
+          ...formValue,
+          ultimosDigitos: formValue.ultimosDigitos ? formValue.ultimosDigitos : undefined
+        };
+        this.dialogRef.close(payload);
         this.loading = false;
       }, 1000);
     } else {

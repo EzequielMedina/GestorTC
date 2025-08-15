@@ -6,7 +6,7 @@
  * @property limite - Límite de crédito de la tarjeta.
  * @property diaCierre - Día del mes en que cierra el período de facturación.
  * @property diaVencimiento - Día del mes en que vence el pago de la tarjeta.
- * @property ultimosDigitos - Últimos 4 dígitos de la tarjeta para identificación.
+ * @property ultimosDigitos - (Opcional) Últimos 4 dígitos de la tarjeta para identificación.
  */
 export interface Tarjeta {
   id: string;
@@ -15,5 +15,5 @@ export interface Tarjeta {
   limite: number;
   diaCierre: number;
   diaVencimiento: number;
-  ultimosDigitos: string;
+  ultimosDigitos?: string;
 }
