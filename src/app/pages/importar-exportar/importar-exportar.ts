@@ -181,17 +181,16 @@ export class ImportarExportarComponent implements OnInit {
     
     this.importarExportarService.importarDesdeExcel(this.archivoSeleccionado)
       .then(({ tarjetas, gastos }) => {
-        // Limpiar datos existentes
-        this.tarjetas.forEach(tarjeta => this.tarjetaService.eliminarTarjeta(tarjeta.id).subscribe());
-        this.gastos.forEach(gasto => this.gastoService.eliminarGasto(gasto.id).subscribe());
+        console.log('DEBUG - Datos importados:', { tarjetas, gastos });
         
-        // Importar nuevos datos
-        tarjetas.forEach(tarjeta => this.tarjetaService.agregarTarjeta(tarjeta).subscribe());
-        gastos.forEach(gasto => this.gastoService.agregarGasto(gasto).subscribe());
-        
-        this.cargarDatos();
-        this.limpiarSeleccion();
-        this.setMensaje(`Importación exitosa: ${tarjetas.length} tarjetas y ${gastos.length} gastos importados`, false);
+        // Reemplazar completamente los datos existentes
+        this.tarjetaService.reemplazarTarjetas(tarjetas).subscribe(() => {
+          this.gastoService.reemplazarGastos(gastos).subscribe(() => {
+            this.cargarDatos();
+            this.limpiarSeleccion();
+            this.setMensaje(`Importación exitosa: ${tarjetas.length} tarjetas y ${gastos.length} gastos importados`, false);
+          });
+        });
       })
       .catch(error => {
         console.error('Error en importación:', error);

@@ -344,7 +344,12 @@ export class ResumenService {
       this.gastoService.getGastos$()
     ]).pipe(
       map(([tarjetas, gastos]) => {
+        console.log('DEBUG - Tarjetas disponibles:', tarjetas.map(t => ({ id: t.id, nombre: t.nombre })));
+        console.log('DEBUG - Gastos disponibles:', gastos.map(g => ({ id: g.id, tarjetaId: g.tarjetaId, descripcion: g.descripcion })));
+        
         const tarjetasMap = new Map(tarjetas.map(t => [t.id, t.nombre] as const));
+        console.log('DEBUG - TarjetasMap:', Array.from(tarjetasMap.entries()));
+        
         const detalle: Array<{
           nombreTarjeta: string;
           descripcion: string;
@@ -363,8 +368,11 @@ export class ResumenService {
           if (cuotas <= 1) {
             // Gasto de una sola vez: solo aparece en el mes de la fecha
             if (this.monthKeyFromISO(gasto.fecha) === monthKey) {
+              const nombreTarjeta = tarjetasMap.get(gasto.tarjetaId);
+              console.log(`DEBUG - Gasto ${gasto.descripcion}: tarjetaId=${gasto.tarjetaId}, nombreTarjeta=${nombreTarjeta}`);
+              
               detalle.push({
-                nombreTarjeta: tarjetasMap.get(gasto.tarjetaId) || 'Tarjeta no encontrada',
+                nombreTarjeta: nombreTarjeta || 'Tarjeta no encontrada',
                 descripcion: gasto.descripcion,
                 montoOriginal: gasto.monto,
                 cuotaActual: 1,
@@ -380,8 +388,11 @@ export class ResumenService {
             for (let i = 0; i < cuotas; i++) {
               const iso = this.addMonths(firstISO, i);
               if (iso.slice(0, 7) === monthKey) {
+                const nombreTarjeta = tarjetasMap.get(gasto.tarjetaId);
+                console.log(`DEBUG - Gasto en cuotas ${gasto.descripcion}: tarjetaId=${gasto.tarjetaId}, nombreTarjeta=${nombreTarjeta}`);
+                
                 detalle.push({
-                  nombreTarjeta: tarjetasMap.get(gasto.tarjetaId) || 'Tarjeta no encontrada',
+                  nombreTarjeta: nombreTarjeta || 'Tarjeta no encontrada',
                   descripcion: gasto.descripcion,
                   montoOriginal: gasto.monto,
                   cuotaActual: i + 1,

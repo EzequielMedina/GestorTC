@@ -71,6 +71,8 @@ export class ImportarExportarService {
             const data = new Uint8Array(arrayBuffer);
             const workbook = XLSX.read(data, { type: 'array' });
             
+            console.log('DEBUG - Hojas disponibles en el Excel:', Object.keys(workbook.Sheets));
+            
             // Obtener las hojas
             const wsTarjetas = workbook.Sheets[this.HOJA_TARJETAS];
             const wsGastos = workbook.Sheets[this.HOJA_GASTOS];
@@ -80,13 +82,26 @@ export class ImportarExportarService {
             }
             
             // Convertir las hojas a objetos
+            const tarjetasRaw = wsTarjetas 
+              ? XLSX.utils.sheet_to_json(wsTarjetas)
+              : [];
+            const gastosRaw = wsGastos
+              ? XLSX.utils.sheet_to_json(wsGastos)
+              : [];
+              
+            console.log('DEBUG - Datos raw de tarjetas:', tarjetasRaw);
+            console.log('DEBUG - Datos raw de gastos:', gastosRaw);
+            
             const tarjetas: Tarjeta[] = wsTarjetas 
-              ? this.prepararDatosDesdeImportar(XLSX.utils.sheet_to_json(wsTarjetas), 'tarjeta') as Tarjeta[]
+              ? this.prepararDatosDesdeImportar(tarjetasRaw, 'tarjeta') as Tarjeta[]
               : [];
               
             const gastos: Gasto[] = wsGastos
-              ? this.prepararDatosDesdeImportar(XLSX.utils.sheet_to_json(wsGastos), 'gasto') as Gasto[]
+              ? this.prepararDatosDesdeImportar(gastosRaw, 'gasto') as Gasto[]
               : [];
+            
+            console.log('DEBUG - Tarjetas procesadas:', tarjetas);
+            console.log('DEBUG - Gastos procesados:', gastos);
             
             resolve({ tarjetas, gastos });
           } catch (error) {
@@ -116,7 +131,11 @@ export class ImportarExportarService {
       return (datos as Tarjeta[]).map(t => ({
         'ID': t.id,
         'Nombre': t.nombre,
-        'Límite de Crédito': t.limite
+        'Banco': t.banco,
+        'Límite de Crédito': t.limite,
+        'Día de Cierre': t.diaCierre,
+        'Día de Vencimiento': t.diaVencimiento,
+        'Últimos Dígitos': t.ultimosDigitos || ''
       }));
     } else {
       return (datos as Gasto[]).map(g => ({
@@ -142,7 +161,11 @@ export class ImportarExportarService {
       return datos.map((item: any) => ({
         id: item['ID'] || item['id'] || '',
         nombre: item['Nombre'] || item['nombre'] || '',
-        limite: Number(item['Límite de Crédito'] || item['limite'] || 0)
+        banco: item['Banco'] || item['banco'] || '',
+        limite: Number(item['Límite de Crédito'] || item['limite'] || 0),
+        diaCierre: Number(item['Día de Cierre'] || item['diaCierre'] || 1),
+        diaVencimiento: Number(item['Día de Vencimiento'] || item['diaVencimiento'] || 1),
+        ultimosDigitos: item['Últimos Dígitos'] || item['ultimosDigitos'] || undefined
       }));
     } else {
       return datos.map((item: any) => {
@@ -290,7 +313,11 @@ export class ImportarExportarService {
     const tarjetasTemplate = [{
       'ID': '(generar automáticamente)',
       'Nombre': 'Ejemplo: Visa Oro',
-      'Límite de Crédito': 50000
+      'Banco': 'Ejemplo: Banco Nación',
+      'Límite de Crédito': 50000,
+      'Día de Cierre': 5,
+      'Día de Vencimiento': 15,
+      'Últimos Dígitos': '1234'
     }];
 
     const gastosTemplate = [{

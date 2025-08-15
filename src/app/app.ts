@@ -25,5 +25,5 @@ import { MatListModule } from '@angular/material/list';
   styleUrl: './app.css'
 })
 export class App {
-  protected readonly title = signal('gestor-tc');
+  protected readonly title = signal('Gestor de Cuentas');
 }
