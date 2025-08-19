@@ -1,0 +1,243 @@
+:host {
+  --bg: var(--color1);
+  --surface: var(--color2);
+  --primary: var(--color3);
+  --danger: #dc2626;
+  --success: #16a34a;
+  --warning: #ca8a04;
+  --secondary: #6b7280;
+  --border: var(--color5);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+
+.page {
+  min-height: 100vh;
+  background: var(--bg);
+  padding: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header {
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.header h2 {
+  margin: 0 0 8px 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #333;
+}
+
+.subtitle {
+  margin: 0 0 20px 0;
+  color: #666;
+  font-size: 16px;
+}
+
+.content-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.charts-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 24px;
+  width: 100%;
+  align-items: stretch;
+}
+
+.chart-container {
+  width: 100%;
+}
+
+.chart-container.half-width {
+  /* kept for backward compat, grid handles width */
+}
+
+.chart-container.full-width {
+  grid-column: 1 / -1; /* Ocupa todo el ancho disponible */
+}
+
+.chart-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* evita que el canvas/leyenda se salga */
+  transition: all 0.3s ease;
+}
+
+.chart-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.chart-wrapper {
+  position: relative;
+  height: 360px;
+  width: 100%;
+  flex: 1 1 auto; /* ocupa espacio disponible en la card */
+  min-height: 300px; /* asegura altura mínima */
+}
+
+/* Forzar que el canvas respete el contenedor */
+.chart-wrapper canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
+/* Filtros */
+.chart-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+  justify-content: center;
+}
+
+.filter-field {
+  width: 100%;
+  max-width: 200px;
+}
+
+.filter-field.compact {
+  margin-bottom: -1.25em; /* reduce el espacio inferior */
+}
+
+/* Rango de fechas */
+.range {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  width: 100%;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.range-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.range-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.apply-button {
+  margin-top: 8px;
+  height: 40px;
+}
+
+/* Estado sin datos */
+.no-data {
+  text-align: center;
+  padding: 40px 20px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  margin: 20px 0;
+}
+
+.no-data p {
+  margin-bottom: 20px;
+  color: #666;
+  font-size: 16px;
+}
+
+.add-expense-button {
+  padding: 8px 16px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .page {
+    padding: 12px;
+  }
+
+  .header h2 {
+    font-size: 24px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+  }
+
+  .chart-card {
+    padding: 16px;
+  }
+
+  .chart-wrapper {
+    height: 320px; /* altura ajustada para tablets */
+  }
+
+  .range {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .range-col {
+    width: 100%;
+    max-width: 200px;
+  }
+  
+  .charts-row {
+    grid-template-columns: 1fr; /* una columna en tablets */
+    gap: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page {
+    padding: 8px;
+  }
+
+  .header h2 {
+    font-size: 20px;
+  }
+
+  .chart-card {
+    padding: 12px;
+  }
+
+  .chart-wrapper {
+    height: 280px; /* altura ajustada para móviles */
+    min-height: 280px;
+  }
+
+  .filter-field {
+    max-width: 100%;
+  }
+  
+  .charts-row {
+    gap: 16px;
+  }
+  
+  /* Ajustar el espacio entre elementos de filtro */
+  .chart-filters {
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  
+  /* Mejorar visualización de botones en móviles */
+  .apply-button {
+    width: 100%;
+    margin-top: 4px;
+  }
+}

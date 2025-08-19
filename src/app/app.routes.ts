@@ -26,6 +26,16 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/importar-exportar/importar-exportar').then(m => m.ImportarExportarComponent),
     title: 'Importar/Exportar - Gestor de Tarjetas de Crédito'
   },
+  // {
+  //   path: 'analisis',
+  //   loadComponent: () => import('./pages/analisis/analisis.component').then(m => m.AnalisisComponent),
+  //   title: 'Análisis - Gestor de Tarjetas de Crédito'
+  // },
+  {
+    path: 'graficos',
+    loadComponent: () => import('./pages/graficos/graficos.component').then(m => m.GraficosComponent),
+    title: 'Gráficos - Gestor de Tarjetas de Crédito'
+  },
   {
     path: '**',
     redirectTo: 'tarjetas'

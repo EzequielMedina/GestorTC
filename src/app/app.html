@@ -18,6 +18,14 @@
           <mat-icon>file_upload</mat-icon>
           <span>Importar/Exportar</span>
         </a>
+        <!-- <a mat-list-item class="nav-item" routerLink="/analisis" routerLinkActive="active" (click)="drawer.close()">
+          <mat-icon>analytics</mat-icon>
+          <span>Análisis</span>
+        </a> -->
+        <a mat-list-item class="nav-item" routerLink="/graficos" routerLinkActive="active" (click)="drawer.close()">
+          <mat-icon>bar_chart</mat-icon>
+          <span>Gráficos</span>
+        </a>
       </mat-nav-list>
     </mat-sidenav>
 
@@ -33,6 +41,8 @@
           <a mat-button routerLink="/gastos" routerLinkActive="active">Gastos</a>
           <a mat-button routerLink="/resumen" routerLinkActive="active">Resumen</a>
           <a mat-button routerLink="/importar-exportar" routerLinkActive="active">Importar/Exportar</a>
+          <!-- <a mat-button routerLink="/analisis" routerLinkActive="active">Análisis</a> -->
+          <a mat-button routerLink="/graficos" routerLinkActive="active">Gráficos</a>
         </nav>
       </mat-toolbar>
 

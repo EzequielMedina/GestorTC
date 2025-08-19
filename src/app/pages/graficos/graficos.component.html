@@ -1,0 +1,131 @@
+<div class="page">
+  <div class="header">
+    <h2>Gráficos de Gastos</h2>
+    <p class="subtitle">Visualiza tus gastos por tarjeta y proyecciones futuras</p>
+  </div>
+
+  <div class="content-container" *ngIf="gastos.length > 0; else noData">
+
+    <div class="charts-row">
+      <!-- Gráfico de montos por tarjeta mensual -->
+      <div class="chart-container half-width">
+        <div class="chart-card">
+          <div class="chart-filters">
+            <mat-form-field appearance="outline" class="filter-field compact">
+              <mat-label>Mes / Año</mat-label>
+              <input matInput [matDatepicker]="dpFiltro" [value]="getFiltroFecha()" readonly>
+              <mat-datepicker-toggle matSuffix [for]="dpFiltro"></mat-datepicker-toggle>
+              <mat-datepicker #dpFiltro startView="multi-year"
+                              (monthSelected)="onFiltroMonthSelected($event, dpFiltro)"
+                              [startAt]="getFiltroFecha()"></mat-datepicker>
+            </mat-form-field>
+          </div>
+          <div class="chart-wrapper">
+            <canvas baseChart
+              [type]="'bar'"
+              [data]="montosPorTarjetaData"
+              [options]="montosPorTarjetaOptions">
+            </canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gráfico de proyección por rango de meses -->
+      <div class="chart-container half-width">
+        <div class="chart-card">
+          <div class="chart-filters">
+            <div class="range">
+              <div class="range-col">
+                <div class="range-title">Desde</div>
+                <mat-form-field appearance="outline" class="filter-field compact">
+                  <mat-label>Mes / Año</mat-label>
+                  <input matInput [matDatepicker]="dpDesde" [value]="getProyDesdeFecha()" readonly>
+                  <mat-datepicker-toggle matSuffix [for]="dpDesde"></mat-datepicker-toggle>
+                  <mat-datepicker #dpDesde startView="multi-year"
+                                  (monthSelected)="onProyDesdeMonthSelected($event, dpDesde)"
+                                  [startAt]="getProyDesdeFecha()"></mat-datepicker>
+                </mat-form-field>
+              </div>
+              <div class="range-col">
+                <div class="range-title">Hasta</div>
+                <mat-form-field appearance="outline" class="filter-field compact">
+                  <mat-label>Mes / Año</mat-label>
+                  <input matInput [matDatepicker]="dpHasta" [value]="getProyHastaFecha()" readonly>
+                  <mat-datepicker-toggle matSuffix [for]="dpHasta"></mat-datepicker-toggle>
+                  <mat-datepicker #dpHasta startView="multi-year"
+                                  (monthSelected)="onProyHastaMonthSelected($event, dpHasta)"
+                                  [startAt]="getProyHastaFecha()"></mat-datepicker>
+                </mat-form-field>
+              </div>
+              <button mat-stroked-button color="primary" (click)="aplicarFiltroProyeccion()" class="apply-button">
+                <mat-icon>filter_alt</mat-icon>
+                Aplicar
+              </button>
+            </div>
+          </div>
+          <div class="chart-wrapper">
+            <canvas baseChart
+              [type]="'line'"
+              [data]="proyeccionRangoData"
+              [options]="proyeccionRangoOptions">
+            </canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gráfico de total de todas las tarjetas por mes -->
+    <div class="charts-row">
+      <div class="chart-container full-width">
+        <div class="chart-card">
+          <div class="chart-filters">
+            <div class="range">
+              <div class="range-col">
+                <div class="range-title">Desde</div>
+                <mat-form-field appearance="outline" class="filter-field compact">
+                  <mat-label>Mes / Año</mat-label>
+                  <input matInput [matDatepicker]="dpTotalDesde" [value]="getTotalDesdeFecha()" readonly>
+                  <mat-datepicker-toggle matSuffix [for]="dpTotalDesde"></mat-datepicker-toggle>
+                  <mat-datepicker #dpTotalDesde startView="multi-year"
+                                  (monthSelected)="onTotalDesdeMonthSelected($event, dpTotalDesde)"
+                                  [startAt]="getTotalDesdeFecha()"></mat-datepicker>
+                </mat-form-field>
+              </div>
+              <div class="range-col">
+                <div class="range-title">Hasta</div>
+                <mat-form-field appearance="outline" class="filter-field compact">
+                  <mat-label>Mes / Año</mat-label>
+                  <input matInput [matDatepicker]="dpTotalHasta" [value]="getTotalHastaFecha()" readonly>
+                  <mat-datepicker-toggle matSuffix [for]="dpTotalHasta"></mat-datepicker-toggle>
+                  <mat-datepicker #dpTotalHasta startView="multi-year"
+                                  (monthSelected)="onTotalHastaMonthSelected($event, dpTotalHasta)"
+                                  [startAt]="getTotalHastaFecha()"></mat-datepicker>
+                </mat-form-field>
+              </div>
+              <button mat-stroked-button color="primary" (click)="aplicarFiltroTotal()" class="apply-button">
+                <mat-icon>filter_alt</mat-icon>
+                Aplicar
+              </button>
+            </div>
+          </div>
+          <div class="chart-wrapper">
+            <canvas baseChart
+              [type]="'line'"
+              [data]="totalPorMesData"
+              [options]="totalPorMesOptions">
+            </canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #noData>
+    <div class="no-data">
+      <p>No hay datos de gastos para mostrar. Por favor, agrega algunos gastos primero.</p>
+      <button mat-raised-button color="primary" routerLink="/gastos" class="add-expense-button">
+        <mat-icon>add</mat-icon> Agregar Gasto
+      </button>
+    </div>
+  </ng-template>
+</div>
