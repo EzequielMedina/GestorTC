@@ -3,6 +3,7 @@ import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { Gasto } from '../models/gasto.model';
 import { Tarjeta } from '../models/tarjeta.model';
+import { CompraDolar } from '../models/compra-dolar.model';
 
 /**
  * Servicio para manejar la importación y exportación de datos en formato Excel
@@ -15,16 +16,18 @@ export class ImportarExportarService {
   private readonly HOJA_GASTOS = 'Gastos';
   private readonly HOJA_RESUMEN_MENSUAL = 'ResumenMensual';
   private readonly HOJA_CUOTAS_DETALLE = 'CuotasDetalle';
+  private readonly HOJA_COMPRA_DOLARES = 'CompraDolares';
 
   constructor() {}
 
   /**
-   * Exporta los datos de tarjetas y gastos a un archivo Excel
+   * Exporta los datos de tarjetas, gastos y compras de dólares a un archivo Excel
    * @param tarjetas Lista de tarjetas a exportar
    * @param gastos Lista de gastos a exportar
+   * @param compraDolares Lista de compras de dólares a exportar
    * @param nombreArchivo Nombre del archivo a generar (sin extensión)
    */
-  exportarAExcel(tarjetas: Tarjeta[], gastos: Gasto[], nombreArchivo: string = 'gestor-tc-exportacion'): void {
+  exportarAExcel(tarjetas: Tarjeta[], gastos: Gasto[], compraDolares: CompraDolar[] = [], nombreArchivo: string = 'gestor-tc-exportacion'): void {
     try {
       // Crear un nuevo libro de trabajo
       const wb = XLSX.utils.book_new();
@@ -34,12 +37,14 @@ export class ImportarExportarService {
       const wsGastos = XLSX.utils.json_to_sheet(this.prepararDatosParaExportar(gastos, 'gasto'));
       const wsResumenMensual = XLSX.utils.json_to_sheet(this.generarResumenMensual(tarjetas, gastos));
       const wsCuotasDetalle = XLSX.utils.json_to_sheet(this.generarCuotasDetalle(tarjetas, gastos));
+      const wsCompraDolares = XLSX.utils.json_to_sheet(this.prepararDatosParaExportar(compraDolares, 'compraDolar'));
       
       // Añadir las hojas al libro de trabajo
       XLSX.utils.book_append_sheet(wb, wsTarjetas, this.HOJA_TARJETAS);
       XLSX.utils.book_append_sheet(wb, wsGastos, this.HOJA_GASTOS);
       XLSX.utils.book_append_sheet(wb, wsResumenMensual, this.HOJA_RESUMEN_MENSUAL);
       XLSX.utils.book_append_sheet(wb, wsCuotasDetalle, this.HOJA_CUOTAS_DETALLE);
+      XLSX.utils.book_append_sheet(wb, wsCompraDolares, this.HOJA_COMPRA_DOLARES);
       
       // Generar el archivo Excel
       const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
@@ -58,9 +63,9 @@ export class ImportarExportarService {
   /**
    * Importa datos desde un archivo Excel
    * @param file Archivo Excel a importar
-   * @returns Promesa con los datos importados { tarjetas: Tarjeta[], gastos: Gasto[] }
+   * @returns Promesa con los datos importados { tarjetas: Tarjeta[], gastos: Gasto[], compraDolares: CompraDolar[] }
    */
-  async importarDesdeExcel(file: File): Promise<{ tarjetas: Tarjeta[]; gastos: Gasto[] }> {
+  async importarDesdeExcel(file: File): Promise<{ tarjetas: Tarjeta[]; gastos: Gasto[]; compraDolares: CompraDolar[] }> {
     return new Promise((resolve, reject) => {
       try {
         const fileReader = new FileReader();
@@ -76,8 +81,9 @@ export class ImportarExportarService {
             // Obtener las hojas
             const wsTarjetas = workbook.Sheets[this.HOJA_TARJETAS];
             const wsGastos = workbook.Sheets[this.HOJA_GASTOS];
+            const wsCompraDolares = workbook.Sheets[this.HOJA_COMPRA_DOLARES];
             
-            if (!wsTarjetas && !wsGastos) {
+            if (!wsTarjetas && !wsGastos && !wsCompraDolares) {
               throw new Error('El archivo no contiene las hojas de datos esperadas');
             }
             
@@ -88,9 +94,13 @@ export class ImportarExportarService {
             const gastosRaw = wsGastos
               ? XLSX.utils.sheet_to_json(wsGastos)
               : [];
+            const compraDolaresRaw = wsCompraDolares
+              ? XLSX.utils.sheet_to_json(wsCompraDolares)
+              : [];
               
             console.log('DEBUG - Datos raw de tarjetas:', tarjetasRaw);
             console.log('DEBUG - Datos raw de gastos:', gastosRaw);
+            console.log('DEBUG - Datos raw de compra dólares:', compraDolaresRaw);
             
             const tarjetas: Tarjeta[] = wsTarjetas 
               ? this.prepararDatosDesdeImportar(tarjetasRaw, 'tarjeta') as Tarjeta[]
@@ -99,11 +109,16 @@ export class ImportarExportarService {
             const gastos: Gasto[] = wsGastos
               ? this.prepararDatosDesdeImportar(gastosRaw, 'gasto') as Gasto[]
               : [];
+              
+            const compraDolares: CompraDolar[] = wsCompraDolares
+              ? this.prepararDatosDesdeImportar(compraDolaresRaw, 'compraDolar') as CompraDolar[]
+              : [];
             
             console.log('DEBUG - Tarjetas procesadas:', tarjetas);
             console.log('DEBUG - Gastos procesados:', gastos);
+            console.log('DEBUG - Compra dólares procesadas:', compraDolares);
             
-            resolve({ tarjetas, gastos });
+            resolve({ tarjetas, gastos, compraDolares });
           } catch (error) {
             console.error('Error al procesar el archivo Excel:', error);
             reject(new Error('Formato de archivo no válido'));
@@ -126,7 +141,7 @@ export class ImportarExportarService {
   /**
    * Prepara los datos para exportar, asegurando que solo se incluyan las propiedades necesarias
    */
-  private prepararDatosParaExportar(datos: any[], tipo: 'tarjeta' | 'gasto'): any[] {
+  private prepararDatosParaExportar(datos: any[], tipo: 'tarjeta' | 'gasto' | 'compraDolar'): any[] {
     if (tipo === 'tarjeta') {
       return (datos as Tarjeta[]).map(t => ({
         'ID': t.id,
@@ -137,7 +152,7 @@ export class ImportarExportarService {
         'Día de Vencimiento': t.diaVencimiento,
         'Últimos Dígitos': t.ultimosDigitos || ''
       }));
-    } else {
+    } else if (tipo === 'gasto') {
       return (datos as Gasto[]).map(g => ({
         'ID': g.id,
         'ID Tarjeta': g.tarjetaId,
@@ -150,13 +165,25 @@ export class ImportarExportarService {
         'Primer Mes Cuota': (g.primerMesCuota ? g.primerMesCuota.slice(0, 10) : ''),
         'Monto Por Cuota': g.montoPorCuota || ''
       }));
+    } else if (tipo === 'compraDolar') {
+      return (datos as CompraDolar[]).map(c => ({
+        'Mes': this.obtenerNombreMes(c.mes),
+        'Año': c.anio,
+        'Dólares': c.dolares,
+        'PrecioCompra': c.precioCompra,
+        'PrecioCompraTotal': c.dolares * c.precioCompra,
+        'PrecioAPI': c.precioAPI || '',
+        'PrecioAPITotal': c.precioAPI ? (c.dolares * c.precioAPI) : '',
+        'Diferencia': c.precioAPI ? ((c.dolares * c.precioAPI) - (c.dolares * c.precioCompra)) : ''
+      }));
     }
+    return [];
   }
 
   /**
    * Prepara los datos importados, convirtiéndolos al formato interno de la aplicación
    */
-  private prepararDatosDesdeImportar(datos: any[], tipo: 'tarjeta' | 'gasto'): any[] {
+  private prepararDatosDesdeImportar(datos: any[], tipo: 'tarjeta' | 'gasto' | 'compraDolar'): any[] {
     if (tipo === 'tarjeta') {
       return datos.map((item: any) => ({
         id: item['ID'] || item['id'] || '',
@@ -167,7 +194,7 @@ export class ImportarExportarService {
         diaVencimiento: Number(item['Día de Vencimiento'] || item['diaVencimiento'] || 1),
         ultimosDigitos: item['Últimos Dígitos'] || item['ultimosDigitos'] || undefined
       }));
-    } else {
+    } else if (tipo === 'gasto') {
       return datos.map((item: any) => {
         const cantidadCuotasRaw = item['Cantidad Cuotas'] ?? item['cantidadCuotas'];
         const primerMesRaw = item['Primer Mes Cuota'] ?? item['primerMesCuota'];
@@ -207,7 +234,74 @@ export class ImportarExportarService {
           montoPorCuota
         } as Gasto;
       });
+    } else if (tipo === 'compraDolar') {
+      return datos.map((item: any) => {
+        // Convertir nombre de mes a número
+        let mes = item['Mes'] || item['mes'] || 1;
+        if (typeof mes === 'string') {
+          mes = this.convertirNombreMesANumero(mes);
+        }
+        
+        // Validar y convertir valores numéricos
+        const dolaresRaw = item['Dólares'] || item['dolares'] || 0;
+        const precioCompraRaw = item['PrecioCompra'] || item['precioCompra'] || 0;
+        const precioCompraTotalRaw = item['PrecioCompraTotal'] || item['precioCompraTotal'];
+        const anioRaw = item['Año'] || item['anio'] || new Date().getFullYear();
+        
+        const dolares = isNaN(Number(dolaresRaw)) ? 0 : Number(dolaresRaw);
+        const precioCompra = isNaN(Number(precioCompraRaw)) ? 0 : Number(precioCompraRaw);
+        const anio = isNaN(Number(anioRaw)) ? new Date().getFullYear() : Number(anioRaw);
+        
+        // Si existe PrecioCompraTotal en el Excel, usarlo; sino calcularlo
+        let precioCompraTotal: number;
+        if (precioCompraTotalRaw && !isNaN(Number(precioCompraTotalRaw))) {
+          precioCompraTotal = Number(precioCompraTotalRaw);
+        } else {
+          precioCompraTotal = dolares * precioCompra;
+        }
+        
+        return {
+          id: item['ID'] || item['id'] || this.generarId(),
+          mes: Number(mes),
+          anio: anio,
+          dolares: dolares,
+          precioCompra: precioCompra,
+          precioCompraTotal: precioCompraTotal,
+          precioAPI: item['PrecioAPI'] && item['PrecioAPI'] !== '' ? Number(item['PrecioAPI']) : undefined,
+          fechaActualizacionAPI: item['FechaActualizacionAPI'] || undefined
+        } as unknown as CompraDolar;
+      });
     }
+    return [];
+  }
+
+  /**
+   * Obtiene el nombre del mes en español
+   */
+  private obtenerNombreMes(mes: number): string {
+    const meses = [
+      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+    return meses[mes - 1] || 'Enero';
+  }
+
+  /**
+   * Convierte el nombre del mes a número
+   */
+  private convertirNombreMesANumero(nombreMes: string): number {
+    const meses: { [key: string]: number } = {
+      'enero': 1, 'febrero': 2, 'marzo': 3, 'abril': 4, 'mayo': 5, 'junio': 6,
+      'julio': 7, 'agosto': 8, 'septiembre': 9, 'octubre': 10, 'noviembre': 11, 'diciembre': 12
+    };
+    return meses[nombreMes.toLowerCase()] || 1;
+  }
+
+  /**
+   * Genera un ID único
+   */
+  private generarId(): string {
+    return Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
   }
 
   // ==========================
@@ -349,18 +443,31 @@ export class ImportarExportarService {
       'Monto Cuota': 500.17
     }];
 
+    const compraDolaresTemplate = [{
+      'Mes': 'Enero',
+      'Año': 2024,
+      'Dólares': 100,
+      'PrecioCompra': 1000,
+      'PrecioCompraTotal': 100000,
+      'PrecioAPI': 1050,
+      'PrecioAPITotal': 105000,
+      'Diferencia': 5000
+    }];
+
     // Crear el libro de trabajo
     const wb = XLSX.utils.book_new();
     const wsTarjetas = XLSX.utils.json_to_sheet(tarjetasTemplate);
     const wsGastos = XLSX.utils.json_to_sheet(gastosTemplate);
     const wsResumenMensual = XLSX.utils.json_to_sheet(resumenMensualTemplate);
     const wsCuotasDetalle = XLSX.utils.json_to_sheet(cuotasDetalleTemplate);
+    const wsCompraDolares = XLSX.utils.json_to_sheet(compraDolaresTemplate);
     
     // Añadir todas las hojas como en el export
     XLSX.utils.book_append_sheet(wb, wsTarjetas, this.HOJA_TARJETAS);
     XLSX.utils.book_append_sheet(wb, wsGastos, this.HOJA_GASTOS);
     XLSX.utils.book_append_sheet(wb, wsResumenMensual, this.HOJA_RESUMEN_MENSUAL);
     XLSX.utils.book_append_sheet(wb, wsCuotasDetalle, this.HOJA_CUOTAS_DETALLE);
+    XLSX.utils.book_append_sheet(wb, wsCompraDolares, this.HOJA_COMPRA_DOLARES);
     
     // Generar el archivo
     const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });

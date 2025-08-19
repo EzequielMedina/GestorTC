@@ -22,6 +22,11 @@ export const routes: Routes = [
     title: 'Resumen - Gestor de Tarjetas de Crédito'
   },
   {
+    path: 'compra-dolares',
+    loadComponent: () => import('./pages/compra-dolares/compra-dolares.component').then(m => m.CompraDolaresComponent),
+    title: 'Compra Dólares - Gestor de Tarjetas de Crédito'
+  },
+  {
     path: 'importar-exportar',
     loadComponent: () => import('./pages/importar-exportar/importar-exportar').then(m => m.ImportarExportarComponent),
     title: 'Importar/Exportar - Gestor de Tarjetas de Crédito'

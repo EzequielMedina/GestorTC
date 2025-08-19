@@ -14,6 +14,10 @@
           <mat-icon>insights</mat-icon>
           <span>Resumen</span>
         </a>
+        <a mat-list-item class="nav-item" routerLink="/compra-dolares" routerLinkActive="active" (click)="drawer.close()">
+          <mat-icon>attach_money</mat-icon>
+          <span>Compra Dólares</span>
+        </a>
         <a mat-list-item class="nav-item" routerLink="/importar-exportar" routerLinkActive="active" (click)="drawer.close()">
           <mat-icon>file_upload</mat-icon>
           <span>Importar/Exportar</span>
@@ -40,6 +44,7 @@
           <a mat-button routerLink="/tarjetas" routerLinkActive="active">Tarjetas</a>
           <a mat-button routerLink="/gastos" routerLinkActive="active">Gastos</a>
           <a mat-button routerLink="/resumen" routerLinkActive="active">Resumen</a>
+          <a mat-button routerLink="/compra-dolares" routerLinkActive="active">Compra Dólares</a>
           <a mat-button routerLink="/importar-exportar" routerLinkActive="active">Importar/Exportar</a>
           <!-- <a mat-button routerLink="/analisis" routerLinkActive="active">Análisis</a> -->
           <a mat-button routerLink="/graficos" routerLinkActive="active">Gráficos</a>

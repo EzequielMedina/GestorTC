@@ -1,0 +1,254 @@
+<div class="compra-dolares-container">
+  <!-- Header con información del dólar actual -->
+  <mat-card class="dolar-info-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>attach_money</mat-icon>
+        Gestión de Compra de Dólares
+      </mat-card-title>
+      <mat-card-subtitle>
+        Registra tus compras de dólares y visualiza la variación con el precio oficial
+      </mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="dolar-actual" *ngIf="dolarActual">
+        <div class="dolar-precio">
+          <span class="label">Dólar Oficial:</span>
+          <span class="compra">Compra: {{ formatearPesos(dolarActual.compra) }}</span>
+          <span class="venta">Venta: {{ formatearPesos(dolarActual.venta) }}</span>
+        </div>
+        <div class="dolar-fecha">
+          <small>Última actualización: {{ dolarActual.fechaActualizacion | date:'dd/MM/yyyy HH:mm' }}</small>
+          <button mat-icon-button (click)="actualizarDolar()" [disabled]="cargandoDolar" title="Actualizar precio">
+            <mat-icon [class.spinning]="cargandoDolar">refresh</mat-icon>
+          </button>
+        </div>
+      </div>
+      <div class="loading-dolar" *ngIf="cargandoDolar && !dolarActual">
+        <mat-spinner diameter="20"></mat-spinner>
+        <span>Cargando precio del dólar...</span>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Formulario de nueva compra -->
+  <mat-card class="form-card">
+    <mat-card-header>
+      <mat-card-title>Registrar Nueva Compra</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="compraForm" (ngSubmit)="onSubmit()" class="compra-form">
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="mes-field">
+            <mat-label>Mes</mat-label>
+            <mat-select formControlName="mes">
+              <mat-option *ngFor="let mes of meses" [value]="mes.value">
+                {{ mes.label }}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="mesInvalido">
+              Seleccione un mes válido
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="anio-field">
+            <mat-label>Año</mat-label>
+            <mat-select formControlName="anio">
+              <mat-option *ngFor="let anio of anios" [value]="anio">
+                {{ anio }}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="anioInvalido">
+              Seleccione un año válido
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="dolares-field">
+            <mat-label>Cantidad de Dólares</mat-label>
+            <input matInput type="number" formControlName="dolares" step="0.01" min="0.01">
+            <mat-hint>Cantidad de dólares a comprar</mat-hint>
+            <mat-error *ngIf="dolaresInvalido">
+              Ingrese una cantidad válida (mayor a 0)
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="precio-field">
+            <mat-label>Precio de Compra (ARS)</mat-label>
+            <input matInput type="number" formControlName="precioCompra" step="0.01" min="0.01">
+            <mat-hint>Precio en pesos por dólar</mat-hint>
+            <mat-error *ngIf="precioCompraInvalido">
+              Ingrese un precio válido (mayor a 0)
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- Vista previa de la compra -->
+        <div class="preview-compra" *ngIf="compraForm.valid && dolarActual">
+          <h4>Vista Previa:</h4>
+          <div class="preview-grid">
+            <div class="preview-item">
+              <span class="label">Monto en dólares:</span>
+              <span class="value">{{ formatearDolares(compraForm.get('dolares')?.value || 0) }}</span>
+            </div>
+            <div class="preview-item">
+              <span class="label">Precio en pesos (compra):</span>
+              <span class="value">{{ formatearPesos((compraForm.get('dolares')?.value || 0) * (compraForm.get('precioCompra')?.value || 0)) }}</span>
+            </div>
+            <div class="preview-item">
+              <span class="label">Precio en pesos (valor actual):</span>
+              <span class="value">{{ formatearPesos((compraForm.get('dolares')?.value || 0) * dolarActual.compra) }}</span>
+            </div>
+            <div class="preview-item variacion">
+              <span class="label">Variación:</span>
+              <span class="value" [ngClass]="obtenerClaseDiferencia(((compraForm.get('dolares')?.value || 0) * dolarActual.compra) - ((compraForm.get('dolares')?.value || 0) * (compraForm.get('precioCompra')?.value || 0)))">
+                {{ formatearPesos(((compraForm.get('dolares')?.value || 0) * dolarActual.compra) - ((compraForm.get('dolares')?.value || 0) * (compraForm.get('precioCompra')?.value || 0))) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button mat-raised-button color="primary" type="submit" [disabled]="!compraForm.valid || guardandoCompra">
+            <mat-spinner diameter="20" *ngIf="guardandoCompra"></mat-spinner>
+            <mat-icon *ngIf="!guardandoCompra">save</mat-icon>
+            {{ guardandoCompra ? 'Guardando...' : 'Guardar Compra' }}
+          </button>
+          <button mat-button type="button" (click)="compraForm.reset()" [disabled]="guardandoCompra">
+            <mat-icon>clear</mat-icon>
+            Limpiar
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Resumen acumulado -->
+  <mat-card class="resumen-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>assessment</mat-icon>
+        Resumen Acumulado
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="resumen-grid">
+        <div class="resumen-item">
+          <span class="label">Total Dólares Comprados:</span>
+          <span class="value destacado">{{ formatearDolares(resumen.totalDolares) }}</span>
+        </div>
+        <div class="resumen-item">
+          <span class="label">Total en Pesos (Compra):</span>
+          <span class="value">{{ formatearPesos(resumen.totalPesosCompra) }}</span>
+        </div>
+        <div class="resumen-item">
+          <span class="label">Total en Pesos (Valor Actual):</span>
+          <span class="value">{{ formatearPesos(resumen.totalPesosAPI) }}</span>
+        </div>
+        <div class="resumen-item variacion-total">
+          <span class="label">Variación Acumulada:</span>
+          <span class="value" [ngClass]="obtenerClaseDiferencia(resumen.variacionTotal)">
+            {{ formatearPesos(resumen.variacionTotal) }}
+          </span>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Tabla de compras -->
+  <mat-card class="tabla-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>list</mat-icon>
+        Historial de Compras
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="tabla-container">
+        <table mat-table [dataSource]="compras" class="compras-table">
+          <!-- Columna Período -->
+          <ng-container matColumnDef="periodo">
+            <th mat-header-cell *matHeaderCellDef>Período</th>
+            <td mat-cell *matCellDef="let compra">
+              {{ obtenerNombreMes(compra.mes) }} {{ compra.anio }}
+            </td>
+          </ng-container>
+
+          <!-- Columna Dólares -->
+          <ng-container matColumnDef="dolares">
+            <th mat-header-cell *matHeaderCellDef>Dólares</th>
+            <td mat-cell *matCellDef="let compra">
+              {{ formatearDolares(compra.dolares) }}
+            </td>
+          </ng-container>
+
+          <!-- Columna Precio Compra -->
+          <ng-container matColumnDef="precioCompra">
+            <th mat-header-cell *matHeaderCellDef>Precio Compra</th>
+            <td mat-cell *matCellDef="let compra">
+              {{ formatearPesos(compra.precioCompra) }}
+            </td>
+          </ng-container>
+
+          <!-- Columna Total Compra -->
+          <ng-container matColumnDef="totalCompra">
+            <th mat-header-cell *matHeaderCellDef>Total Compra</th>
+            <td mat-cell *matCellDef="let compra">
+              {{ formatearPesos(compra.dolares * compra.precioCompra) }}
+            </td>
+          </ng-container>
+
+          <!-- Columna Precio API -->
+          <ng-container matColumnDef="precioAPI">
+            <th mat-header-cell *matHeaderCellDef>Precio Actual</th>
+            <td mat-cell *matCellDef="let compra">
+              {{ compra.precioAPI ? formatearPesos(compra.precioAPI) : '-' }}
+            </td>
+          </ng-container>
+
+          <!-- Columna Total API -->
+          <ng-container matColumnDef="totalAPI">
+            <th mat-header-cell *matHeaderCellDef>Total Actual</th>
+            <td mat-cell *matCellDef="let compra">
+              {{ compra.precioAPI ? formatearPesos(compra.dolares * compra.precioAPI) : '-' }}
+            </td>
+          </ng-container>
+
+          <!-- Columna Diferencia -->
+          <ng-container matColumnDef="diferencia">
+            <th mat-header-cell *matHeaderCellDef>Diferencia</th>
+            <td mat-cell *matCellDef="let compra">
+              <span *ngIf="compra.precioAPI" [ngClass]="obtenerClaseDiferencia((compra.dolares * compra.precioAPI) - (compra.dolares * compra.precioCompra))">
+                {{ formatearPesos((compra.dolares * compra.precioAPI) - (compra.dolares * compra.precioCompra)) }}
+              </span>
+              <span *ngIf="!compra.precioAPI">-</span>
+            </td>
+          </ng-container>
+
+          <!-- Columna Acciones -->
+          <ng-container matColumnDef="acciones">
+            <th mat-header-cell *matHeaderCellDef>Acciones</th>
+            <td mat-cell *matCellDef="let compra">
+              <button mat-icon-button (click)="editarCompra(compra)" title="Editar">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button (click)="eliminarCompra(compra)" title="Eliminar" color="warn">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+
+        <div class="no-data" *ngIf="compras.length === 0">
+          <mat-icon>info</mat-icon>
+          <p>No hay compras registradas aún.</p>
+          <p>Utiliza el formulario de arriba para registrar tu primera compra de dólares.</p>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

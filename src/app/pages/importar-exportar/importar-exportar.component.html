@@ -15,6 +15,14 @@
     </div>
     
     <div class="card-content">
+      <div class="stats-header">
+        <h4>Resumen de datos</h4>
+        <button class="info-toggle" (click)="toggleInfoMontos()" [class.active]="mostrarInfoMontos">
+          <span class="info-icon">{{ mostrarInfoMontos ? '❌' : 'ℹ️' }}</span>
+          <span class="info-text">{{ mostrarInfoMontos ? 'Ocultar info' : 'Ver info' }}</span>
+        </button>
+      </div>
+      
       <div class="export-stats">
         <div class="stat-item">
           <div class="stat-icon">💳</div>
@@ -42,6 +50,54 @@
           <div class="stat-info">
             <div class="stat-value">{{ gastosCompartidos }}</div>
             <div class="stat-label">Compartidos</div>
+          </div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-icon">💵</div>
+          <div class="stat-info">
+            <div class="stat-value">{{ compraDolares.length }}</div>
+            <div class="stat-label">Compra Dólares</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Información detallada de montos -->
+      <div class="montos-info" *ngIf="mostrarInfoMontos">
+        <div class="info-card">
+          <div class="info-item">
+            <div class="info-icon">💳</div>
+            <div class="info-content">
+              <div class="info-title">Tarjetas</div>
+              <div class="info-description">Número total de tarjetas de crédito registradas en el sistema</div>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-icon">💰</div>
+            <div class="info-content">
+              <div class="info-title">Gastos</div>
+              <div class="info-description">Cantidad total de transacciones y gastos registrados</div>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-icon">📊</div>
+            <div class="info-content">
+              <div class="info-title">Total Gastos</div>
+              <div class="info-description">Suma total en pesos de todos los gastos realizados</div>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-icon">🤝</div>
+            <div class="info-content">
+              <div class="info-title">Compartidos</div>
+              <div class="info-description">Gastos que fueron compartidos con otras personas</div>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-icon">💵</div>
+            <div class="info-content">
+              <div class="info-title">Compra Dólares</div>
+              <div class="info-description">Operaciones de compra de dólares registradas</div>
+            </div>
           </div>
         </div>
       </div>
@@ -109,9 +165,14 @@
       <div class="file-preview" *ngIf="excelPreview">
         <div class="preview-header">
           <h4 class="preview-title">Vista previa del archivo</h4>
-          <div class="file-info">
-            <span class="file-size">{{ excelPreview.tamano }}</span>
-            <span class="file-date">{{ excelPreview.fechaModificacion }}</span>
+          <div class="preview-header-right">
+            <button class="info-toggle small" (click)="toggleInfoMontos()" [class.active]="mostrarInfoMontos">
+              <span class="info-icon">{{ mostrarInfoMontos ? '❌' : 'ℹ️' }}</span>
+            </button>
+            <div class="file-info">
+              <span class="file-size">{{ excelPreview.tamano }}</span>
+              <span class="file-date">{{ excelPreview.fechaModificacion }}</span>
+            </div>
           </div>
         </div>
         
@@ -138,10 +199,58 @@
             </div>
           </div>
           <div class="preview-stat">
-            <div class="preview-stat-icon">🤝</div>
-            <div class="preview-stat-content">
-              <div class="preview-stat-value">{{ excelPreview.gastosCompartidos }}</div>
-              <div class="preview-stat-label">Compartidos</div>
+          <div class="preview-stat-icon">🤝</div>
+          <div class="preview-stat-content">
+            <div class="preview-stat-value">{{ excelPreview.gastosCompartidos }}</div>
+            <div class="preview-stat-label">Compartidos</div>
+          </div>
+        </div>
+        <div class="preview-stat">
+          <div class="preview-stat-icon">💵</div>
+          <div class="preview-stat-content">
+            <div class="preview-stat-value">{{ excelPreview.compraDolares }}</div>
+            <div class="preview-stat-label">Compra Dólares</div>
+          </div>
+        </div>
+        </div>
+        
+        <!-- Información detallada en vista previa -->
+        <div class="preview-montos-info" *ngIf="mostrarInfoMontos">
+          <div class="preview-info-card">
+            <div class="preview-info-item">
+              <div class="preview-info-icon">💳</div>
+              <div class="preview-info-content">
+                <div class="preview-info-title">Tarjetas encontradas</div>
+                <div class="preview-info-description">Tarjetas de crédito que se importarán</div>
+              </div>
+            </div>
+            <div class="preview-info-item">
+              <div class="preview-info-icon">💰</div>
+              <div class="preview-info-content">
+                <div class="preview-info-title">Gastos encontrados</div>
+                <div class="preview-info-description">Transacciones que se importarán</div>
+              </div>
+            </div>
+            <div class="preview-info-item">
+              <div class="preview-info-icon">📊</div>
+              <div class="preview-info-content">
+                <div class="preview-info-title">Total en el archivo</div>
+                <div class="preview-info-description">Suma de todos los gastos del archivo</div>
+              </div>
+            </div>
+            <div class="preview-info-item">
+              <div class="preview-info-icon">🤝</div>
+              <div class="preview-info-content">
+                <div class="preview-info-title">Gastos compartidos</div>
+                <div class="preview-info-description">Gastos marcados como compartidos</div>
+              </div>
+            </div>
+            <div class="preview-info-item">
+              <div class="preview-info-icon">💵</div>
+              <div class="preview-info-content">
+                <div class="preview-info-title">Compras de dólares</div>
+                <div class="preview-info-description">Operaciones de dólares en el archivo</div>
+              </div>
             </div>
           </div>
         </div>
