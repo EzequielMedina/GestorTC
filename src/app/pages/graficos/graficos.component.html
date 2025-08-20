@@ -1,7 +1,7 @@
 <div class="page">
   <div class="header">
     <h2>Gráficos de Gastos</h2>
-    <p class="subtitle">Visualiza tus gastos por tarjeta y proyecciones futuras</p>
+    <p class="subtitle">Visualiza tus gastos por tarjeta, proyecciones futuras y compras de dólares</p>
   </div>
 
   <div class="content-container" *ngIf="gastos.length > 0; else noData">
@@ -113,6 +113,62 @@
               [type]="'line'"
               [data]="totalPorMesData"
               [options]="totalPorMesOptions">
+            </canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gráficos de Compra de Dólares -->
+    <div class="charts-row" *ngIf="tieneComprasDolar">
+      <div class="chart-container full-width">
+        <div class="chart-card">
+          <div class="chart-wrapper">
+            <canvas baseChart
+              [type]="'line'"
+              [data]="evolucionDolarData"
+              [options]="evolucionDolarOptions">
+            </canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="charts-row" *ngIf="tieneComprasDolar">
+       <div class="chart-container half-width">
+         <div class="chart-card">
+           <div class="chart-wrapper">
+             <canvas baseChart
+               [type]="'bar'"
+               [data]="comparacionPreciosData"
+               [options]="comparacionPreciosOptions">
+             </canvas>
+           </div>
+         </div>
+       </div>
+
+       <div class="chart-container half-width">
+         <div class="chart-card">
+           <div class="chart-wrapper">
+             <canvas baseChart
+               [type]="'doughnut'"
+               [data]="distribucionComprasData"
+               [options]="distribucionComprasOptions">
+             </canvas>
+           </div>
+         </div>
+       </div>
+     </div>
+
+    <!-- Gráfico de variación acumulada en el tiempo -->
+    <div class="charts-row" *ngIf="tieneComprasDolar">
+      <div class="chart-container full-width">
+        <div class="chart-card">
+          <div class="chart-wrapper">
+            <canvas baseChart
+              [type]="'line'"
+              [data]="variacionAcumuladaData"
+              [options]="variacionAcumuladaOptions">
             </canvas>
           </div>
         </div>

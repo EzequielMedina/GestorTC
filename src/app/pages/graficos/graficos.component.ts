@@ -14,8 +14,10 @@ import { ChartConfiguration, ChartOptions } from 'chart.js';
 
 import { Tarjeta } from '../../models/tarjeta.model';
 import { Gasto } from '../../models/gasto.model';
+import { CompraDolar } from '../../models/compra-dolar.model';
 import { TarjetaService } from '../../services/tarjeta';
 import { GastoService } from '../../services/gasto';
+import { CompraDolarService } from '../../services/compra-dolar.service';
 import { ResumenService } from '../../services/resumen.service';
 
 @Component({
@@ -40,6 +42,8 @@ export class GraficosComponent implements OnInit, OnDestroy {
   // Datos
   tarjetas: Tarjeta[] = [];
   gastos: Gasto[] = [];
+  comprasDolar: CompraDolar[] = [];
+  tieneComprasDolar = false;
 
   // Referencias a todos los charts
   @ViewChildren(BaseChartDirective) charts?: QueryList<BaseChartDirective>;
@@ -75,6 +79,229 @@ export class GraficosComponent implements OnInit, OnDestroy {
   public montosPorTarjetaData: ChartConfiguration<'bar'>['data'] = {
     labels: [],
     datasets: []
+  };
+
+  // Gráficos de Compra de Dólares
+  public evolucionDolarData: ChartConfiguration<'line'>['data'] = {
+    labels: [],
+    datasets: []
+  };
+
+  public evolucionDolarOptions: ChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      title: {
+        display: true,
+        text: 'Evolución de Compras de Dólares',
+        font: { size: 16 },
+        padding: { bottom: 10 }
+      },
+      legend: {
+        position: 'bottom',
+        labels: {
+          boxWidth: 12,
+          padding: 10,
+          font: {
+            size: 11
+          }
+        }
+      }
+    },
+    layout: {
+      padding: { top: 8, right: 8, bottom: 16, left: 8 }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        title: {
+          display: true,
+          text: 'Cantidad (USD)',
+          font: {
+            size: 11
+          }
+        },
+        ticks: {
+          font: {
+            size: 10
+          }
+        }
+      },
+      x: {
+        title: {
+          display: true,
+          text: 'Meses',
+          font: {
+            size: 11
+          }
+        },
+        ticks: {
+          font: {
+            size: 10
+          },
+          maxRotation: 45,
+          minRotation: 45
+        }
+      }
+    }
+  };
+
+  public comparacionPreciosData: ChartConfiguration<'bar'>['data'] = {
+    labels: [],
+    datasets: []
+  };
+
+  public comparacionPreciosOptions: ChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      title: {
+        display: true,
+        text: 'Precio Compra vs Precio Actual',
+        font: { size: 16 },
+        padding: { bottom: 10 }
+      },
+      legend: {
+        position: 'bottom',
+        labels: {
+          boxWidth: 12,
+          padding: 10,
+          font: {
+            size: 11
+          }
+        }
+      }
+    },
+    layout: {
+      padding: { top: 8, right: 8, bottom: 16, left: 8 }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        title: {
+          display: true,
+          text: 'Precio ($)',
+          font: {
+            size: 11
+          }
+        },
+        ticks: {
+          font: {
+            size: 10
+          }
+        }
+      },
+      x: {
+        title: {
+          display: true,
+          text: 'Compras',
+          font: {
+            size: 11
+          }
+        },
+        ticks: {
+          font: {
+            size: 10
+          },
+          maxRotation: 45,
+          minRotation: 45
+        }
+      }
+    }
+  };
+
+  public distribucionComprasData: ChartConfiguration<'doughnut'>['data'] = {
+    labels: [],
+    datasets: []
+  };
+
+  public distribucionComprasOptions: ChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      title: {
+        display: true,
+        text: 'Distribución de Compras por Año',
+        font: { size: 16 },
+        padding: { bottom: 10 }
+      },
+      legend: {
+        position: 'bottom',
+        labels: {
+          boxWidth: 12,
+          padding: 10,
+          font: {
+            size: 11
+          }
+        }
+      }
+    },
+    layout: {
+      padding: { top: 8, right: 8, bottom: 16, left: 8 }
+    }
+  };
+
+  public variacionAcumuladaData: ChartConfiguration<'line'>['data'] = {
+    labels: [],
+    datasets: []
+  };
+
+  public variacionAcumuladaOptions: ChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      title: {
+        display: true,
+        text: 'Variación Acumulada en el Tiempo',
+        font: { size: 16 },
+        padding: { bottom: 10 }
+      },
+      legend: {
+        position: 'bottom',
+        labels: {
+          boxWidth: 12,
+          padding: 10,
+          font: {
+            size: 11
+          }
+        }
+      }
+    },
+    layout: {
+      padding: { top: 8, right: 8, bottom: 16, left: 8 }
+    },
+    scales: {
+      y: {
+        title: {
+          display: true,
+          text: 'Variación ($)',
+          font: {
+            size: 11
+          }
+        },
+        ticks: {
+          font: {
+            size: 10
+          }
+        }
+      },
+      x: {
+        title: {
+          display: true,
+          text: 'Meses',
+          font: {
+            size: 11
+          }
+        },
+        ticks: {
+          font: {
+            size: 10
+          },
+          maxRotation: 45,
+          minRotation: 45
+        }
+      }
+    }
   };
 
   public montosPorTarjetaOptions: ChartOptions = {
@@ -267,11 +494,13 @@ export class GraficosComponent implements OnInit, OnDestroy {
   // Inyectar servicios
   private tarjetaService = inject(TarjetaService);
   private gastoService = inject(GastoService);
+  private compraDolarService = inject(CompraDolarService);
   private resumenService = inject(ResumenService);
 
-  // Suscripciones
+  // Subscripciones
   private tarjetasSubscription: any;
   private gastosSubscription: any;
+  private comprasDolarSubscription: any;
 
   ngOnInit(): void {
     // Inicializar fechas actuales
@@ -317,6 +546,9 @@ export class GraficosComponent implements OnInit, OnDestroy {
     if (this.gastosSubscription) {
       this.gastosSubscription.unsubscribe();
     }
+    if (this.comprasDolarSubscription) {
+      this.comprasDolarSubscription.unsubscribe();
+    }
   }
 
   cargarDatos(): void {
@@ -333,6 +565,15 @@ export class GraficosComponent implements OnInit, OnDestroy {
         this.actualizarGraficoProyeccion();
         this.actualizarGraficoTotal();
       });
+    });
+
+    // Suscribirse a cambios en compras de dólares
+    this.comprasDolarSubscription = this.compraDolarService.obtenerCompras().subscribe(compras => {
+      this.comprasDolar = compras;
+      this.tieneComprasDolar = compras.length > 0;
+      if (this.tieneComprasDolar) {
+        this.actualizarGraficosComprasDolar();
+      }
     });
   }
 
@@ -836,5 +1077,327 @@ export class GraficosComponent implements OnInit, OnDestroy {
         }
       });
     });
+  }
+
+  // Métodos para gráficos de compra de dólares
+  actualizarGraficosComprasDolar(): void {
+    this.actualizarGraficoEvolucionDolar();
+    this.actualizarGraficoComparacionPrecios();
+    this.actualizarGraficoDistribucionCompras();
+    this.actualizarGraficoVariacionAcumulada();
+  }
+
+  actualizarGraficoEvolucionDolar(): void {
+    if (!this.comprasDolar || this.comprasDolar.length === 0) {
+      this.evolucionDolarData = {
+        labels: [],
+        datasets: []
+      };
+      return;
+    }
+
+    // Ordenar compras por fecha (año, mes)
+    const comprasOrdenadas = [...this.comprasDolar].sort((a, b) => {
+      if (a.anio !== b.anio) return a.anio - b.anio;
+      return a.mes - b.mes;
+    });
+
+    // Crear etiquetas y datos
+    const labels: string[] = [];
+    const datosCompras: number[] = [];
+    const datosAcumulados: number[] = [];
+    let acumulado = 0;
+
+    comprasOrdenadas.forEach(compra => {
+      const nombreMes = this.obtenerNombreMesCorto(compra.mes);
+      labels.push(`${nombreMes} ${compra.anio}`);
+      datosCompras.push(compra.dolares || 0);
+      acumulado += compra.dolares || 0;
+      datosAcumulados.push(acumulado);
+    });
+
+    this.evolucionDolarData = {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Compras Mensuales (USD)',
+          data: datosCompras,
+          borderColor: '#2196F3',
+          backgroundColor: 'rgba(33, 150, 243, 0.1)',
+          tension: 0.4,
+          fill: false
+        },
+        {
+          label: 'Acumulado (USD)',
+          data: datosAcumulados,
+          borderColor: '#4CAF50',
+          backgroundColor: 'rgba(76, 175, 80, 0.1)',
+          tension: 0.4,
+          fill: true
+        }
+      ]
+    };
+
+    // Forzar actualización del gráfico
+    this.zone.run(() => {
+      this.cdr.detectChanges();
+      if (this.charts) {
+        this.charts.forEach(chart => chart.update());
+      }
+    });
+  }
+
+  actualizarGraficoComparacionPrecios(): void {
+    if (!this.comprasDolar || this.comprasDolar.length === 0) {
+      this.comparacionPreciosData = {
+        labels: [],
+        datasets: []
+      };
+      return;
+    }
+
+    // Ordenar compras por fecha (año, mes)
+    const comprasOrdenadas = [...this.comprasDolar].sort((a, b) => {
+      if (a.anio !== b.anio) return a.anio - b.anio;
+      return a.mes - b.mes;
+    });
+
+    // Crear etiquetas y datos
+    const labels: string[] = [];
+    const preciosCompra: number[] = [];
+    const preciosActuales: number[] = [];
+
+    comprasOrdenadas.forEach(compra => {
+      const nombreMes = this.obtenerNombreMesCorto(compra.mes);
+      labels.push(`${nombreMes} ${compra.anio}`);
+      preciosCompra.push(compra.precioCompra || 0);
+      preciosActuales.push(compra.precioAPI || 0);
+    });
+
+    this.comparacionPreciosData = {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Precio de Compra',
+          data: preciosCompra,
+          backgroundColor: '#FF9800',
+          borderColor: '#FF9800',
+          borderWidth: 1
+        },
+        {
+          label: 'Precio Actual (API)',
+          data: preciosActuales,
+          backgroundColor: '#2196F3',
+          borderColor: '#2196F3',
+          borderWidth: 1
+        }
+      ]
+    };
+
+    // Forzar actualización del gráfico
+    this.zone.run(() => {
+      this.cdr.detectChanges();
+      if (this.charts) {
+        this.charts.forEach(chart => chart.update());
+      }
+    });
+  }
+
+  actualizarGraficoDistribucionCompras(): void {
+    if (!this.comprasDolar || this.comprasDolar.length === 0) {
+      this.distribucionComprasData = {
+        labels: [],
+        datasets: []
+      };
+      return;
+    }
+
+    // Agrupar compras por año
+    const comprasPorAnio: { [key: number]: number } = {};
+    
+    this.comprasDolar.forEach(compra => {
+      const anio = compra.anio;
+      if (!comprasPorAnio[anio]) {
+        comprasPorAnio[anio] = 0;
+      }
+      comprasPorAnio[anio] += compra.dolares || 0;
+    });
+
+    // Convertir a arrays para el gráfico
+    const anios = Object.keys(comprasPorAnio).sort();
+    const valores = anios.map(anio => comprasPorAnio[parseInt(anio)]);
+    
+    // Generar colores dinámicamente
+    const colores = this.generarColores(anios.length);
+
+    this.distribucionComprasData = {
+      labels: anios,
+      datasets: [
+        {
+          label: 'Dólares Comprados (USD)',
+          data: valores,
+          backgroundColor: colores,
+          borderColor: colores.map(color => color.replace('0.8', '1')),
+          borderWidth: 2
+        }
+      ]
+    };
+
+    // Forzar actualización del gráfico
+    this.zone.run(() => {
+      this.cdr.detectChanges();
+      if (this.charts) {
+        this.charts.forEach(chart => chart.update());
+      }
+    });
+  }
+
+  private generarColores(cantidad: number): string[] {
+    const coloresBase = [
+      'rgba(255, 99, 132, 0.8)',
+      'rgba(54, 162, 235, 0.8)',
+      'rgba(255, 205, 86, 0.8)',
+      'rgba(75, 192, 192, 0.8)',
+      'rgba(153, 102, 255, 0.8)',
+      'rgba(255, 159, 64, 0.8)',
+      'rgba(199, 199, 199, 0.8)',
+      'rgba(83, 102, 255, 0.8)'
+    ];
+    
+    const colores: string[] = [];
+    for (let i = 0; i < cantidad; i++) {
+      colores.push(coloresBase[i % coloresBase.length]);
+    }
+    
+    return colores;
+   }
+
+  actualizarGraficoVariacionAcumulada(): void {
+    if (!this.comprasDolar || this.comprasDolar.length === 0) {
+      this.variacionAcumuladaData = {
+        labels: [],
+        datasets: []
+      };
+      return;
+    }
+
+    // Ordenar compras por fecha (año, mes)
+    const comprasOrdenadas = [...this.comprasDolar].sort((a, b) => {
+      if (a.anio !== b.anio) return a.anio - b.anio;
+      return a.mes - b.mes;
+    });
+
+    // Crear etiquetas y datos
+    const labels: string[] = [];
+    const variacionAcumulada: number[] = [];
+    const variacionPorcentual: number[] = [];
+    let inversionAcumulada = 0;
+    let valorActualAcumulado = 0;
+
+    comprasOrdenadas.forEach(compra => {
+      const nombreMes = this.obtenerNombreMesCorto(compra.mes);
+      labels.push(`${nombreMes} ${compra.anio}`);
+      
+      // Calcular inversión y valor actual acumulados
+      const inversionCompra = (compra.dolares || 0) * (compra.precioCompra || 0);
+      const valorActualCompra = (compra.dolares || 0) * (compra.precioAPI || 0);
+      
+      inversionAcumulada += inversionCompra;
+      valorActualAcumulado += valorActualCompra;
+      
+      // Calcular variación en pesos
+      const variacion = valorActualAcumulado - inversionAcumulada;
+      variacionAcumulada.push(variacion);
+      
+      // Calcular variación porcentual
+      const porcentaje = inversionAcumulada > 0 ? (variacion / inversionAcumulada) * 100 : 0;
+      variacionPorcentual.push(porcentaje);
+    });
+
+    this.variacionAcumuladaData = {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Variación en Pesos ($)',
+          data: variacionAcumulada,
+          borderColor: '#4CAF50',
+          backgroundColor: 'rgba(76, 175, 80, 0.2)',
+          tension: 0.4,
+          fill: true,
+          yAxisID: 'y'
+        },
+        {
+          label: 'Variación Porcentual (%)',
+          data: variacionPorcentual,
+          borderColor: '#FF9800',
+          backgroundColor: 'rgba(255, 152, 0, 0.1)',
+          tension: 0.4,
+          fill: false,
+          yAxisID: 'y1'
+        }
+      ]
+    };
+
+    // Actualizar opciones para incluir doble eje Y
+    this.variacionAcumuladaOptions = {
+      ...this.variacionAcumuladaOptions,
+      scales: {
+        y: {
+          type: 'linear',
+          display: true,
+          position: 'left',
+          title: {
+            display: true,
+            text: 'Variación ($)',
+            font: { size: 11 }
+          },
+          ticks: {
+            font: { size: 10 }
+          }
+        },
+        y1: {
+          type: 'linear',
+          display: true,
+          position: 'right',
+          title: {
+            display: true,
+            text: 'Variación (%)',
+            font: { size: 11 }
+          },
+          ticks: {
+            font: { size: 10 }
+          },
+          grid: {
+            drawOnChartArea: false
+          }
+        },
+        x: {
+          title: {
+            display: true,
+            text: 'Meses',
+            font: { size: 11 }
+          },
+          ticks: {
+            font: { size: 10 },
+            maxRotation: 45,
+            minRotation: 45
+          }
+        }
+      }
+    };
+
+    // Forzar actualización del gráfico
+    this.zone.run(() => {
+      this.cdr.detectChanges();
+      if (this.charts) {
+        this.charts.forEach(chart => chart.update());
+      }
+    });
+  }
+
+  private obtenerNombreMesCorto(mes: number): string {
+    const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
+                   'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    return meses[mes - 1] || 'Inv';
   }
 }
