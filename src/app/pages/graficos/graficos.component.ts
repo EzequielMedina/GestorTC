@@ -735,8 +735,8 @@ export class GraficosComponent implements OnInit, OnDestroy {
         {
           label: 'Total de Todas las Tarjetas',
           data: totalPorMes,
-          borderColor: '#3f51b5',
-          backgroundColor: 'rgba(63, 81, 181, 0.2)',
+          borderColor: '#006666',
+          backgroundColor: 'rgba(0, 102, 102, 0.2)',
           borderWidth: 2,
           fill: true,
           tension: 0.4
@@ -859,16 +859,16 @@ export class GraficosComponent implements OnInit, OnDestroy {
 
     // Colores para las tarjetas (se pueden ajustar)
     const colores = [
-      'rgba(54, 162, 235, 0.7)',
-      'rgba(255, 99, 132, 0.7)',
-      'rgba(75, 192, 192, 0.7)',
-      'rgba(255, 206, 86, 0.7)',
-      'rgba(153, 102, 255, 0.7)',
-      'rgba(255, 159, 64, 0.7)',
-      'rgba(199, 199, 199, 0.7)',
-      'rgba(83, 102, 255, 0.7)',
-      'rgba(40, 159, 64, 0.7)',
-      'rgba(210, 199, 199, 0.7)'
+      'rgba(0, 102, 102, 0.7)',
+      'rgba(0, 133, 132, 0.7)',
+      'rgba(0, 153, 153, 0.7)',
+      'rgba(51, 153, 153, 0.7)',
+      'rgba(102, 204, 204, 0.7)',
+      'rgba(153, 255, 255, 0.7)',
+      'rgba(0, 76, 76, 0.7)',
+      'rgba(0, 179, 179, 0.7)',
+      'rgba(25, 128, 128, 0.7)',
+      'rgba(76, 179, 179, 0.7)'
     ];
 
     // Mapear tarjetas a nombres y montos
@@ -1019,16 +1019,16 @@ export class GraficosComponent implements OnInit, OnDestroy {
 
     // Colores para las tarjetas
     const colores = [
-      'rgba(54, 162, 235, 0.7)',
-      'rgba(255, 99, 132, 0.7)',
-      'rgba(75, 192, 192, 0.7)',
-      'rgba(255, 206, 86, 0.7)',
-      'rgba(153, 102, 255, 0.7)',
-      'rgba(255, 159, 64, 0.7)',
-      'rgba(199, 199, 199, 0.7)',
-      'rgba(83, 102, 255, 0.7)',
-      'rgba(40, 159, 64, 0.7)',
-      'rgba(210, 199, 199, 0.7)'
+      'rgba(0, 102, 102, 0.7)',
+      'rgba(0, 133, 132, 0.7)',
+      'rgba(0, 153, 153, 0.7)',
+      'rgba(51, 153, 153, 0.7)',
+      'rgba(102, 204, 204, 0.7)',
+      'rgba(153, 255, 255, 0.7)',
+      'rgba(0, 76, 76, 0.7)',
+      'rgba(0, 179, 179, 0.7)',
+      'rgba(25, 128, 128, 0.7)',
+      'rgba(76, 179, 179, 0.7)'
     ];
 
     // Crear un dataset por cada tarjeta
@@ -1122,16 +1122,16 @@ export class GraficosComponent implements OnInit, OnDestroy {
         {
           label: 'Compras Mensuales (USD)',
           data: datosCompras,
-          borderColor: '#2196F3',
-          backgroundColor: 'rgba(33, 150, 243, 0.1)',
+          borderColor: '#006666',
+          backgroundColor: 'rgba(0, 102, 102, 0.1)',
           tension: 0.4,
           fill: false
         },
         {
           label: 'Acumulado (USD)',
           data: datosAcumulados,
-          borderColor: '#4CAF50',
-          backgroundColor: 'rgba(76, 175, 80, 0.1)',
+          borderColor: '#008584',
+          backgroundColor: 'rgba(0, 133, 132, 0.1)',
           tension: 0.4,
           fill: true
         }
@@ -1180,15 +1180,15 @@ export class GraficosComponent implements OnInit, OnDestroy {
         {
           label: 'Precio de Compra',
           data: preciosCompra,
-          backgroundColor: '#FF9800',
-          borderColor: '#FF9800',
+          backgroundColor: '#006666',
+          borderColor: '#006666',
           borderWidth: 1
         },
         {
           label: 'Precio Actual (API)',
           data: preciosActuales,
-          backgroundColor: '#2196F3',
-          borderColor: '#2196F3',
+          backgroundColor: '#008584',
+          borderColor: '#008584',
           borderWidth: 1
         }
       ]
@@ -1254,14 +1254,14 @@ export class GraficosComponent implements OnInit, OnDestroy {
 
   private generarColores(cantidad: number): string[] {
     const coloresBase = [
-      'rgba(255, 99, 132, 0.8)',
-      'rgba(54, 162, 235, 0.8)',
-      'rgba(255, 205, 86, 0.8)',
-      'rgba(75, 192, 192, 0.8)',
-      'rgba(153, 102, 255, 0.8)',
-      'rgba(255, 159, 64, 0.8)',
-      'rgba(199, 199, 199, 0.8)',
-      'rgba(83, 102, 255, 0.8)'
+      'rgba(0, 102, 102, 0.8)',     // --color3: #006666
+      'rgba(0, 133, 132, 0.8)',     // --color4: #008584
+      'rgba(0, 102, 102, 0.6)',     // Variación más clara del primario
+      'rgba(0, 133, 132, 0.6)',     // Variación más clara del secundario
+      'rgba(204, 204, 204, 0.8)',   // --color5: #cccccc
+      'rgba(0, 102, 102, 0.4)',     // Variación muy clara del primario
+      'rgba(0, 133, 132, 0.4)',     // Variación muy clara del secundario
+      'rgba(169, 169, 169, 0.8)'    // Gris intermedio
     ];
     
     const colores: string[] = [];
@@ -1320,8 +1320,8 @@ export class GraficosComponent implements OnInit, OnDestroy {
         {
           label: 'Variación en Pesos ($)',
           data: variacionAcumulada,
-          borderColor: '#4CAF50',
-          backgroundColor: 'rgba(76, 175, 80, 0.2)',
+          borderColor: '#006666',
+          backgroundColor: 'rgba(0, 102, 102, 0.2)',
           tension: 0.4,
           fill: true,
           yAxisID: 'y'
@@ -1329,8 +1329,8 @@ export class GraficosComponent implements OnInit, OnDestroy {
         {
           label: 'Variación Porcentual (%)',
           data: variacionPorcentual,
-          borderColor: '#FF9800',
-          backgroundColor: 'rgba(255, 152, 0, 0.1)',
+          borderColor: '#008584',
+          backgroundColor: 'rgba(0, 133, 132, 0.1)',
           tension: 0.4,
           fill: false,
           yAxisID: 'y1'

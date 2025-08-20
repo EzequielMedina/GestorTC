@@ -327,6 +327,104 @@ export class ResumenService {
   }
 
   /**
+   * Obtiene el detalle de gastos agrupados por tarjeta para un mes específico
+   */
+  getDetalleGastosAgrupadosPorTarjeta$(monthKey: string): Observable<Array<{
+    nombreTarjeta: string;
+    totalTarjeta: number;
+    cantidadGastos: number;
+    gastosUltimaCuota: number;
+    gastos: Array<{
+      descripcion: string;
+      montoOriginal: number;
+      cuotaActual: number;
+      cantidadCuotas: number;
+      montoCuota: number;
+      compartidoCon?: string;
+      porcentajeCompartido?: number;
+    }>;
+  }>> {
+    return combineLatest([
+      this.tarjetaService.getTarjetas$(),
+      this.gastoService.getGastos$()
+    ]).pipe(
+      map(([tarjetas, gastos]) => {
+        const tarjetasMap = new Map(tarjetas.map(t => [t.id, t.nombre] as const));
+        const gastosPorTarjeta = new Map<string, Array<{
+          descripcion: string;
+          montoOriginal: number;
+          cuotaActual: number;
+          cantidadCuotas: number;
+          montoCuota: number;
+          compartidoCon?: string;
+          porcentajeCompartido?: number;
+        }>>();
+
+        gastos.forEach(gasto => {
+          const cuotas = Math.max(1, gasto.cantidadCuotas || 1);
+          const montoCuota = gasto.montoPorCuota ?? Math.round((gasto.monto / cuotas) * 100) / 100;
+          const nombreTarjeta = tarjetasMap.get(gasto.tarjetaId) || 'Tarjeta no encontrada';
+          
+          if (cuotas <= 1) {
+            // Gasto de una sola vez: solo aparece en el mes de la fecha
+            if (this.monthKeyFromISO(gasto.fecha) === monthKey) {
+              if (!gastosPorTarjeta.has(nombreTarjeta)) {
+                gastosPorTarjeta.set(nombreTarjeta, []);
+              }
+              gastosPorTarjeta.get(nombreTarjeta)!.push({
+                descripcion: gasto.descripcion,
+                montoOriginal: gasto.monto,
+                cuotaActual: 1,
+                cantidadCuotas: 1,
+                montoCuota: gasto.monto,
+                compartidoCon: gasto.compartidoCon,
+                porcentajeCompartido: gasto.porcentajeCompartido
+              });
+            }
+          } else {
+            // Gasto en cuotas: puede aparecer en múltiples meses
+            const firstISO = this.firstMonthISOFromGasto(gasto);
+            for (let i = 0; i < cuotas; i++) {
+              const iso = this.addMonths(firstISO, i);
+              if (iso.slice(0, 7) === monthKey) {
+                if (!gastosPorTarjeta.has(nombreTarjeta)) {
+                  gastosPorTarjeta.set(nombreTarjeta, []);
+                }
+                gastosPorTarjeta.get(nombreTarjeta)!.push({
+                  descripcion: gasto.descripcion,
+                  montoOriginal: gasto.monto,
+                  cuotaActual: i + 1,
+                  cantidadCuotas: cuotas,
+                  montoCuota: montoCuota,
+                  compartidoCon: gasto.compartidoCon,
+                  porcentajeCompartido: gasto.porcentajeCompartido
+                });
+              }
+            }
+          }
+        });
+
+        // Convertir el Map a array y calcular totales
+        const resultado = Array.from(gastosPorTarjeta.entries()).map(([nombreTarjeta, gastos]) => {
+          const totalTarjeta = gastos.reduce((sum, gasto) => sum + gasto.montoCuota, 0);
+          const cantidadGastos = gastos.length;
+          const gastosUltimaCuota = gastos.filter(gasto => gasto.cuotaActual === gasto.cantidadCuotas).length;
+          return {
+            nombreTarjeta,
+            totalTarjeta,
+            cantidadGastos,
+            gastosUltimaCuota,
+            gastos: gastos.sort((a, b) => a.descripcion.localeCompare(b.descripcion))
+          };
+        });
+
+        // Ordenar por nombre de tarjeta
+        return resultado.sort((a, b) => a.nombreTarjeta.localeCompare(b.nombreTarjeta));
+      })
+    );
+  }
+
+  /**
    * Obtiene el detalle de gastos por tarjeta para un mes específico
    */
   getDetalleGastosDelMes$(monthKey: string): Observable<Array<{

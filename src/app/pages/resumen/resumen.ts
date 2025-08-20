@@ -84,37 +84,60 @@ import { Observable } from 'rxjs';
         </div>
       </section>
 
-      <!-- Detalle de gastos por tarjeta del mes -->
+      <!-- Detalle de gastos agrupados por tarjeta del mes -->
       <section class="content-card">
         <h3 class="card-title">Detalle de Gastos - {{ monthLabel }}</h3>
-        <div class="mobile-table" *ngIf="(detalleGastosMes$ | async) as detalle; else cargando">
-          <div class="mobile-row" *ngFor="let item of detalle">
-            <div class="row-header">
-              <div class="card-name">{{ item.nombreTarjeta }}</div>
-              <div class="cuota-info">{{ item.cuotaActual }}/{{ item.cantidadCuotas }}</div>
-            </div>
-            <div class="row-content">
-              <div class="gasto-descripcion">{{ item.descripcion }}</div>
-              <div class="gasto-stats">
-                <div class="stat-item">
-                  <span class="stat-label">Monto Original:</span>
-                  <span class="stat-value">{{ item.montoOriginal | number:'1.2-2' }}</span>
+        <div class="mobile-table" *ngIf="(detalleGastosAgrupadosMes$ | async) as detalleAgrupado; else cargando">
+          <div class="tarjeta-group" *ngFor="let grupo of detalleAgrupado">
+            <!-- Header de la tarjeta -->
+             <div class="tarjeta-header" (click)="toggleTarjetaExpansion(grupo.nombreTarjeta)">
+               <div class="tarjeta-info">
+                 <div class="card-name">{{ grupo.nombreTarjeta }}</div>
+                 <div class="tarjeta-stats">
+                   <div class="tarjeta-total">Total: {{ grupo.totalTarjeta | number:'1.2-2' }}</div>
+                   <div class="tarjeta-contadores">
+                     <span class="contador-gastos">{{ grupo.cantidadGastos }} gastos</span>
+                     <span class="contador-ultimas" *ngIf="grupo.gastosUltimaCuota > 0">
+                       • {{ grupo.gastosUltimaCuota }} última{{ grupo.gastosUltimaCuota > 1 ? 's' : '' }} cuota{{ grupo.gastosUltimaCuota > 1 ? 's' : '' }}
+                     </span>
+                   </div>
+                 </div>
+               </div>
+               <div class="expand-icon" [class.expanded]="isTarjetaExpandida(grupo.nombreTarjeta)">
+                 ▼
+               </div>
+             </div>
+            
+            <!-- Gastos de la tarjeta (colapsables) -->
+            <div class="tarjeta-gastos" *ngIf="isTarjetaExpandida(grupo.nombreTarjeta)">
+              <div class="mobile-row gasto-item" *ngFor="let gasto of grupo.gastos">
+                <div class="row-header">
+                  <div class="gasto-descripcion">{{ gasto.descripcion }}</div>
+                  <div class="cuota-info">{{ gasto.cuotaActual }}/{{ gasto.cantidadCuotas }}</div>
                 </div>
-                <div class="stat-item highlight">
-                  <span class="stat-label">Monto Cuota:</span>
-                  <span class="stat-value">{{ item.montoCuota | number:'1.2-2' }}</span>
-                </div>
-                <div class="stat-item" *ngIf="item.compartidoCon">
-                  <span class="stat-label">Compartido:</span>
-                  <span class="stat-value compartido">{{ item.compartidoCon }} ({{ item.porcentajeCompartido }}%)</span>
+                <div class="row-content">
+                  <div class="gasto-stats">
+                    <div class="stat-item">
+                      <span class="stat-label">Monto Original:</span>
+                      <span class="stat-value">{{ gasto.montoOriginal | number:'1.2-2' }}</span>
+                    </div>
+                    <div class="stat-item highlight">
+                      <span class="stat-label">Monto Cuota:</span>
+                      <span class="stat-value">{{ gasto.montoCuota | number:'1.2-2' }}</span>
+                    </div>
+                    <div class="stat-item" *ngIf="gasto.compartidoCon">
+                      <span class="stat-label">Compartido:</span>
+                      <span class="stat-value compartido">{{ gasto.compartidoCon }} ({{ gasto.porcentajeCompartido }}%)</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-          <div *ngIf="detalle.length === 0" class="empty-state">
+          <div *ngIf="detalleAgrupado.length === 0" class="empty-state">
             <div class="empty-icon">📝</div>
             <div class="empty-text">No hay gastos para este mes</div>
-        </div>
+          </div>
         </div>
       </section>
 
@@ -481,11 +504,119 @@ import { Observable } from 'rxjs';
     }
 
     .compartido {
-      color: var(--primary);
-      font-size: 13px;
-    }
+       color: var(--primary);
+       font-size: 13px;
+     }
 
-    .empty-state {
+     .tarjeta-group {
+       margin-bottom: 16px;
+       border: 1px solid var(--border);
+       border-radius: var(--radius-sm);
+       overflow: hidden;
+       background: var(--bg);
+     }
+
+     .tarjeta-header {
+       display: flex;
+       justify-content: space-between;
+       align-items: center;
+       padding: 16px;
+       background: var(--surface);
+       cursor: pointer;
+       transition: background-color 0.2s ease;
+       border-bottom: 1px solid var(--border);
+     }
+
+     .tarjeta-header:hover {
+       background: var(--primary);
+       color: white;
+     }
+
+     .tarjeta-header:hover .card-name,
+      .tarjeta-header:hover .tarjeta-total,
+      .tarjeta-header:hover .tarjeta-contadores {
+        color: white;
+      }
+
+      .tarjeta-header:hover .contador-ultimas {
+        color: #c8e6c9;
+      }
+
+     .tarjeta-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        flex: 1;
+      }
+
+      .tarjeta-stats {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .tarjeta-total {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--highlight);
+      }
+
+      .tarjeta-contadores {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        color: #666;
+      }
+
+      .contador-gastos {
+        font-weight: 500;
+      }
+
+      .contador-ultimas {
+        color: var(--pos);
+        font-weight: 500;
+      }
+
+     .expand-icon {
+       font-size: 16px;
+       font-weight: bold;
+       transition: transform 0.3s ease;
+       color: var(--primary);
+     }
+
+     .expand-icon.expanded {
+       transform: rotate(180deg);
+     }
+
+     .tarjeta-header:hover .expand-icon {
+       color: white;
+     }
+
+     .tarjeta-gastos {
+       padding: 0;
+       background: var(--bg);
+     }
+
+     .gasto-item {
+       margin: 0;
+       border-radius: 0;
+       border: none;
+       border-bottom: 1px solid var(--border);
+       background: var(--surface);
+     }
+
+     .gasto-item:last-child {
+       border-bottom: none;
+     }
+
+     .gasto-item:hover {
+       transform: none;
+       box-shadow: none;
+       background: var(--bg);
+     }
+
+     .empty-state {
       text-align: center;
       padding: 40px 20px;
       color: #666;
@@ -671,11 +802,32 @@ import { Observable } from 'rxjs';
       }
 
       .total-monto {
-        font-size: 16px;
-      }
-    }
+         font-size: 16px;
+       }
 
-    @media (max-width: 480px) {
+       .tarjeta-header {
+         padding: 12px;
+       }
+
+       .tarjeta-info {
+         gap: 2px;
+       }
+
+       .tarjeta-total {
+          font-size: 13px;
+        }
+
+        .tarjeta-contadores {
+          font-size: 11px;
+          gap: 6px;
+        }
+
+        .expand-icon {
+          font-size: 14px;
+        }
+     }
+
+     @media (max-width: 480px) {
       .page {
         padding: 8px;
       }
@@ -741,9 +893,28 @@ import { Observable } from 'rxjs';
       }
 
       .stat-item .stat-value {
-        font-size: 14px;
-      }
-    }
+         font-size: 14px;
+       }
+
+       .tarjeta-header {
+         padding: 10px;
+       }
+
+       .tarjeta-total {
+          font-size: 12px;
+        }
+
+        .tarjeta-contadores {
+          font-size: 10px;
+          gap: 4px;
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .expand-icon {
+          font-size: 12px;
+        }
+     }
   `
 })
 export class ResumenComponent {
@@ -761,6 +932,22 @@ export class ResumenComponent {
     compartidoCon?: string;
     porcentajeCompartido?: number;
   }>>;
+  detalleGastosAgrupadosMes$!: Observable<Array<{
+    nombreTarjeta: string;
+    totalTarjeta: number;
+    cantidadGastos: number;
+    gastosUltimaCuota: number;
+    gastos: Array<{
+      descripcion: string;
+      montoOriginal: number;
+      cuotaActual: number;
+      cantidadCuotas: number;
+      montoCuota: number;
+      compartidoCon?: string;
+      porcentajeCompartido?: number;
+    }>;
+  }>>;
+  tarjetasExpandidas: Set<string> = new Set();
   detalleGastosCompartidosMes$!: Observable<Array<{
     descripcion: string;
     montoCuota: number;
@@ -779,6 +966,18 @@ export class ResumenComponent {
   constructor(private resumenService: ResumenService) {
     // Inicializar después de que Angular haya inyectado el servicio
     this.refreshAllStreams();
+  }
+
+  toggleTarjetaExpansion(nombreTarjeta: string): void {
+    if (this.tarjetasExpandidas.has(nombreTarjeta)) {
+      this.tarjetasExpandidas.delete(nombreTarjeta);
+    } else {
+      this.tarjetasExpandidas.add(nombreTarjeta);
+    }
+  }
+
+  isTarjetaExpandida(nombreTarjeta: string): boolean {
+    return this.tarjetasExpandidas.has(nombreTarjeta);
   }
 
   private monthKeyFromDate(d: Date): string {
@@ -815,6 +1014,7 @@ export class ResumenComponent {
     this.resumenPersonas$ = this.resumenService.getResumenPorPersona$();
     this.resumenPersonasMes$ = this.resumenService.getResumenPorPersonaDelMes$(this.currentMonthKey);
     this.detalleGastosMes$ = this.resumenService.getDetalleGastosDelMes$(this.currentMonthKey);
+    this.detalleGastosAgrupadosMes$ = this.resumenService.getDetalleGastosAgrupadosPorTarjeta$(this.currentMonthKey);
     this.detalleGastosCompartidosMes$ = this.resumenService.getDetalleGastosCompartidosDelMes$(this.currentMonthKey);
     this.limiteTotal$ = this.resumenService.getLimiteTotal$();
     this.totalDelMes$ = this.resumenService.getTotalDelMes$(this.currentMonthKey);
