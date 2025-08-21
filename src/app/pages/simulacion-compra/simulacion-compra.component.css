@@ -1,37 +1,144 @@
-/* Contenedor principal */
-.simulacion-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
+:host {
+  --bg: var(--color1);
+  --surface: var(--color2);
+  --primary: var(--color3);
+  --danger: #dc2626;
+  --secondary: #6b7280;
+  --border: var(--color5);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+  --radius: 12px;
+  --radius-sm: 8px;
 }
 
-/* Formulario de compra */
-.form-card {
-  width: 100%;
+.page {
+  min-height: 100vh;
+  background: var(--bg);
+  padding: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header {
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.header h2 {
+  margin: 0 0 8px 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #333;
+}
+
+.subtitle {
+  margin: 0 0 20px 0;
+  color: #666;
+  font-size: 16px;
+}
+
+.content-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  margin-bottom: 24px;
+}
+
+.card-title {
+  margin: 0 0 16px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid var(--primary);
+  padding-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-subtitle {
+  margin: 0 0 20px 0;
+  color: #666;
+  font-size: 14px;
 }
 
 .compra-form {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  margin-bottom: 20px;
 }
 
 .full-width {
   width: 100%;
 }
 
-/* Sección de resultados */
-.results-section {
+/* Botones */
+.form-actions {
   display: flex;
-  flex-direction: column;
-  gap: 24px;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
 }
 
-.result-card {
-  width: 100%;
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--secondary);
+  border: 1px solid var(--border);
+}
+
+.btn-outline:hover {
+  background: var(--bg);
+  border-color: var(--secondary);
+}
+
+.btn-icon {
+  font-size: 16px;
+}
+
+.btn-text {
+  font-size: 14px;
+}
+
+/* Proyección mensual */
+.proyeccion-mensual {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 /* Información de la tarjeta */
@@ -156,230 +263,177 @@
   height: 20px;
 }
 
-/* Resumen Naranja Styles */
-.resumen-naranja {
-  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
-  border-left: 4px solid #ff9800;
-}
-
-.proyeccion-mensual {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
 .mes-item {
-  background: white;
-  border-radius: 8px;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
   padding: 16px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border: 1px solid var(--border);
+  transition: all 0.2s ease;
+}
+
+.mes-item:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 .mes-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
 }
 
 .mes-titulo {
   margin: 0;
-  color: #e65100;
-  font-size: 1.2rem;
-  font-weight: 500;
+  color: var(--primary);
+  font-size: 1.1rem;
+  font-weight: 600;
 }
 
 .cuota-badge {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: #ff9800;
+  gap: 6px;
+  background: var(--primary);
   color: white;
-  padding: 8px 12px;
-  border-radius: 20px;
-  font-size: 0.9rem;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
   font-weight: 500;
 }
 
 .cuota-badge mat-icon {
-  font-size: 18px;
-  width: 18px;
-  height: 18px;
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
 }
 
 .mes-detalles {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .detalle-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 0;
+  padding: 6px 0;
 }
 
 .detalle-item.total {
-  border-top: 2px solid #ff9800;
-  padding-top: 12px;
-  margin-top: 8px;
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+  margin-top: 6px;
 }
 
 .detalle-label {
   display: flex;
   align-items: center;
-  gap: 8px;
-  color: #666;
+  gap: 6px;
+  color: var(--secondary);
   font-weight: 500;
+  font-size: 0.9rem;
 }
 
 .detalle-label mat-icon {
-  color: #ff9800;
-  font-size: 20px;
-  width: 20px;
-  height: 20px;
+  color: var(--primary);
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
 }
 
 .detalle-valor {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 600;
   color: #333;
 }
 
 .detalle-valor.total-amount {
-  color: #e65100;
-  font-size: 1.3rem;
+  color: var(--primary);
+  font-size: 1.1rem;
+  font-weight: 700;
 }
+
+
 
 /* Responsive design */
 @media (max-width: 768px) {
-  .simulacion-container {
+  .page {
+    padding: 12px;
+  }
+  
+  .header h2 {
+    font-size: 24px;
+  }
+  
+  .content-card {
     padding: 16px;
-    gap: 16px;
+    margin-bottom: 16px;
   }
   
-  .amount {
-    font-size: 2.5em;
+  .card-title {
+    font-size: 18px;
+    margin-bottom: 12px;
   }
   
-  .currency {
-    font-size: 1.2em;
+  .compra-form {
+    gap: 12px;
   }
   
-  .period {
-    font-size: 1em;
-  }
-  
-  .info-item {
+  .form-actions {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
+    gap: 8px;
   }
   
-  .progress-label {
-    flex-direction: column;
-    gap: 4px;
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .proyeccion-mensual {
+    gap: 12px;
+  }
+  
+  .mes-item {
+    padding: 12px;
   }
   
   .mes-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
+    gap: 8px;
+    margin-bottom: 8px;
   }
   
   .cuota-badge {
-    align-self: flex-end;
+    align-self: flex-start;
+    font-size: 0.8rem;
   }
   
   .detalle-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
+    padding: 4px 0;
+  }
+  
+  .detalle-label {
+    font-size: 0.85rem;
   }
   
   .detalle-valor {
-    align-self: flex-end;
-  }
-}
-
-@media (min-width: 769px) {
-  .results-section {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
+    font-size: 0.9rem;
   }
   
-  .result-card {
-    height: fit-content;
+  .detalle-valor.total-amount {
+    font-size: 1rem;
   }
 }
 
 @media (min-width: 1024px) {
-  .simulacion-container {
-    padding: 32px;
+  .page {
+    padding: 24px;
   }
-}
-
-/* Responsive Design para Gráficos */
-@media (max-width: 1200px) {
-  .graficos-container {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 768px) {
-  .graficos-container {
-    gap: 16px;
-    grid-template-columns: 1fr;
-  }
-  
-  .grafico-item {
-    padding: 16px;
-  }
-  
-  .chart-container {
-    height: 300px;
-  }
-  
-  .graficos-title {
-    font-size: 18px;
-  }
-  
-  .graficos-title mat-icon {
-    font-size: 20px;
-  }
-}
-
-@media (max-width: 480px) {
-  .graficos-container {
-    gap: 12px;
-  }
-  
-  .grafico-item {
-    padding: 12px;
-  }
-  
-  .chart-container {
-    height: 250px;
-  }
-  
-  .graficos-title {
-    font-size: 16px;
-  }
-  
-  .graficos-title mat-icon {
-    font-size: 18px;
-  }
-}
-
-/* Estilos para la sección de gráficos */
-.graficos-card {
-  margin-top: 24px;
-  background: var(--surface, #e9e9e9) !important;
-  border-radius: var(--radius, 12px) !important;
-  box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.08)) !important;
-  border: 1px solid var(--border, #cccccc) !important;
 }
 
 .graficos-title {

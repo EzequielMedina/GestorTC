@@ -1,16 +1,17 @@
-<div class="simulacion-container">
+<div class="page">
+  <div class="header">
+    <h2>Simulación de Compra</h2>
+    <p class="subtitle">Simula el impacto de una nueva compra en tus tarjetas</p>
+  </div>
+
   <!-- Formulario de Compra -->
-  <mat-card class="form-card">
-    <mat-card-header>
-      <mat-card-title>
-        <mat-icon>credit_card</mat-icon>
-        Simulación de Compra
-      </mat-card-title>
-      <mat-card-subtitle>Ingresa los datos de tu nueva compra</mat-card-subtitle>
-    </mat-card-header>
+  <section class="content-card">
+    <h3 class="card-title">
+      <mat-icon>credit_card</mat-icon>
+      Datos de la Compra
+    </h3>
     
-    <mat-card-content>
-      <form [formGroup]="compraForm" (ngSubmit)="onSubmit()" class="compra-form">
+    <form [formGroup]="compraForm" (ngSubmit)="onSubmit()" class="compra-form">
         <!-- Selección de Tarjeta -->
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Seleccionar Tarjeta</mat-label>
@@ -75,37 +76,27 @@
             La fecha es obligatoria
           </mat-error>
         </mat-form-field>
-      </form>
-    </mat-card-content>
-
-    <mat-card-actions align="end">
-      <button mat-button type="button" (click)="limpiarFormulario()">
-        <mat-icon>clear</mat-icon>
-        Limpiar
+    </form>
+    
+    <div class="form-actions">
+      <button class="btn btn-outline" type="button" (click)="limpiarFormulario()">
+        <span class="btn-icon">🗑️</span>
+        <span class="btn-text">Limpiar</span>
       </button>
-      <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="!isFormValid">
-        <mat-icon>calculate</mat-icon>
-        Simular Compra
+      <button class="btn btn-primary" (click)="onSubmit()" [disabled]="!isFormValid">
+        <span class="btn-icon">📊</span>
+        <span class="btn-text">Simular Compra</span>
       </button>
-    </mat-card-actions>
-  </mat-card>
+    </div>
+  </section>
 
   <!-- Resultados de la Simulación -->
-  <div class="results-section" *ngIf="tarjetaSeleccionada && isFormValid">
-    
-
-
-    <!-- Resumen Dinámico - Proyección Mensual -->
-    <mat-card class="result-card resumen-naranja" *ngIf="resumenMensualProyectado.length > 0">
-      <mat-card-header>
-        <mat-card-title>
-          <mat-icon>calendar_month</mat-icon>
-          Resumen {{tarjetaSeleccionada.nombre}} - Proyección Mensual
-        </mat-card-title>
-        <mat-card-subtitle>Cómo quedará el resumen de cada mes con esta compra</mat-card-subtitle>
-      </mat-card-header>
-      
-      <mat-card-content>
+  <section class="content-card" *ngIf="tarjetaSeleccionada && isFormValid && resumenMensualProyectado.length > 0">
+    <h3 class="card-title">
+      <mat-icon>calendar_month</mat-icon>
+      Proyección Mensual - {{tarjetaSeleccionada.nombre}}
+    </h3>
+    <p class="card-subtitle">Cómo quedará el resumen de cada mes con esta compra</p>
         <div class="proyeccion-mensual">
           <div class="mes-item" *ngFor="let mes of resumenMensualProyectado; let last = last">
             <div class="mes-header">
@@ -137,46 +128,5 @@
             <mat-divider *ngIf="!last"></mat-divider>
           </div>
         </div>
-      </mat-card-content>
-    </mat-card>
-
-    <!-- Sección de Gráficos -->
-    <mat-card class="graficos-card" *ngIf="simulacionCalculada">
-      <mat-card-header>
-        <mat-card-title class="graficos-title">
-          <mat-icon>analytics</mat-icon>
-          Análisis Gráfico - Próximos 6 Meses
-        </mat-card-title>
-      </mat-card-header>
-      
-      <mat-card-content>
-        <div class="graficos-container">
-          <!-- Gráfico de Proyección de Pagos por Mes -->
-          <div class="grafico-item">
-            <div class="chart-container">
-              <canvas 
-                baseChart
-                [data]="proyeccionRangoData"
-                [options]="proyeccionRangoOptions"
-                type="line">
-              </canvas>
-            </div>
-          </div>
-          
-          <!-- Gráfico de Total de Todas las Tarjetas por Mes -->
-          <div class="grafico-item">
-            <div class="chart-container">
-              <canvas 
-                baseChart
-                [data]="totalPorMesData"
-                [options]="totalPorMesOptions"
-                type="line">
-              </canvas>
-            </div>
-          </div>
-        </div>
-      </mat-card-content>
-    </mat-card>
-
-  </div>
+  </section>
 </div>

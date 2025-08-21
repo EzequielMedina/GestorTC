@@ -1,10 +1,8 @@
-import { Component, OnInit, OnDestroy, ViewChildren, QueryList, ChangeDetectorRef, NgZone } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil, debounceTime } from 'rxjs/operators';
-import { BaseChartDirective } from 'ng2-charts';
-import { ChartConfiguration, ChartOptions } from 'chart.js';
 import { Tarjeta } from '../../models/tarjeta.model';
 import { TarjetaService } from '../../services/tarjeta';
 import { ResumenService, ResumenTarjeta } from '../../services/resumen.service';
@@ -30,7 +28,6 @@ import { MatNativeDateModule } from '@angular/material/core';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    BaseChartDirective,
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
@@ -48,8 +45,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 export class SimulacionCompraComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   
-  // Referencias a los gráficos
-  @ViewChildren(BaseChartDirective) charts?: QueryList<BaseChartDirective>;
+
 
   // Formulario
   compraForm: FormGroup;
@@ -74,120 +70,11 @@ export class SimulacionCompraComponent implements OnInit, OnDestroy {
     totalTodasTarjetas: number;
   }> = [];
 
-  // Filtros para gráficos (próximos 6 meses por defecto)
-  filtroMesesGrafico: number = 6;
-  fechaInicioGrafico: Date = new Date();
 
-  // Configuraciones de gráficos - Basadas en graficos.component
-  public proyeccionRangoData: ChartConfiguration<'line'>['data'] = {
-    labels: [],
-    datasets: []
-  };
+  
+  anios: number[] = [];
 
-  public proyeccionRangoOptions: ChartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      title: {
-        display: true,
-        text: 'Proyección de Pagos por Mes (Próximos 6 Meses)',
-        font: { size: 16 },
-        padding: { bottom: 10 }
-      },
-      legend: {
-        position: 'bottom',
-        labels: {
-          boxWidth: 12,
-          padding: 10,
-          font: { size: 11 }
-        }
-      }
-    },
-    layout: {
-      padding: { top: 8, right: 8, bottom: 16, left: 8 }
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        title: {
-          display: true,
-          text: 'Monto a Pagar ($)',
-          font: { size: 11 }
-        },
-        ticks: { font: { size: 10 } }
-      },
-      x: {
-        title: {
-          display: true,
-          text: 'Meses',
-          font: { size: 11 }
-        },
-        ticks: {
-          font: { size: 10 },
-          maxRotation: 45,
-          minRotation: 45
-        }
-      }
-    }
-  };
 
-  public totalPorMesData: ChartConfiguration<'line'>['data'] = {
-    labels: [],
-    datasets: []
-  };
-
-  public totalPorMesOptions: ChartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      title: {
-        display: true,
-        text: 'Total de Todas las Tarjetas por Mes (Próximos 6 Meses)',
-        font: { size: 16 },
-        padding: { bottom: 10 }
-      },
-      legend: {
-        position: 'bottom',
-        labels: {
-          boxWidth: 12,
-          padding: 10,
-          font: { size: 11 }
-        }
-      }
-    },
-    layout: {
-      padding: { top: 8, right: 8, bottom: 16, left: 8 }
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        title: {
-          display: true,
-          text: 'Monto Total ($)',
-          font: { size: 11 }
-        },
-        ticks: { font: { size: 10 } }
-      },
-      x: {
-        title: {
-          display: true,
-          text: 'Meses',
-          font: { size: 11 }
-        },
-        ticks: {
-          font: { size: 10 },
-          maxRotation: 45,
-          minRotation: 45
-        }
-      }
-    }
-  };
-
-  // Lista de meses para etiquetas
-  private mesesLista = [
-    'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
-    'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'
-  ];
   
   constructor(
     private fb: FormBuilder,
@@ -198,6 +85,14 @@ export class SimulacionCompraComponent implements OnInit, OnDestroy {
     private zone: NgZone
   ) {
     this.compraForm = this.createForm();
+    this.initializeAnios();
+  }
+  
+  private initializeAnios(): void {
+    const currentYear = new Date().getFullYear();
+    for (let year = currentYear - 2; year <= currentYear + 5; year++) {
+      this.anios.push(year);
+    }
   }
 
   ngOnInit(): void {
@@ -233,7 +128,7 @@ export class SimulacionCompraComponent implements OnInit, OnDestroy {
         }
         // Actualizar gráficos cuando cambia la tarjeta
         if (this.simulacionCalculada) {
-          this.actualizarGraficos();
+        //   this.actualizarGraficos();
         }
       });
 
@@ -248,7 +143,7 @@ export class SimulacionCompraComponent implements OnInit, OnDestroy {
           this.calcularResultados();
         } else if (this.simulacionCalculada) {
           // Actualizar gráficos incluso si el formulario no es válido
-          this.actualizarGraficos();
+        //   this.actualizarGraficos();
         }
       });
   }
@@ -259,7 +154,6 @@ export class SimulacionCompraComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (tarjetas: Tarjeta[]) => {
           this.tarjetas = tarjetas;
-          this.actualizarGraficos();
         },
         error: (error: any) => {
           console.error('Error al cargar tarjetas:', error);
@@ -273,7 +167,6 @@ export class SimulacionCompraComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (gastos) => {
           this.gastos = gastos;
-          this.actualizarGraficos();
         },
         error: (error) => {
           console.error('Error al cargar gastos:', error);
@@ -301,9 +194,6 @@ export class SimulacionCompraComponent implements OnInit, OnDestroy {
     
     // Calcular resumen naranja (proyección mensual)
     this.calcularResumenNaranja();
-    
-    // Actualizar gráficos con la nueva simulación
-    this.actualizarGraficos();
     
     // Marcar como calculado
     this.simulacionCalculada = true;
@@ -451,147 +341,14 @@ export class SimulacionCompraComponent implements OnInit, OnDestroy {
     ];
     return `${meses[fecha.getMonth()]} ${fecha.getFullYear()}`;
   }
-
-  private actualizarGraficos(): void {
-    if (this.tarjetas.length > 0 && this.gastos.length > 0) {
-      this.actualizarGraficoProyeccion();
-      this.actualizarGraficoTotal();
-      this.zone.run(() => {
-        this.cdr.detectChanges();
-        this.charts?.forEach(chart => chart.update());
-      });
-    }
+  
+  // Método parseFechaLocal - igual que en graficos.component
+  private parseFechaLocal(fechaStr: string): Date {
+    const [year, month, day] = fechaStr.split('-').map(Number);
+    return new Date(year, month - 1, day);
   }
+  
 
-  private actualizarGraficoProyeccion(): void {
-    const fechaInicio = new Date();
-    fechaInicio.setDate(1); // Primer día del mes actual
-    
-    const meses = [];
-    const datasets: any[] = [];
-    
-    // Generar etiquetas para los próximos 6 meses
-    for (let i = 0; i < 6; i++) {
-      const fecha = new Date(fechaInicio);
-      fecha.setMonth(fecha.getMonth() + i);
-      meses.push(fecha.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' }));
-    }
-    
-    // Crear dataset para cada tarjeta
-    this.tarjetas.forEach((tarjeta, index) => {
-      const pagosPorMes = [];
-      
-      for (let i = 0; i < 6; i++) {
-        const fecha = new Date(fechaInicio);
-        fecha.setMonth(fecha.getMonth() + i);
-        
-        let pagoMes = 0;
-        
-        // Calcular pagos existentes de esta tarjeta para este mes
-         this.gastos
-           .filter(gasto => gasto.tarjetaId === tarjeta.id)
-           .forEach(gasto => {
-             if (gasto.cantidadCuotas && gasto.cantidadCuotas > 1) {
-               const fechaGasto = new Date(gasto.fecha);
-               const mesesTranscurridos = (fecha.getFullYear() - fechaGasto.getFullYear()) * 12 + 
-                                        (fecha.getMonth() - fechaGasto.getMonth());
-               
-               if (mesesTranscurridos >= 0 && mesesTranscurridos < gasto.cantidadCuotas) {
-                 pagoMes += gasto.monto / gasto.cantidadCuotas;
-               }
-             } else {
-               const fechaGasto = new Date(gasto.fecha);
-               if (fechaGasto.getMonth() === fecha.getMonth() && 
-                   fechaGasto.getFullYear() === fecha.getFullYear()) {
-                 pagoMes += gasto.monto;
-               }
-             }
-           });
-        
-        // Agregar cuota de la nueva compra si es la tarjeta seleccionada
-        if (this.simulacionCalculada && 
-            this.compraForm.get('tarjetaId')?.value === tarjeta.id) {
-          pagoMes += this.montoCuota;
-        }
-        
-        pagosPorMes.push(pagoMes);
-      }
-      
-      // Colores para las tarjetas
-      const colors = [
-        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', 
-        '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF'
-      ];
-      
-      datasets.push({
-        label: tarjeta.nombre,
-        data: pagosPorMes,
-        borderColor: colors[index % colors.length],
-        backgroundColor: colors[index % colors.length] + '20',
-        tension: 0.1,
-        fill: false
-      });
-    });
-    
-    this.proyeccionRangoData = {
-      labels: meses,
-      datasets: datasets
-    };
-  }
 
-  private actualizarGraficoTotal(): void {
-    const fechaInicio = new Date();
-    fechaInicio.setDate(1); // Primer día del mes actual
-    
-    const meses = [];
-    const totalesPorMes = [];
-    
-    // Generar etiquetas para los próximos 6 meses
-    for (let i = 0; i < 6; i++) {
-      const fecha = new Date(fechaInicio);
-      fecha.setMonth(fecha.getMonth() + i);
-      meses.push(fecha.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' }));
-      
-      let totalMes = 0;
-      
-      // Calcular total de todas las tarjetas para este mes
-       this.gastos.forEach(gasto => {
-         if (gasto.cantidadCuotas && gasto.cantidadCuotas > 1) {
-           const fechaGasto = new Date(gasto.fecha);
-           const mesesTranscurridos = (fecha.getFullYear() - fechaGasto.getFullYear()) * 12 + 
-                                    (fecha.getMonth() - fechaGasto.getMonth());
-           
-           if (mesesTranscurridos >= 0 && mesesTranscurridos < gasto.cantidadCuotas) {
-             totalMes += gasto.monto / gasto.cantidadCuotas;
-           }
-         } else {
-           const fechaGasto = new Date(gasto.fecha);
-           if (fechaGasto.getMonth() === fecha.getMonth() && 
-               fechaGasto.getFullYear() === fecha.getFullYear()) {
-             totalMes += gasto.monto;
-           }
-         }
-       });
-      
-      // Agregar cuota de la nueva compra si está calculada
-      if (this.simulacionCalculada) {
-        totalMes += this.montoCuota;
-      }
-      
-      totalesPorMes.push(totalMes);
-    }
-    
-    this.totalPorMesData = {
-      labels: meses,
-      datasets: [{
-        label: 'Total Todas las Tarjetas',
-        data: totalesPorMes,
-        borderColor: '#FF6384',
-        backgroundColor: 'rgba(255, 99, 132, 0.1)',
-        tension: 0.1,
-        fill: true,
-        borderWidth: 3
-      }]
-    };
-  }
+
 }
