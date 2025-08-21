@@ -30,6 +30,10 @@
           <mat-icon>bar_chart</mat-icon>
           <span>Gráficos</span>
         </a>
+        <a mat-list-item class="nav-item" routerLink="/dashboard-predictivo" routerLinkActive="active" (click)="drawer.close()">
+          <mat-icon>analytics</mat-icon>
+          <span>Dashboard Predictivo</span>
+        </a>
       </mat-nav-list>
     </mat-sidenav>
 
@@ -48,6 +52,7 @@
           <a mat-button routerLink="/importar-exportar" routerLinkActive="active">Importar/Exportar</a>
           <!-- <a mat-button routerLink="/analisis" routerLinkActive="active">Análisis</a> -->
           <a mat-button routerLink="/graficos" routerLinkActive="active">Gráficos</a>
+          <a mat-button routerLink="/dashboard-predictivo" routerLinkActive="active">Dashboard Predictivo</a>
         </nav>
       </mat-toolbar>
 

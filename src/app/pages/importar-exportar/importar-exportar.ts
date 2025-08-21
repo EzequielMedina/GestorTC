@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { Tarjeta } from '../../models/tarjeta.model';
 import { Gasto } from '../../models/gasto.model';
 import { CompraDolar } from '../../models/compra-dolar.model';
@@ -46,7 +47,8 @@ export class ImportarExportarComponent implements OnInit {
     private tarjetaService: TarjetaService,
     private gastoService: GastoService,
     private compraDolarService: CompraDolarService,
-    private importarExportarService: ImportarExportarService
+    private importarExportarService: ImportarExportarService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -201,6 +203,11 @@ export class ImportarExportarComponent implements OnInit {
               this.cargarDatos();
               this.limpiarSeleccion();
               this.setMensaje(`Importación exitosa: ${tarjetas.length} tarjetas, ${gastos.length} gastos y ${compraDolares.length} compras de dólares importados`, false);
+              
+              // Navegar al dashboard predictivo después de 2 segundos para mostrar el mensaje
+              setTimeout(() => {
+                this.router.navigate(['/dashboard-predictivo']);
+              }, 2000);
             });
           });
         });

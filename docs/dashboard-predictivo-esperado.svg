@@ -1,0 +1,180 @@
+<svg width="1200" height="800" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#4CAF50;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FFC107;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F44336;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="chartGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1976d2;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#1976d2;stop-opacity:0.2" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Fondo -->
+  <rect width="1200" height="800" fill="#f5f5f5"/>
+  
+  <!-- Header -->
+  <rect x="0" y="0" width="1200" height="80" fill="white" stroke="#e0e0e0"/>
+  <text x="600" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#1976d2">Dashboard Predictivo</text>
+  <text x="600" y="55" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#666">Análisis inteligente y predicciones de tus gastos futuros</text>
+  
+  <!-- Fila Superior: Score Financiero y Alertas -->
+  <g transform="translate(20, 100)">
+    <!-- Score Financiero -->
+    <rect x="0" y="0" width="580" height="200" fill="white" stroke="#e0e0e0" rx="8"/>
+    <text x="20" y="30" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333">Score Financiero</text>
+    
+    <!-- Círculo del Score -->
+    <circle cx="150" cy="120" r="60" fill="none" stroke="#4CAF50" stroke-width="6"/>
+    <text x="150" y="115" text-anchor="middle" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="#4CAF50">750</text>
+    <text x="150" y="135" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4CAF50">BUENO</text>
+    
+    <!-- Barra de progreso -->
+    <rect x="250" y="110" width="300" height="8" fill="#e0e0e0" rx="4"/>
+    <rect x="250" y="110" width="225" height="8" fill="#4CAF50" rx="4"/>
+    
+    <!-- Factores del Score -->
+    <text x="250" y="140" font-family="Arial, sans-serif" font-size="12" fill="#333">Utilización de Crédito: 65%</text>
+    <text x="250" y="155" font-family="Arial, sans-serif" font-size="12" fill="#333">Diversificación: 80%</text>
+    <text x="250" y="170" font-family="Arial, sans-serif" font-size="12" fill="#333">Consistencia: 90%</text>
+    
+    <!-- Alertas -->
+    <rect x="600" y="0" width="560" height="200" fill="white" stroke="#e0e0e0" rx="8"/>
+    <text x="620" y="30" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333">Alertas Activas</text>
+    
+    <!-- Alerta 1 -->
+    <rect x="620" y="50" width="520" height="40" fill="#fff3cd" stroke="#ffc107" rx="4"/>
+    <circle cx="635" cy="70" r="4" fill="#ffc107"/>
+    <text x="650" y="67" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#856404">Gasto elevado detectado</text>
+    <text x="650" y="80" font-family="Arial, sans-serif" font-size="11" fill="#856404">Tus gastos este mes superan el promedio en 25%</text>
+    
+    <!-- Alerta 2 -->
+    <rect x="620" y="100" width="520" height="40" fill="#d1ecf1" stroke="#17a2b8" rx="4"/>
+    <circle cx="635" cy="120" r="4" fill="#17a2b8"/>
+    <text x="650" y="117" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#0c5460">Oportunidad de ahorro</text>
+    <text x="650" y="130" font-family="Arial, sans-serif" font-size="11" fill="#0c5460">Podrías ahorrar $15,000 optimizando gastos en entretenimiento</text>
+    
+    <!-- Alerta 3 -->
+    <rect x="620" y="150" width="520" height="40" fill="#d4edda" stroke="#28a745" rx="4"/>
+    <circle cx="635" cy="170" r="4" fill="#28a745"/>
+    <text x="650" y="167" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#155724">Meta alcanzada</text>
+    <text x="650" y="180" font-family="Arial, sans-serif" font-size="11" fill="#155724">Has mantenido tus gastos dentro del presupuesto por 3 meses</text>
+  </g>
+  
+  <!-- Filtros -->
+  <g transform="translate(20, 320)">
+    <rect x="0" y="0" width="1160" height="60" fill="white" stroke="#e0e0e0" rx="8"/>
+    <text x="20" y="25" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#333">Filtros y Configuración</text>
+    
+    <!-- Filtro Tarjeta -->
+    <rect x="20" y="35" width="150" height="20" fill="#f0f0f0" stroke="#ccc" rx="4"/>
+    <text x="25" y="48" font-family="Arial, sans-serif" font-size="11" fill="#333">Tarjeta: Todas</text>
+    
+    <!-- Filtro Meses -->
+    <rect x="180" y="35" width="120" height="20" fill="#f0f0f0" stroke="#ccc" rx="4"/>
+    <text x="185" y="48" font-family="Arial, sans-serif" font-size="11" fill="#333">Proyección: 3 meses</text>
+    
+    <!-- Filtro Análisis -->
+    <rect x="310" y="35" width="120" height="20" fill="#f0f0f0" stroke="#ccc" rx="4"/>
+    <text x="315" y="48" font-family="Arial, sans-serif" font-size="11" fill="#333">Análisis: General</text>
+    
+    <!-- Botones -->
+    <rect x="950" y="35" width="80" height="20" fill="#1976d2" rx="4"/>
+    <text x="990" y="48" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="white">Exportar</text>
+    
+    <rect x="1040" y="35" width="80" height="20" fill="#ff9800" rx="4"/>
+    <text x="1080" y="48" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="white">Configurar</text>
+  </g>
+  
+  <!-- Gráfico de Predicciones -->
+  <g transform="translate(20, 400)">
+    <rect x="0" y="0" width="760" height="280" fill="white" stroke="#e0e0e0" rx="8"/>
+    <text x="20" y="30" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333">Predicción de Gastos Futuros</text>
+    
+    <!-- Ejes del gráfico -->
+    <line x1="60" y1="50" x2="60" y2="250" stroke="#ccc" stroke-width="1"/>
+    <line x1="60" y1="250" x2="720" y2="250" stroke="#ccc" stroke-width="1"/>
+    
+    <!-- Etiquetas del eje Y -->
+    <text x="50" y="60" text-anchor="end" font-family="Arial, sans-serif" font-size="10" fill="#666">$100k</text>
+    <text x="50" y="110" text-anchor="end" font-family="Arial, sans-serif" font-size="10" fill="#666">$75k</text>
+    <text x="50" y="160" text-anchor="end" font-family="Arial, sans-serif" font-size="10" fill="#666">$50k</text>
+    <text x="50" y="210" text-anchor="end" font-family="Arial, sans-serif" font-size="10" fill="#666">$25k</text>
+    <text x="50" y="255" text-anchor="end" font-family="Arial, sans-serif" font-size="10" fill="#666">$0</text>
+    
+    <!-- Etiquetas del eje X -->
+    <text x="120" y="265" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#666">Ene 2025</text>
+    <text x="220" y="265" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#666">Feb 2025</text>
+    <text x="320" y="265" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#666">Mar 2025</text>
+    <text x="420" y="265" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#666">Abr 2025</text>
+    <text x="520" y="265" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#666">May 2025</text>
+    <text x="620" y="265" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#666">Jun 2025</text>
+    
+    <!-- Línea de datos históricos -->
+    <polyline points="120,180 220,160 320,200" fill="none" stroke="#1976d2" stroke-width="3"/>
+    
+    <!-- Línea de predicción -->
+    <polyline points="320,200 420,185 520,175 620,170" fill="none" stroke="#ff9800" stroke-width="3" stroke-dasharray="5,5"/>
+    
+    <!-- Área de confianza -->
+    <polygon points="420,175 520,165 620,160 620,180 520,185 420,195" fill="#ff9800" fill-opacity="0.2"/>
+    
+    <!-- Puntos de datos -->
+    <circle cx="120" cy="180" r="4" fill="#1976d2"/>
+    <circle cx="220" cy="160" r="4" fill="#1976d2"/>
+    <circle cx="320" cy="200" r="4" fill="#1976d2"/>
+    <circle cx="420" cy="185" r="4" fill="#ff9800"/>
+    <circle cx="520" cy="175" r="4" fill="#ff9800"/>
+    <circle cx="620" cy="170" r="4" fill="#ff9800"/>
+    
+    <!-- Leyenda -->
+    <rect x="580" y="60" width="120" height="60" fill="#f9f9f9" stroke="#ddd" rx="4"/>
+    <line x1="590" y1="75" x2="610" y2="75" stroke="#1976d2" stroke-width="3"/>
+    <text x="615" y="79" font-family="Arial, sans-serif" font-size="11" fill="#333">Datos reales</text>
+    <line x1="590" y1="95" x2="610" y2="95" stroke="#ff9800" stroke-width="3" stroke-dasharray="3,3"/>
+    <text x="615" y="99" font-family="Arial, sans-serif" font-size="11" fill="#333">Predicción</text>
+  </g>
+  
+  <!-- Recomendaciones -->
+  <g transform="translate(800, 400)">
+    <rect x="0" y="0" width="380" height="280" fill="white" stroke="#e0e0e0" rx="8"/>
+    <text x="20" y="30" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333">Recomendaciones</text>
+    
+    <!-- Recomendación 1 -->
+    <rect x="20" y="50" width="340" height="60" fill="#f8f9fa" stroke="#dee2e6" rx="4"/>
+    <rect x="25" y="55" width="60" height="16" fill="#28a745" rx="8"/>
+    <text x="55" y="65" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="white">ALTO IMPACTO</text>
+    <text x="100" y="65" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#333">Optimizar gastos en entretenimiento</text>
+    <text x="25" y="80" font-family="Arial, sans-serif" font-size="10" fill="#666">Reducir gastos en streaming y salidas puede ahorrar</text>
+    <text x="25" y="92" font-family="Arial, sans-serif" font-size="10" fill="#666">hasta $15,000 mensuales</text>
+    <text x="25" y="105" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#28a745">Impacto: $15,000/mes</text>
+    
+    <!-- Recomendación 2 -->
+    <rect x="20" y="120" width="340" height="60" fill="#f8f9fa" stroke="#dee2e6" rx="4"/>
+    <rect x="25" y="125" width="60" height="16" fill="#ffc107" rx="8"/>
+    <text x="55" y="135" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="white">MED IMPACTO</text>
+    <text x="100" y="135" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#333">Consolidar tarjetas de crédito</text>
+    <text x="25" y="150" font-family="Arial, sans-serif" font-size="10" fill="#666">Usar principalmente 2 tarjetas puede mejorar</text>
+    <text x="25" y="162" font-family="Arial, sans-serif" font-size="10" fill="#666">tu score financiero</text>
+    <text x="25" y="175" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#ffc107">Impacto: +50 puntos score</text>
+    
+    <!-- Recomendación 3 -->
+    <rect x="20" y="190" width="340" height="60" fill="#f8f9fa" stroke="#dee2e6" rx="4"/>
+    <rect x="25" y="195" width="60" height="16" fill="#17a2b8" rx="8"/>
+    <text x="55" y="205" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="white">BAJO IMPACTO</text>
+    <text x="100" y="205" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#333">Programar pagos automáticos</text>
+    <text x="25" y="220" font-family="Arial, sans-serif" font-size="10" fill="#666">Evita pagos tardíos y mejora tu historial</text>
+    <text x="25" y="232" font-family="Arial, sans-serif" font-size="10" fill="#666">crediticio</text>
+    <text x="25" y="245" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#17a2b8">Impacto: +20 puntos score</text>
+  </g>
+  
+  <!-- Indicador de datos cargados -->
+  <g transform="translate(20, 700)">
+    <rect x="0" y="0" width="1160" height="80" fill="#e8f5e8" stroke="#4CAF50" rx="8"/>
+    <circle cx="40" cy="40" r="8" fill="#4CAF50"/>
+    <text x="60" y="30" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#2e7d32">Datos cargados correctamente</text>
+    <text x="60" y="50" font-family="Arial, sans-serif" font-size="12" fill="#2e7d32">Se han procesado 3 tarjetas, 45 gastos y generado predicciones para los próximos 3 meses</text>
+    <text x="60" y="65" font-family="Arial, sans-serif" font-size="11" fill="#2e7d32">Última actualización: 19 de enero de 2025, 14:30</text>
+  </g>
+</svg>

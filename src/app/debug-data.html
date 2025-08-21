@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug - Datos en LocalStorage</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .data { background: #f5f5f5; padding: 10px; margin: 10px 0; }
+        button { padding: 10px 20px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Debug - Datos en LocalStorage</h1>
+    
+    <div class="section">
+        <h2>Gastos</h2>
+        <button onclick="loadGastos()">Cargar Gastos</button>
+        <button onclick="clearGastos()">Limpiar Gastos</button>
+        <div id="gastos-data" class="data"></div>
+    </div>
+    
+    <div class="section">
+        <h2>Tarjetas</h2>
+        <button onclick="loadTarjetas()">Cargar Tarjetas</button>
+        <button onclick="clearTarjetas()">Limpiar Tarjetas</button>
+        <div id="tarjetas-data" class="data"></div>
+    </div>
+    
+    <div class="section">
+        <h2>Compra Dólares</h2>
+        <button onclick="loadCompras()">Cargar Compras</button>
+        <button onclick="clearCompras()">Limpiar Compras</button>
+        <div id="compras-data" class="data"></div>
+    </div>
+
+    <script>
+        function loadGastos() {
+            const gastos = JSON.parse(localStorage.getItem('gestor_tc_gastos') || '[]');
+            document.getElementById('gastos-data').innerHTML = 
+                `<strong>Total:</strong> ${gastos.length} gastos<br>` +
+                `<strong>Datos:</strong><pre>${JSON.stringify(gastos.slice(0, 3), null, 2)}</pre>`;
+        }
+        
+        function loadTarjetas() {
+            const tarjetas = JSON.parse(localStorage.getItem('gestor_tc_tarjetas') || '[]');
+            document.getElementById('tarjetas-data').innerHTML = 
+                `<strong>Total:</strong> ${tarjetas.length} tarjetas<br>` +
+                `<strong>Datos:</strong><pre>${JSON.stringify(tarjetas, null, 2)}</pre>`;
+        }
+        
+        function loadCompras() {
+            const compras = JSON.parse(localStorage.getItem('gestor_tc_compra_dolares') || '[]');
+            document.getElementById('compras-data').innerHTML = 
+                `<strong>Total:</strong> ${compras.length} compras<br>` +
+                `<strong>Datos:</strong><pre>${JSON.stringify(compras, null, 2)}</pre>`;
+        }
+        
+        function clearGastos() {
+            localStorage.removeItem('gestor_tc_gastos');
+            loadGastos();
+        }
+        
+        function clearTarjetas() {
+            localStorage.removeItem('gestor_tc_tarjetas');
+            loadTarjetas();
+        }
+        
+        function clearCompras() {
+            localStorage.removeItem('gestor_tc_compra_dolares');
+            loadCompras();
+        }
+        
+        // Cargar datos al inicio
+        window.onload = function() {
+            loadGastos();
+            loadTarjetas();
+            loadCompras();
+        };
+    </script>
+</body>
+</html>

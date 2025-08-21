@@ -42,6 +42,11 @@ export const routes: Routes = [
     title: 'Gráficos - Gestor de Tarjetas de Crédito'
   },
   {
+    path: 'dashboard-predictivo',
+    loadComponent: () => import('./pages/dashboard-predictivo/dashboard-predictivo.component').then(m => m.DashboardPredictivoComponent),
+    title: 'Dashboard Predictivo - Gestor de Tarjetas de Crédito'
+  },
+  {
     path: '**',
     redirectTo: 'tarjetas'
   }

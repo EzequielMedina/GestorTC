@@ -1,0 +1,271 @@
+<div class="page">
+  <div class="header">
+    <h2>Dashboard Predictivo</h2>
+    <p class="subtitle">Análisis inteligente y predicciones de tus gastos futuros</p>
+    
+    <!-- Debug Info -->
+    <div style="background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 5px; font-size: 12px;">
+      <strong>Debug Info:</strong>
+      Gastos: {{ gastos.length }} | 
+      Tarjetas: {{ tarjetas.length }} | 
+      Predicciones: {{ predicciones.length }} | 
+      Alertas: {{ alertas.length }}
+      <br>
+      <button mat-raised-button color="primary" (click)="cargarDatosPrueba()" style="margin-top: 5px; font-size: 11px;">
+        Cargar Datos de Prueba
+      </button>
+      <button mat-raised-button color="accent" (click)="recargarDatos()" style="margin-top: 5px; margin-left: 5px; font-size: 11px;">
+        Recargar Datos
+      </button>
+      <button mat-raised-button color="warn" (click)="forzarGeneracionPredicciones()" style="margin-top: 5px; margin-left: 5px; font-size: 11px;">
+        Forzar Predicciones
+      </button>
+      <button mat-raised-button color="warn" (click)="forzarCalculoScore()" style="margin-top: 5px; margin-left: 5px; font-size: 11px;">
+        Forzar Score
+      </button>
+    </div>
+  </div>
+
+  <div class="content-container" *ngIf="gastos.length > 0; else noData">
+    
+    <!-- Score Financiero y Resumen -->
+    <div class="summary-row">
+      <div class="score-card" *ngIf="scoreFinanciero">
+        <mat-card class="financial-score">
+          <mat-card-header>
+            <mat-card-title>Score Financiero</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="score-display">
+              <div class="score-circle" [style.color]="getScoreColor(scoreFinanciero.puntuacion)">
+                <span class="score-number">{{ scoreFinanciero.puntuacion }}</span>
+                <span class="score-label">{{ getScoreLabel(scoreFinanciero.puntuacion) }}</span>
+              </div>
+              <mat-progress-bar 
+                mode="determinate" 
+                [value]="scoreFinanciero.puntuacion / 10" 
+                [color]="scoreFinanciero.puntuacion >= 700 ? 'primary' : scoreFinanciero.puntuacion >= 400 ? 'accent' : 'warn'">
+              </mat-progress-bar>
+            </div>
+            <div class="score-factors">
+              <div class="factor" *ngFor="let factor of scoreFinanciero.factores">
+                <span class="factor-name">{{ factor.nombre }}</span>
+                <span class="factor-value">{{ factor.valor }}</span>
+                <span class="factor-estado" [class]="'estado-' + factor.estado">{{ factor.estado }}</span>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <div class="alerts-summary">
+        <mat-card class="alerts-card">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>notifications</mat-icon>
+              Alertas Activas
+              <mat-chip-set *ngIf="alertas.length > 0">
+                <mat-chip [color]="'warn'" selected>{{ alertas.length }}</mat-chip>
+              </mat-chip-set>
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="alerts-list" *ngIf="alertas.length > 0; else noAlerts">
+              <div class="alert-item" *ngFor="let alerta of alertas.slice(0, 3)" 
+                   [class.alert-high]="alerta.prioridad === 'alta'"
+                   [class.alert-medium]="alerta.prioridad === 'media'"
+                   [class.alert-low]="alerta.prioridad === 'baja'">
+                <mat-icon [color]="getAlertaColor(alerta.prioridad)">{{ getAlertaIcon(alerta.tipo) }}</mat-icon>
+                <div class="alert-content">
+                  <div class="alert-title">{{ alerta.titulo }}</div>
+                  <div class="alert-description">{{ alerta.mensaje }}</div>
+                </div>
+                <button mat-icon-button (click)="marcarAlertaComoLeida(alerta)" 
+                        matTooltip="Marcar como leída">
+                  <mat-icon>check</mat-icon>
+                </button>
+              </div>
+              <div class="view-all" *ngIf="alertas.length > 3">
+                <button mat-button color="primary">Ver todas ({{ alertas.length - 3 }} más)</button>
+              </div>
+            </div>
+            <ng-template #noAlerts>
+              <div class="no-alerts">
+                <mat-icon>check_circle</mat-icon>
+                <span>No hay alertas activas</span>
+              </div>
+            </ng-template>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Filtros y Controles -->
+    <div class="controls-row">
+      <mat-card class="controls-card">
+        <mat-card-content>
+          <div class="filters">
+            <mat-form-field appearance="outline" class="filter-field">
+              <mat-label>Tarjeta</mat-label>
+              <mat-select [(value)]="tarjetaSeleccionada" (selectionChange)="onFiltroChange({ tarjeta: $event.value })">
+                <mat-option value="todas">Todas las tarjetas</mat-option>
+                <mat-option *ngFor="let tarjeta of tarjetas" [value]="tarjeta.id">
+                  {{ tarjeta.nombre }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="filter-field">
+              <mat-label>Meses de Proyección</mat-label>
+              <mat-select [(value)]="mesesProyeccion" (selectionChange)="onFiltroChange({ meses: $event.value })">
+                <mat-option value="1">1 mes</mat-option>
+                <mat-option value="3">3 meses</mat-option>
+                <mat-option value="6">6 meses</mat-option>
+                <mat-option value="12">12 meses</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="filter-field">
+              <mat-label>Tipo de Análisis</mat-label>
+              <mat-select [(value)]="tipoAnalisis" (selectionChange)="onFiltroChange({ tipo: $event.value })">
+                <mat-option value="general">General</mat-option>
+                <mat-option value="detallado">Detallado</mat-option>
+                <mat-option value="comparativo">Comparativo</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <div class="action-buttons">
+              <button mat-raised-button color="primary" (click)="exportarPredicciones()" 
+                      matTooltip="Exportar predicciones">
+                <mat-icon>download</mat-icon>
+                Exportar
+              </button>
+              <button mat-raised-button color="accent" (click)="configurarAlertas()" 
+                      matTooltip="Configurar alertas">
+                <mat-icon>settings</mat-icon>
+                Configurar
+              </button>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Gráficos de Predicciones -->
+    <div class="charts-row">
+      <!-- Gráfico de Predicciones de Gastos -->
+      <div class="chart-container full-width">
+        <mat-card class="chart-card">
+          <mat-card-header>
+            <mat-card-title>Predicciones de Gastos Futuros</mat-card-title>
+            <mat-card-subtitle>Proyección basada en patrones históricos</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="chart-wrapper">
+              <canvas baseChart
+                [type]="'line'"
+                [data]="prediccionGastosData"
+                [options]="prediccionGastosOptions">
+              </canvas>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Gráficos de Análisis -->
+    <div class="charts-row">
+      <!-- Gráfico de Tendencias -->
+      <div class="chart-container half-width">
+        <mat-card class="chart-card">
+          <mat-card-header>
+            <mat-card-title>Análisis de Tendencias</mat-card-title>
+            <mat-card-subtitle>Patrones de comportamiento</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="chart-wrapper">
+              <canvas baseChart
+                [type]="'line'"
+                [data]="tendenciaData"
+                [options]="tendenciaOptions">
+              </canvas>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- Gráfico de Distribución del Score -->
+      <div class="chart-container half-width">
+        <mat-card class="chart-card">
+          <mat-card-header>
+            <mat-card-title>Distribución del Score</mat-card-title>
+            <mat-card-subtitle>Factores que componen tu score</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="chart-wrapper">
+              <canvas baseChart
+                [type]="'doughnut'"
+                [data]="scoreDistribucionData"
+                [options]="scoreDistribucionOptions">
+              </canvas>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Recomendaciones -->
+    <div class="recommendations-row" *ngIf="recomendaciones.length > 0">
+      <mat-card class="recommendations-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>lightbulb</mat-icon>
+            Recomendaciones Personalizadas
+          </mat-card-title>
+          <mat-card-subtitle>Sugerencias para optimizar tus finanzas</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="recommendations-grid">
+            <div class="recommendation-item" *ngFor="let recomendacion of recomendaciones">
+              <div class="recommendation-header">
+                <mat-icon [color]="recomendacion.categoria === 'seguridad' ? 'warn' : 'primary'">
+                  {{ recomendacion.categoria === 'ahorro' ? 'savings' : recomendacion.categoria === 'optimizacion' ? 'tune' : 'trending_up' }}
+                </mat-icon>
+                <h4>{{ recomendacion.titulo }}</h4>
+                <mat-chip [color]="recomendacion.dificultad === 'dificil' ? 'warn' : 'primary'" selected>
+                  {{ recomendacion.categoria }}
+                </mat-chip>
+              </div>
+              <p class="recommendation-description">{{ recomendacion.descripcion }}</p>
+              <div class="recommendation-impact" *ngIf="recomendacion.impactoEstimado">
+                <span class="impact-label">Impacto estimado:</span>
+                <span class="impact-value">${{ recomendacion.impactoEstimado | number:'1.2-2' }}</span>
+              </div>
+              <div class="recommendation-actions">
+                <button mat-button color="primary" (click)="aplicarRecomendacion(recomendacion)">
+                  Aplicar
+                </button>
+                <button mat-button>Más info</button>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+  </div>
+
+  <!-- Estado sin datos -->
+  <ng-template #noData>
+    <div class="no-data">
+      <mat-icon>analytics</mat-icon>
+      <h3>No hay datos suficientes</h3>
+      <p>Necesitas al menos algunos gastos registrados para generar predicciones y análisis.</p>
+      <button mat-raised-button color="primary" routerLink="/gastos">
+        <mat-icon>add</mat-icon>
+        Agregar Gastos
+      </button>
+    </div>
+  </ng-template>
+
+</div>
