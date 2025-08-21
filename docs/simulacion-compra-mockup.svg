@@ -1,0 +1,279 @@
+<svg width="1200" height="800" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+  <!-- Definiciones de gradientes y patrones -->
+  <defs>
+    <linearGradient id="headerGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#1976d2;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1565c0;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="cardGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f8f9fa;stop-opacity:1" />
+    </linearGradient>
+    <filter id="cardShadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000000" flood-opacity="0.1"/>
+    </filter>
+    <pattern id="gridPattern" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#e0e0e0" stroke-width="0.5"/>
+    </pattern>
+  </defs>
+
+  <!-- Fondo principal -->
+  <rect width="1200" height="800" fill="#f5f5f5"/>
+  
+  <!-- Header/Toolbar -->
+  <rect width="1200" height="64" fill="url(#headerGradient)"/>
+  <text x="24" y="40" font-family="Roboto, sans-serif" font-size="20" font-weight="500" fill="white">Simulador de Compra con Tarjeta</text>
+  
+  <!-- Botón de menú móvil -->
+  <rect x="1140" y="20" width="40" height="24" rx="2" fill="rgba(255,255,255,0.2)" stroke="white" stroke-width="1"/>
+  <line x1="1148" y1="26" x2="1164" y2="26" stroke="white" stroke-width="2"/>
+  <line x1="1148" y1="32" x2="1164" y2="32" stroke="white" stroke-width="2"/>
+  <line x1="1148" y1="38" x2="1164" y2="38" stroke="white" stroke-width="2"/>
+
+  <!-- Contenedor principal -->
+  <g transform="translate(24, 88)">
+    
+    <!-- Sección de formulario (izquierda) -->
+    <rect x="0" y="0" width="380" height="680" rx="8" fill="url(#cardGradient)" filter="url(#cardShadow)"/>
+    
+    <!-- Título del formulario -->
+    <text x="20" y="32" font-family="Roboto, sans-serif" font-size="18" font-weight="500" fill="#212121">Datos de la Compra</text>
+    
+    <!-- Selector de tarjeta -->
+    <text x="20" y="64" font-family="Roboto, sans-serif" font-size="14" fill="#666">Tarjeta</text>
+    <rect x="20" y="72" width="340" height="48" rx="4" fill="white" stroke="#ddd" stroke-width="1"/>
+    <text x="32" y="100" font-family="Roboto, sans-serif" font-size="14" fill="#333">Visa Oro - Banco Nación ****1234</text>
+    <polygon points="340,92 350,96 340,104" fill="#666"/>
+    
+    <!-- Campo descripción -->
+    <text x="20" y="144" font-family="Roboto, sans-serif" font-size="14" fill="#666">Descripción</text>
+    <rect x="20" y="152" width="340" height="48" rx="4" fill="white" stroke="#ddd" stroke-width="1"/>
+    <text x="32" y="180" font-family="Roboto, sans-serif" font-size="14" fill="#333">Notebook Lenovo ThinkPad</text>
+    
+    <!-- Campo monto -->
+    <text x="20" y="224" font-family="Roboto, sans-serif" font-size="14" fill="#666">Monto</text>
+    <rect x="20" y="232" width="160" height="48" rx="4" fill="white" stroke="#ddd" stroke-width="1"/>
+    <text x="32" y="260" font-family="Roboto, sans-serif" font-size="14" fill="#333">$850.000</text>
+    
+    <!-- Campo cuotas -->
+    <text x="200" y="224" font-family="Roboto, sans-serif" font-size="14" fill="#666">Cuotas</text>
+    <rect x="200" y="232" width="160" height="48" rx="4" fill="white" stroke="#ddd" stroke-width="1"/>
+    <text x="212" y="260" font-family="Roboto, sans-serif" font-size="14" fill="#333">12 cuotas</text>
+    
+    <!-- Botón simular -->
+    <rect x="20" y="304" width="340" height="48" rx="24" fill="#1976d2"/>
+    <text x="190" y="332" font-family="Roboto, sans-serif" font-size="16" font-weight="500" fill="white" text-anchor="middle">Simular Compra</text>
+    
+    <!-- Sección de alertas -->
+    <text x="20" y="384" font-family="Roboto, sans-serif" font-size="16" font-weight="500" fill="#212121">Alertas y Recomendaciones</text>
+    
+    <!-- Alerta de riesgo -->
+    <rect x="20" y="400" width="340" height="60" rx="4" fill="#fff3e0" stroke="#ff9800" stroke-width="1"/>
+    <circle cx="35" cy="420" r="8" fill="#ff9800"/>
+    <text x="35" y="425" font-family="Roboto, sans-serif" font-size="12" font-weight="bold" fill="white" text-anchor="middle">!</text>
+    <text x="52" y="418" font-family="Roboto, sans-serif" font-size="12" font-weight="500" fill="#e65100">Riesgo Medio</text>
+    <text x="52" y="435" font-family="Roboto, sans-serif" font-size="11" fill="#bf360c">Esta compra llevará tu uso al 75%</text>
+    <text x="52" y="450" font-family="Roboto, sans-serif" font-size="11" fill="#bf360c">del límite de crédito</text>
+    
+    <!-- Recomendación -->
+    <rect x="20" y="480" width="340" height="60" rx="4" fill="#e8f5e8" stroke="#4caf50" stroke-width="1"/>
+    <circle cx="35" cy="500" r="8" fill="#4caf50"/>
+    <text x="35" y="505" font-family="Roboto, sans-serif" font-size="12" font-weight="bold" fill="white" text-anchor="middle">💡</text>
+    <text x="52" y="498" font-family="Roboto, sans-serif" font-size="12" font-weight="500" fill="#2e7d32">Recomendación</text>
+    <text x="52" y="515" font-family="Roboto, sans-serif" font-size="11" fill="#1b5e20">Considera reducir a 6 cuotas para</text>
+    <text x="52" y="530" font-family="Roboto, sans-serif" font-size="11" fill="#1b5e20">ahorrar $45.000 en intereses</text>
+    
+    <!-- Configuración avanzada -->
+    <text x="20" y="580" font-family="Roboto, sans-serif" font-size="16" font-weight="500" fill="#212121">Configuración</text>
+    
+    <!-- Toggle incluir intereses -->
+    <rect x="20" y="600" width="16" height="16" rx="8" fill="#1976d2"/>
+    <circle cx="32" cy="608" r="6" fill="white"/>
+    <text x="44" y="612" font-family="Roboto, sans-serif" font-size="12" fill="#333">Incluir intereses en cálculo</text>
+    
+    <!-- Toggle alertas personalizadas -->
+    <rect x="20" y="630" width="16" height="16" rx="8" fill="#ddd"/>
+    <circle cx="24" cy="638" r="6" fill="white"/>
+    <text x="44" y="642" font-family="Roboto, sans-serif" font-size="12" fill="#333">Alertas personalizadas</text>
+    
+  </g>
+  
+  <!-- Sección de resultados (centro-derecha) -->
+  <g transform="translate(428, 88)">
+    
+    <!-- Panel de métricas principales -->
+    <rect x="0" y="0" width="748" height="160" rx="8" fill="url(#cardGradient)" filter="url(#cardShadow)"/>
+    
+    <!-- Título métricas -->
+    <text x="20" y="32" font-family="Roboto, sans-serif" font-size="18" font-weight="500" fill="#212121">Análisis de Impacto</text>
+    
+    <!-- Métrica 1: Impacto en límite -->
+    <rect x="20" y="48" width="170" height="92" rx="4" fill="white" stroke="#e0e0e0" stroke-width="1"/>
+    <text x="105" y="68" font-family="Roboto, sans-serif" font-size="12" fill="#666" text-anchor="middle">Uso del Límite</text>
+    <text x="105" y="88" font-family="Roboto, sans-serif" font-size="24" font-weight="bold" fill="#ff5722" text-anchor="middle">75%</text>
+    <text x="105" y="108" font-family="Roboto, sans-serif" font-size="11" fill="#666" text-anchor="middle">+25% vs actual</text>
+    <rect x="30" y="115" width="150" height="4" rx="2" fill="#e0e0e0"/>
+    <rect x="30" y="115" width="112" height="4" rx="2" fill="#ff5722"/>
+    
+    <!-- Métrica 2: Riesgo -->
+    <rect x="210" y="48" width="170" height="92" rx="4" fill="white" stroke="#e0e0e0" stroke-width="1"/>
+    <text x="295" y="68" font-family="Roboto, sans-serif" font-size="12" fill="#666" text-anchor="middle">Nivel de Riesgo</text>
+    <text x="295" y="88" font-family="Roboto, sans-serif" font-size="20" font-weight="bold" fill="#ff9800" text-anchor="middle">MEDIO</text>
+    <text x="295" y="108" font-family="Roboto, sans-serif" font-size="11" fill="#666" text-anchor="middle">Puntuación: 45/100</text>
+    <circle cx="295" cy="125" r="8" fill="#ff9800"/>
+    
+    <!-- Métrica 3: Tiempo recuperación -->
+    <rect x="400" y="48" width="170" height="92" rx="4" fill="white" stroke="#e0e0e0" stroke-width="1"/>
+    <text x="485" y="68" font-family="Roboto, sans-serif" font-size="12" fill="#666" text-anchor="middle">Recuperación</text>
+    <text x="485" y="88" font-family="Roboto, sans-serif" font-size="24" font-weight="bold" fill="#2196f3" text-anchor="middle">4.5</text>
+    <text x="485" y="108" font-family="Roboto, sans-serif" font-size="11" fill="#666" text-anchor="middle">meses estimados</text>
+    <path d="M 475 115 Q 485 120 495 115" stroke="#2196f3" stroke-width="2" fill="none"/>
+    
+    <!-- Métrica 4: Costo financiero -->
+    <rect x="590" y="48" width="138" height="92" rx="4" fill="white" stroke="#e0e0e0" stroke-width="1"/>
+    <text x="659" y="68" font-family="Roboto, sans-serif" font-size="12" fill="#666" text-anchor="middle">Costo Total</text>
+    <text x="659" y="88" font-family="Roboto, sans-serif" font-size="20" font-weight="bold" fill="#4caf50" text-anchor="middle">$945K</text>
+    <text x="659" y="108" font-family="Roboto, sans-serif" font-size="11" fill="#666" text-anchor="middle">+$95K intereses</text>
+    <text x="659" y="125" font-family="Roboto, sans-serif" font-size="10" fill="#666" text-anchor="middle">$78.750/mes</text>
+    
+  </g>
+  
+  <!-- Sección de gráficos -->
+  <g transform="translate(428, 268)">
+    
+    <!-- Gráfico 1: Proyección temporal -->
+    <rect x="0" y="0" width="360" height="200" rx="8" fill="url(#cardGradient)" filter="url(#cardShadow)"/>
+    <text x="20" y="32" font-family="Roboto, sans-serif" font-size="16" font-weight="500" fill="#212121">Proyección de Saldo</text>
+    
+    <!-- Área del gráfico -->
+    <rect x="20" y="45" width="320" height="130" fill="url(#gridPattern)"/>
+    
+    <!-- Línea de proyección -->
+    <polyline points="40,150 80,140 120,125 160,110 200,95 240,85 280,75 320,70" 
+              fill="none" stroke="#1976d2" stroke-width="3" stroke-linecap="round"/>
+    
+    <!-- Área bajo la curva -->
+    <polygon points="40,150 80,140 120,125 160,110 200,95 240,85 280,75 320,70 320,175 40,175" 
+             fill="rgba(25,118,210,0.1)"/>
+    
+    <!-- Puntos de datos -->
+    <circle cx="40" cy="150" r="4" fill="#1976d2"/>
+    <circle cx="120" cy="125" r="4" fill="#1976d2"/>
+    <circle cx="200" cy="95" r="4" fill="#1976d2"/>
+    <circle cx="280" cy="75" r="4" fill="#1976d2"/>
+    <circle cx="320" cy="70" r="4" fill="#1976d2"/>
+    
+    <!-- Etiquetas del eje X -->
+    <text x="40" y="195" font-family="Roboto, sans-serif" font-size="10" fill="#666" text-anchor="middle">Ene</text>
+    <text x="120" y="195" font-family="Roboto, sans-serif" font-size="10" fill="#666" text-anchor="middle">Mar</text>
+    <text x="200" y="195" font-family="Roboto, sans-serif" font-size="10" fill="#666" text-anchor="middle">May</text>
+    <text x="280" y="195" font-family="Roboto, sans-serif" font-size="10" fill="#666" text-anchor="middle">Jul</text>
+    
+    <!-- Gráfico 2: Comparativo histórico -->
+    <rect x="388" y="0" width="360" height="200" rx="8" fill="url(#cardGradient)" filter="url(#cardShadow)"/>
+    <text x="408" y="32" font-family="Roboto, sans-serif" font-size="16" font-weight="500" fill="#212121">Comparativo Histórico</text>
+    
+    <!-- Barras del gráfico -->
+    <rect x="420" y="120" width="30" height="55" fill="#e3f2fd"/>
+    <rect x="460" y="110" width="30" height="65" fill="#e3f2fd"/>
+    <rect x="500" y="130" width="30" height="45" fill="#e3f2fd"/>
+    <rect x="540" y="105" width="30" height="70" fill="#e3f2fd"/>
+    <rect x="580" y="115" width="30" height="60" fill="#e3f2fd"/>
+    <rect x="620" y="125" width="30" height="50" fill="#e3f2fd"/>
+    
+    <!-- Barra de la compra simulada -->
+    <rect x="660" y="60" width="30" height="115" fill="#ff5722"/>
+    
+    <!-- Línea de promedio -->
+    <line x1="420" y1="140" x2="690" y2="140" stroke="#ff9800" stroke-width="2" stroke-dasharray="5,5"/>
+    <text x="695" y="144" font-family="Roboto, sans-serif" font-size="10" fill="#ff9800">Promedio</text>
+    
+    <!-- Etiquetas -->
+    <text x="435" y="195" font-family="Roboto, sans-serif" font-size="9" fill="#666" text-anchor="middle">Sep</text>
+    <text x="475" y="195" font-family="Roboto, sans-serif" font-size="9" fill="#666" text-anchor="middle">Oct</text>
+    <text x="515" y="195" font-family="Roboto, sans-serif" font-size="9" fill="#666" text-anchor="middle">Nov</text>
+    <text x="555" y="195" font-family="Roboto, sans-serif" font-size="9" fill="#666" text-anchor="middle">Dic</text>
+    <text x="595" y="195" font-family="Roboto, sans-serif" font-size="9" fill="#666" text-anchor="middle">Ene</text>
+    <text x="635" y="195" font-family="Roboto, sans-serif" font-size="9" fill="#666" text-anchor="middle">Feb</text>
+    <text x="675" y="195" font-family="Roboto, sans-serif" font-size="9" fill="#666" text-anchor="middle">Sim</text>
+    
+  </g>
+  
+  <!-- Sección inferior: Métricas de comportamiento -->
+  <g transform="translate(428, 488)">
+    
+    <rect x="0" y="0" width="748" height="180" rx="8" fill="url(#cardGradient)" filter="url(#cardShadow)"/>
+    <text x="20" y="32" font-family="Roboto, sans-serif" font-size="18" font-weight="500" fill="#212121">Análisis de Comportamiento</text>
+    
+    <!-- Gráfico circular de distribución de riesgo -->
+    <g transform="translate(50, 60)">
+      <circle cx="60" cy="60" r="50" fill="none" stroke="#e0e0e0" stroke-width="8"/>
+      <circle cx="60" cy="60" r="50" fill="none" stroke="#ff9800" stroke-width="8" 
+              stroke-dasharray="94 314" stroke-dashoffset="-78" transform="rotate(-90 60 60)"/>
+      <text x="60" y="65" font-family="Roboto, sans-serif" font-size="16" font-weight="bold" fill="#ff9800" text-anchor="middle">45%</text>
+      <text x="60" y="80" font-family="Roboto, sans-serif" font-size="10" fill="#666" text-anchor="middle">Riesgo</text>
+    </g>
+    
+    <!-- Métricas de comportamiento -->
+    <g transform="translate(180, 60)">
+      <text x="0" y="16" font-family="Roboto, sans-serif" font-size="14" font-weight="500" fill="#333">Métricas de Comportamiento</text>
+      
+      <text x="0" y="40" font-family="Roboto, sans-serif" font-size="12" fill="#666">Promedio mensual:</text>
+      <text x="140" y="40" font-family="Roboto, sans-serif" font-size="12" font-weight="500" fill="#333">$245.000</text>
+      
+      <text x="0" y="58" font-family="Roboto, sans-serif" font-size="12" fill="#666">Tendencia:</text>
+      <text x="140" y="58" font-family="Roboto, sans-serif" font-size="12" font-weight="500" fill="#4caf50">Estable</text>
+      
+      <text x="0" y="76" font-family="Roboto, sans-serif" font-size="12" fill="#666">Frecuencia compras:</text>
+      <text x="140" y="76" font-family="Roboto, sans-serif" font-size="12" font-weight="500" fill="#333">8.5/mes</text>
+      
+      <text x="0" y="94" font-family="Roboto, sans-serif" font-size="12" fill="#666">Índice impulsividad:</text>
+      <text x="140" y="94" font-family="Roboto, sans-serif" font-size="12" font-weight="500" fill="#ff9800">Medio (35%)</text>
+      
+      <text x="0" y="112" font-family="Roboto, sans-serif" font-size="12" fill="#666">Categoría frecuente:</text>
+      <text x="140" y="112" font-family="Roboto, sans-serif" font-size="12" font-weight="500" fill="#333">Tecnología</text>
+    </g>
+    
+    <!-- Proyección de cuotas -->
+    <g transform="translate(450, 60)">
+      <text x="0" y="16" font-family="Roboto, sans-serif" font-size="14" font-weight="500" fill="#333">Proyección de Cuotas</text>
+      
+      <!-- Barras de cuotas -->
+      <rect x="0" y="25" width="200" height="8" rx="4" fill="#e0e0e0"/>
+      <rect x="0" y="25" width="50" height="8" rx="4" fill="#4caf50"/>
+      <text x="210" y="33" font-family="Roboto, sans-serif" font-size="10" fill="#666">Cuotas 1-3</text>
+      
+      <rect x="0" y="45" width="200" height="8" rx="4" fill="#e0e0e0"/>
+      <rect x="0" y="45" width="100" height="8" rx="4" fill="#ff9800"/>
+      <text x="210" y="53" font-family="Roboto, sans-serif" font-size="10" fill="#666">Cuotas 4-6</text>
+      
+      <rect x="0" y="65" width="200" height="8" rx="4" fill="#e0e0e0"/>
+      <rect x="0" y="65" width="150" height="8" rx="4" fill="#ff5722"/>
+      <text x="210" y="73" font-family="Roboto, sans-serif" font-size="10" fill="#666">Cuotas 7-9</text>
+      
+      <rect x="0" y="85" width="200" height="8" rx="4" fill="#e0e0e0"/>
+      <rect x="0" y="85" width="200" height="8" rx="4" fill="#f44336"/>
+      <text x="210" y="93" font-family="Roboto, sans-serif" font-size="10" fill="#666">Cuotas 10-12</text>
+      
+      <text x="0" y="115" font-family="Roboto, sans-serif" font-size="11" fill="#666">Impacto en límite por período</text>
+    </g>
+    
+  </g>
+  
+  <!-- Indicadores de responsividad -->
+  <g transform="translate(50, 750)">
+    <text x="0" y="0" font-family="Roboto, sans-serif" font-size="12" fill="#999">📱 Responsive Design</text>
+    <text x="150" y="0" font-family="Roboto, sans-serif" font-size="12" fill="#999">💻 Desktop: 1200px+</text>
+    <text x="300" y="0" font-family="Roboto, sans-serif" font-size="12" fill="#999">📱 Tablet: 768px+</text>
+    <text x="450" y="0" font-family="Roboto, sans-serif" font-size="12" fill="#999">📱 Mobile: 320px+</text>
+  </g>
+  
+  <!-- Breakpoints visualization -->
+  <g transform="translate(1050, 750)">
+    <rect x="0" y="-10" width="20" height="8" fill="#4caf50"/>
+    <rect x="25" y="-10" width="15" height="8" fill="#ff9800"/>
+    <rect x="45" y="-10" width="10" height="8" fill="#f44336"/>
+    <text x="60" y="-2" font-family="Roboto, sans-serif" font-size="10" fill="#666">Breakpoints</text>
+  </g>
+  
+</svg>

@@ -42,6 +42,11 @@ export const routes: Routes = [
     title: 'Gráficos - Gestor de Tarjetas de Crédito'
   },
   {
+    path: 'simulacion-compra',
+    loadComponent: () => import('./pages/simulacion-compra/simulacion-compra.component').then(m => m.SimulacionCompraComponent),
+    title: 'Simulador de Compra - Gestor de Tarjetas de Crédito'
+  },
+  {
     path: '**',
     redirectTo: 'tarjetas'
   }

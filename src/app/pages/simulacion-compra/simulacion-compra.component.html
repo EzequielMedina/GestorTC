@@ -1,0 +1,182 @@
+<div class="simulacion-container">
+  <!-- Formulario de Compra -->
+  <mat-card class="form-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>credit_card</mat-icon>
+        Simulación de Compra
+      </mat-card-title>
+      <mat-card-subtitle>Ingresa los datos de tu nueva compra</mat-card-subtitle>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <form [formGroup]="compraForm" (ngSubmit)="onSubmit()" class="compra-form">
+        <!-- Selección de Tarjeta -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Seleccionar Tarjeta</mat-label>
+          <mat-select formControlName="tarjetaId">
+            <mat-option *ngFor="let tarjeta of tarjetas" [value]="tarjeta.id">
+              {{tarjeta.nombre}} - Límite: ${{tarjeta.limite | number:'1.0-0'}}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="compraForm.get('tarjetaId')?.hasError('required')">
+            Debes seleccionar una tarjeta
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Descripción -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Descripción de la compra</mat-label>
+          <input matInput formControlName="descripcion" placeholder="Ej: Compra en supermercado">
+          <mat-error *ngIf="compraForm.get('descripcion')?.hasError('required')">
+            La descripción es obligatoria
+          </mat-error>
+          <mat-error *ngIf="compraForm.get('descripcion')?.hasError('minlength')">
+            La descripción debe tener al menos 3 caracteres
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Monto -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Monto de la compra</mat-label>
+          <input matInput type="number" formControlName="monto" placeholder="0">
+          <span matPrefix>$&nbsp;</span>
+          <mat-error *ngIf="compraForm.get('monto')?.hasError('required')">
+            El monto es obligatorio
+          </mat-error>
+          <mat-error *ngIf="compraForm.get('monto')?.hasError('min')">
+            El monto debe ser mayor a 0
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Cantidad de Cuotas -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Cantidad de cuotas</mat-label>
+          <mat-select formControlName="cantidadCuotas">
+            <mat-option [value]="1">1 cuota (sin interés)</mat-option>
+            <mat-option [value]="3">3 cuotas</mat-option>
+            <mat-option [value]="6">6 cuotas</mat-option>
+            <mat-option [value]="12">12 cuotas</mat-option>
+            <mat-option [value]="18">18 cuotas</mat-option>
+            <mat-option [value]="24">24 cuotas</mat-option>
+          </mat-select>
+          <mat-error *ngIf="compraForm.get('cantidadCuotas')?.hasError('required')">
+            Debes seleccionar la cantidad de cuotas
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Fecha Primera Cuota -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Fecha de primera cuota</mat-label>
+          <input matInput [matDatepicker]="picker" formControlName="fechaPrimeraCuota">
+          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker #picker></mat-datepicker>
+          <mat-error *ngIf="compraForm.get('fechaPrimeraCuota')?.hasError('required')">
+            La fecha es obligatoria
+          </mat-error>
+        </mat-form-field>
+      </form>
+    </mat-card-content>
+
+    <mat-card-actions align="end">
+      <button mat-button type="button" (click)="limpiarFormulario()">
+        <mat-icon>clear</mat-icon>
+        Limpiar
+      </button>
+      <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="!isFormValid">
+        <mat-icon>calculate</mat-icon>
+        Simular Compra
+      </button>
+    </mat-card-actions>
+  </mat-card>
+
+  <!-- Resultados de la Simulación -->
+  <div class="results-section" *ngIf="tarjetaSeleccionada && isFormValid">
+    
+
+
+    <!-- Resumen Dinámico - Proyección Mensual -->
+    <mat-card class="result-card resumen-naranja" *ngIf="resumenMensualProyectado.length > 0">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>calendar_month</mat-icon>
+          Resumen {{tarjetaSeleccionada.nombre}} - Proyección Mensual
+        </mat-card-title>
+        <mat-card-subtitle>Cómo quedará el resumen de cada mes con esta compra</mat-card-subtitle>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <div class="proyeccion-mensual">
+          <div class="mes-item" *ngFor="let mes of resumenMensualProyectado; let last = last">
+            <div class="mes-header">
+              <h4 class="mes-titulo">{{mes.mesLabel}}</h4>
+              <div class="cuota-badge">
+                <mat-icon>payment</mat-icon>
+                <span>Cuota: ${{mes.cuotaCompra | number:'1.0-2'}}</span>
+              </div>
+            </div>
+            
+            <div class="mes-detalles">
+              <div class="detalle-item">
+                <div class="detalle-label">
+                  <mat-icon>credit_card</mat-icon>
+                  <span>{{tarjetaSeleccionada.nombre}}</span>
+                </div>
+                <div class="detalle-valor">${{mes.totalTarjetaSeleccionada | number:'1.0-2'}}</div>
+              </div>
+              
+              <div class="detalle-item total">
+                <div class="detalle-label">
+                  <mat-icon>account_balance</mat-icon>
+                  <span>Total todas las tarjetas</span>
+                </div>
+                <div class="detalle-valor total-amount">${{mes.totalTodasTarjetas | number:'1.0-2'}}</div>
+              </div>
+            </div>
+            
+            <mat-divider *ngIf="!last"></mat-divider>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Sección de Gráficos -->
+    <mat-card class="graficos-card" *ngIf="simulacionCalculada">
+      <mat-card-header>
+        <mat-card-title class="graficos-title">
+          <mat-icon>analytics</mat-icon>
+          Análisis Gráfico - Próximos 6 Meses
+        </mat-card-title>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <div class="graficos-container">
+          <!-- Gráfico de Proyección de Pagos por Mes -->
+          <div class="grafico-item">
+            <div class="chart-container">
+              <canvas 
+                baseChart
+                [data]="proyeccionRangoData"
+                [options]="proyeccionRangoOptions"
+                type="line">
+              </canvas>
+            </div>
+          </div>
+          
+          <!-- Gráfico de Total de Todas las Tarjetas por Mes -->
+          <div class="grafico-item">
+            <div class="chart-container">
+              <canvas 
+                baseChart
+                [data]="totalPorMesData"
+                [options]="totalPorMesOptions"
+                type="line">
+              </canvas>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+  </div>
+</div>
