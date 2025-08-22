@@ -1,59 +1,151 @@
-# GestorTc
+# Gestor TC - Gestor de Tarjetas de Crédito
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.1.6.
+## 📋 Descripción
 
-## Development server
+Gestor TC es una aplicación web desarrollada en Angular para la gestión y seguimiento de gastos de tarjetas de crédito. Permite importar datos desde archivos Excel, visualizar resúmenes detallados por tarjeta y mes, y gestionar gastos compartidos entre múltiples personas.
 
-To start a local development server, run:
+## ✨ Características Principales
 
-```bash
-ng serve
+### 📊 Gestión de Gastos
+- **Importación de datos**: Carga masiva desde archivos Excel
+- **Resumen por tarjeta**: Visualización detallada de gastos por tarjeta y mes
+- **Categorización**: Organización automática de gastos por categorías
+- **Gastos compartidos**: Gestión de gastos divididos entre múltiples personas
+
+### 📱 Interfaz de Usuario
+- **Diseño responsivo**: Optimizado para dispositivos móviles y desktop
+- **Secciones colapsables**: Navegación intuitiva con resúmenes visuales
+- **Navegación por meses**: Fácil acceso a datos históricos
+- **Estadísticas en tiempo real**: Totales y promedios actualizados automáticamente
+
+### 🔧 Funcionalidades Técnicas
+- **Exportación de datos**: Descarga de resúmenes en formato Excel
+- **Persistencia local**: Almacenamiento en IndexedDB
+- **Validación de datos**: Verificación automática de integridad
+- **Interfaz moderna**: Diseño limpio con Angular Material
+
+## 🚀 Instalación
+
+### Prerrequisitos
+- Node.js (versión 18 o superior)
+- npm (incluido con Node.js)
+- Angular CLI
+
+### Pasos de instalación
+
+1. **Clonar el repositorio**
+   ```bash
+   git clone <url-del-repositorio>
+   cd gestor-tc
+   ```
+
+2. **Instalar dependencias**
+   ```bash
+   npm install
+   ```
+
+3. **Instalar Angular CLI** (si no está instalado)
+   ```bash
+   npm install -g @angular/cli
+   ```
+
+4. **Ejecutar la aplicación**
+   ```bash
+   ng serve
+   ```
+
+5. **Acceder a la aplicación**
+   Abrir el navegador en `http://localhost:4200`
+
+## 📖 Uso
+
+### Importación de Datos
+1. Navegar a la sección "Importar"
+2. Seleccionar archivo Excel con el formato requerido
+3. Verificar la vista previa de datos
+4. Confirmar la importación
+
+### Visualización de Resúmenes
+1. Ir a la página "Resumen"
+2. Seleccionar el mes deseado usando los controles de navegación
+3. Expandir/colapsar secciones según necesidad:
+   - **Por Tarjeta**: Resumen individual de cada tarjeta
+   - **Detalle de Gastos**: Gastos agrupados por categoría
+   - **Gastos Compartidos**: Gastos divididos entre personas
+   - **Resumen General**: Estadísticas globales
+
+### Exportación de Datos
+1. Desde la página "Resumen", usar el botón "Exportar"
+2. El archivo Excel se descargará automáticamente
+
+## 🏗️ Estructura del Proyecto
+
+```
+src/
+├── app/
+│   ├── components/          # Componentes reutilizables
+│   ├── models/             # Interfaces y tipos TypeScript
+│   ├── pages/              # Páginas principales
+│   │   ├── importar/       # Página de importación
+│   │   └── resumen/        # Página de resúmenes
+│   ├── services/           # Servicios de datos y lógica
+│   ├── app.config.ts       # Configuración de la aplicación
+│   ├── app.routes.ts       # Configuración de rutas
+│   └── app.ts              # Componente principal
+├── assets/                 # Recursos estáticos
+├── custom-theme.scss       # Tema personalizado
+└── styles.css              # Estilos globales
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+## 🛠️ Tecnologías Utilizadas
 
-## Code scaffolding
+- **Frontend**: Angular 18
+- **UI Components**: Angular Material
+- **Estilos**: SCSS, CSS Variables
+- **Base de Datos**: IndexedDB (Dexie.js)
+- **Procesamiento de Excel**: SheetJS
+- **Iconos**: Material Icons
+- **Build Tool**: Angular CLI
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## 📋 Formato de Datos
 
-```bash
-ng generate component component-name
-```
+La aplicación espera archivos Excel con las siguientes columnas:
+- **Fecha**: Fecha de la transacción
+- **Tarjeta**: Nombre o identificador de la tarjeta
+- **Descripción**: Descripción del gasto
+- **Categoría**: Categoría del gasto
+- **Monto**: Valor de la transacción
+- **Persona**: (Opcional) Para gastos compartidos
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## 🔄 Scripts Disponibles
 
-```bash
-ng generate --help
-```
+- `npm start` - Ejecutar servidor de desarrollo
+- `npm run build` - Construir para producción
+- `npm run test` - Ejecutar pruebas unitarias
+- `npm run lint` - Verificar código con ESLint
 
-## Building
+## 📱 Compatibilidad
 
-To build the project run:
+- **Navegadores**: Chrome, Firefox, Safari, Edge (versiones modernas)
+- **Dispositivos**: Desktop, tablet, móvil
+- **Resoluciones**: Optimizado desde 360px hasta 4K
 
-```bash
-ng build
-```
+## 🤝 Contribución
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+1. Fork del proyecto
+2. Crear rama para nueva funcionalidad (`git checkout -b feature/nueva-funcionalidad`)
+3. Commit de cambios (`git commit -am 'Agregar nueva funcionalidad'`)
+4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
+5. Crear Pull Request
 
-## Running unit tests
+## 📄 Licencia
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
 
-```bash
-ng test
-```
+## 📞 Soporte
 
-## Running end-to-end tests
+Para reportar bugs o solicitar nuevas funcionalidades, crear un issue en el repositorio del proyecto.
 
-For end-to-end (e2e) testing, run:
+---
 
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+**Desarrollado con ❤️ usando Angular**
