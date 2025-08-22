@@ -51,8 +51,14 @@ import { Observable } from 'rxjs';
 
       <!-- Resumen por tarjeta del mes -->
       <section class="content-card">
-        <h3 class="card-title">Por Tarjeta - {{ monthLabel }}</h3>
-        <div class="mobile-table" *ngIf="(resumenTarjetasMes$ | async) as tarjetas; else cargando">
+        <div class="card-header">
+          <h3 class="card-title">Por Tarjeta - {{ monthLabel }}</h3>
+          <button class="section-toggle-btn" (click)="toggleSeccionCompleta('resumenTarjetas')" 
+                  [attr.aria-label]="isSeccionExpandida('resumenTarjetas') ? 'Colapsar sección' : 'Expandir sección'">
+            <span class="expand-icon" [class.expanded]="isSeccionExpandida('resumenTarjetas')">▼</span>
+          </button>
+        </div>
+        <div class="mobile-table" *ngIf="isSeccionExpandida('resumenTarjetas') && (resumenTarjetasMes$ | async) as tarjetas; else resumenTarjetas">
           <div class="mobile-row" *ngFor="let t of tarjetas">
             <div class="row-header">
               <div class="card-name">{{ t.nombre }}</div>
@@ -86,8 +92,24 @@ import { Observable } from 'rxjs';
 
       <!-- Detalle de gastos agrupados por tarjeta del mes -->
       <section class="content-card">
-        <h3 class="card-title">Detalle de Gastos - {{ monthLabel }}</h3>
-        <div class="mobile-table" *ngIf="(detalleGastosAgrupadosMes$ | async) as detalleAgrupado; else cargando">
+        <div class="card-header">
+          <h3 class="card-title">Detalle de Gastos - {{ monthLabel }}</h3>
+          <div class="card-controls">
+            <div class="tarjeta-controls" *ngIf="isSeccionExpandida('detalleGastos')">
+              <button class="control-btn" (click)="expandirTodasTarjetas()" title="Expandir todas las tarjetas">
+                <span class="control-icon">📂</span>
+              </button>
+              <button class="control-btn" (click)="colapsarTodasTarjetas()" title="Colapsar todas las tarjetas">
+                <span class="control-icon">📁</span>
+              </button>
+            </div>
+            <button class="section-toggle-btn" (click)="toggleSeccionCompleta('detalleGastos')" 
+                    [attr.aria-label]="isSeccionExpandida('detalleGastos') ? 'Colapsar sección' : 'Expandir sección'">
+              <span class="expand-icon" [class.expanded]="isSeccionExpandida('detalleGastos')">▼</span>
+            </button>
+          </div>
+        </div>
+        <div class="mobile-table" *ngIf="isSeccionExpandida('detalleGastos') && (detalleGastosAgrupadosMes$ | async) as detalleAgrupado; else resumenDetalleGastos">
           <div class="tarjeta-group" *ngFor="let grupo of detalleAgrupado">
             <!-- Header de la tarjeta -->
              <div class="tarjeta-header" (click)="toggleTarjetaExpansion(grupo.nombreTarjeta)">
@@ -143,8 +165,14 @@ import { Observable } from 'rxjs';
 
       <!-- Detalle de gastos compartidos del mes -->
       <section class="content-card">
-        <h3 class="card-title">Gastos Compartidos - {{ monthLabel }}</h3>
-        <div class="mobile-table" *ngIf="(detalleGastosCompartidosMes$ | async) as detalle; else cargando">
+        <div class="card-header">
+          <h3 class="card-title">Gastos Compartidos - {{ monthLabel }}</h3>
+          <button class="section-toggle-btn" (click)="toggleSeccionCompleta('gastosCompartidos')" 
+                  [attr.aria-label]="isSeccionExpandida('gastosCompartidos') ? 'Colapsar sección' : 'Expandir sección'">
+            <span class="expand-icon" [class.expanded]="isSeccionExpandida('gastosCompartidos')">▼</span>
+          </button>
+        </div>
+        <div class="mobile-table" *ngIf="isSeccionExpandida('gastosCompartidos') && (detalleGastosCompartidosMes$ | async) as detalle; else resumenGastosCompartidos">
           <div class="mobile-row compartido-row" *ngFor="let item of detalle">
             <div class="row-header">
               <div class="gasto-descripcion">{{ item.descripcion }}</div>
@@ -174,7 +202,7 @@ import { Observable } from 'rxjs';
         </div>
         
         <!-- Resumen simple -->
-        <div class="resumen-simple" *ngIf="(detalleGastosCompartidosMes$ | async) as detalle">
+        <div class="resumen-simple" *ngIf="isSeccionExpandida('gastosCompartidos') && (detalleGastosCompartidosMes$ | async) as detalle">
           <h4 class="resumen-title">Resumen por gasto:</h4>
           <div class="resumen-item" *ngFor="let item of detalle">
             <div class="resumen-texto">
@@ -185,7 +213,7 @@ import { Observable } from 'rxjs';
         </div>
 
         <!-- Total por persona -->
-        <div class="total-por-persona" *ngIf="(totalPorPersona$ | async) as totales">
+        <div class="total-por-persona" *ngIf="isSeccionExpandida('gastosCompartidos') && (totalPorPersona$ | async) as totales">
           <h4 class="total-title">Total que te debe cada persona:</h4>
           <div class="total-item" *ngFor="let total of totales">
             <span class="total-nombre">{{ total.persona }}</span>
@@ -200,8 +228,14 @@ import { Observable } from 'rxjs';
 
       <!-- Resumen general (totales históricos) -->
       <section class="content-card">
-        <h3 class="card-title">Resumen General (Todos los Gastos)</h3>
-        <div class="mobile-table" *ngIf="(resumenTarjetasGeneral$ | async) as tarjetas; else cargando">
+        <div class="card-header">
+          <h3 class="card-title">Resumen General (Todos los Gastos)</h3>
+          <button class="section-toggle-btn" (click)="toggleSeccionCompleta('resumenGeneral')" 
+                  [attr.aria-label]="isSeccionExpandida('resumenGeneral') ? 'Colapsar sección' : 'Expandir sección'">
+            <span class="expand-icon" [class.expanded]="isSeccionExpandida('resumenGeneral')">▼</span>
+          </button>
+        </div>
+        <div class="mobile-table" *ngIf="isSeccionExpandida('resumenGeneral') && (resumenTarjetasGeneral$ | async) as tarjetas; else resumenGeneral">
           <div class="mobile-row" *ngFor="let t of tarjetas">
             <div class="row-header">
               <div class="card-name">{{ t.nombre }}</div>
@@ -233,6 +267,58 @@ import { Observable } from 'rxjs';
         <div class="loading-state">
           <div class="loading-spinner"></div>
           <div class="loading-text">Cargando...</div>
+        </div>
+      </ng-template>
+
+      <ng-template #resumenTarjetas>
+        <div class="summary-preview">
+          <div class="summary-icon">💳</div>
+          <div class="summary-text">
+            <div class="summary-title">Vista rápida de tarjetas</div>
+            <div class="summary-stats">
+              <span class="summary-stat">Total del mes: {{ ((totalDelMes$ | async) ?? 0) | number:'1.2-2' }}</span>
+              <span class="summary-stat">Uso: {{ ((porcentajeUsoTotalMes$ | async) ?? 0) | number:'1.0-2' }}%</span>
+            </div>
+          </div>
+        </div>
+      </ng-template>
+
+      <ng-template #resumenDetalleGastos>
+        <div class="summary-preview">
+          <div class="summary-icon">📝</div>
+          <div class="summary-text">
+            <div class="summary-title">Gastos detallados del mes</div>
+            <div class="summary-stats" *ngIf="(detalleGastosAgrupadosMes$ | async) as detalle">
+              <span class="summary-stat">{{ detalle.length }} tarjetas con gastos</span>
+              <span class="summary-stat">Total: {{ ((totalDelMes$ | async) ?? 0) | number:'1.2-2' }}</span>
+            </div>
+          </div>
+        </div>
+      </ng-template>
+
+      <ng-template #resumenGastosCompartidos>
+        <div class="summary-preview">
+          <div class="summary-icon">🤝</div>
+          <div class="summary-text">
+            <div class="summary-title">Gastos compartidos</div>
+            <div class="summary-stats" *ngIf="(detalleGastosCompartidosMes$ | async) as detalle">
+              <span class="summary-stat">{{ detalle.length }} gastos compartidos</span>
+              <span class="summary-stat" *ngIf="(totalPorPersona$ | async) as totales">{{ totales.length }} personas te deben</span>
+            </div>
+          </div>
+        </div>
+      </ng-template>
+
+      <ng-template #resumenGeneral>
+        <div class="summary-preview">
+          <div class="summary-icon">📊</div>
+          <div class="summary-text">
+            <div class="summary-title">Resumen histórico</div>
+            <div class="summary-stats" *ngIf="(resumenTarjetasGeneral$ | async) as tarjetas">
+              <span class="summary-stat">{{ tarjetas.length }} tarjetas registradas</span>
+              <span class="summary-stat">Límite total: {{ ((limiteTotal$ | async) ?? 0) | number:'1.0-0' }}</span>
+            </div>
+          </div>
         </div>
       </ng-template>
     </div>
@@ -370,13 +456,87 @@ import { Observable } from 'rxjs';
     }
 
     .content-card {
-      background: var(--surface);
-      border-radius: var(--radius);
-      padding: 20px;
-      margin-bottom: 24px;
-      box-shadow: var(--shadow-sm);
-      border: 1px solid var(--border);
-    }
+       background: var(--surface);
+       border-radius: var(--radius);
+       padding: 20px;
+       margin-bottom: 20px;
+       box-shadow: var(--shadow-sm);
+       border: 1px solid var(--border);
+     }
+
+     .card-header {
+       display: flex;
+       justify-content: space-between;
+       align-items: center;
+       margin-bottom: 16px;
+     }
+
+     .card-controls {
+       display: flex;
+       align-items: center;
+       gap: 8px;
+     }
+
+     .tarjeta-controls {
+       display: flex;
+       gap: 4px;
+       margin-right: 8px;
+     }
+
+     .control-btn {
+       width: 32px;
+       height: 32px;
+       border: 1px solid var(--border);
+       border-radius: 6px;
+       background: var(--surface);
+       cursor: pointer;
+       display: flex;
+       align-items: center;
+       justify-content: center;
+       transition: all 0.2s ease;
+       font-size: 14px;
+     }
+
+     .control-btn:hover {
+       background: var(--primary);
+       color: white;
+       transform: scale(1.05);
+     }
+
+     .section-toggle-btn {
+       width: 36px;
+       height: 36px;
+       border: 2px solid var(--border);
+       border-radius: 50%;
+       background: var(--surface);
+       cursor: pointer;
+       display: flex;
+       align-items: center;
+       justify-content: center;
+       transition: all 0.2s ease;
+       box-shadow: var(--shadow-sm);
+     }
+
+     .section-toggle-btn:hover {
+       background: var(--primary);
+       color: white;
+       transform: scale(1.05);
+     }
+
+     .section-toggle-btn .expand-icon {
+       font-size: 14px;
+       font-weight: bold;
+       transition: transform 0.3s ease;
+       color: var(--primary);
+     }
+
+     .section-toggle-btn:hover .expand-icon {
+       color: white;
+     }
+
+     .section-toggle-btn .expand-icon.expanded {
+       transform: rotate(180deg);
+     }
 
     .card-title {
       margin: 0 0 20px 0;
@@ -390,13 +550,13 @@ import { Observable } from 'rxjs';
     .mobile-table {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 12px;
     }
 
     .mobile-row {
       background: var(--bg);
       border-radius: var(--radius-sm);
-      padding: 16px;
+      padding: 10px 14px;
       border: 1px solid var(--border);
       transition: transform 0.2s ease;
     }
@@ -466,7 +626,7 @@ import { Observable } from 'rxjs';
     .gasto-stats, .compartido-stats, .row-stats {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
     }
 
     .stat-item {
@@ -509,23 +669,25 @@ import { Observable } from 'rxjs';
      }
 
      .tarjeta-group {
-       margin-bottom: 16px;
-       border: 1px solid var(--border);
-       border-radius: var(--radius-sm);
-       overflow: hidden;
-       background: var(--bg);
-     }
+        margin-bottom: 12px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        overflow: hidden;
+        background: var(--bg);
+        box-shadow: var(--shadow-sm);
+      }
 
      .tarjeta-header {
-       display: flex;
-       justify-content: space-between;
-       align-items: center;
-       padding: 16px;
-       background: var(--surface);
-       cursor: pointer;
-       transition: background-color 0.2s ease;
-       border-bottom: 1px solid var(--border);
-     }
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        background: var(--surface);
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        border-bottom: 1px solid var(--border);
+        min-height: 60px;
+      }
 
      .tarjeta-header:hover {
        background: var(--primary);
@@ -599,22 +761,37 @@ import { Observable } from 'rxjs';
      }
 
      .gasto-item {
-       margin: 0;
-       border-radius: 0;
-       border: none;
-       border-bottom: 1px solid var(--border);
-       background: var(--surface);
-     }
+        margin: 0;
+        border-radius: 0;
+        border: none;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface);
+        padding: 10px 16px;
+      }
 
-     .gasto-item:last-child {
-       border-bottom: none;
-     }
+      .gasto-item:last-child {
+        border-bottom: none;
+      }
 
-     .gasto-item:hover {
-       transform: none;
-       box-shadow: none;
-       background: var(--bg);
-     }
+      .gasto-item:hover {
+        transform: none;
+        box-shadow: none;
+        background: var(--bg);
+      }
+
+      .gasto-item .row-header {
+        margin-bottom: 8px;
+      }
+
+      .gasto-item .gasto-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 8px;
+      }
+
+      .gasto-item .stat-item {
+        margin-bottom: 0;
+      }
 
      .empty-state {
       text-align: center;
@@ -697,29 +874,58 @@ import { Observable } from 'rxjs';
       font-weight: 700;
     }
 
-    .loading-state {
-      text-align: center;
-      padding: 40px 20px;
+    .summary-preview {
+      display: flex;
+      align-items: center;
+      padding: 20px;
+      background: var(--surface);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      margin: 12px 0;
+      transition: all 0.2s ease;
     }
 
-    .loading-spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid var(--border);
-      border-top: 4px solid var(--primary);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 16px;
+    .summary-preview:hover {
+      background: var(--bg);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-sm);
     }
 
-    .loading-text {
-      color: #666;
+    .summary-icon {
+      font-size: 32px;
+      margin-right: 16px;
+      opacity: 0.8;
+    }
+
+    .summary-text {
+      flex: 1;
+    }
+
+    .summary-title {
       font-size: 16px;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 8px;
     }
 
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+    .summary-stats {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .summary-stat {
+      font-size: 14px;
+      color: #666;
+      display: flex;
+      align-items: center;
+    }
+
+    .summary-stat:before {
+      content: '•';
+      margin-right: 8px;
+      color: var(--primary);
+      font-weight: bold;
     }
 
     /* Responsive Design */
@@ -762,18 +968,42 @@ import { Observable } from 'rxjs';
       }
 
       .content-card {
-        padding: 16px;
-        margin-bottom: 16px;
-      }
+         padding: 16px;
+         margin-bottom: 16px;
+       }
 
-      .card-title {
-        font-size: 18px;
-        margin-bottom: 16px;
-      }
+       .card-header {
+         margin-bottom: 12px;
+       }
+
+       .card-title {
+         font-size: 18px;
+         margin: 0;
+       }
+
+       .card-controls {
+         gap: 6px;
+       }
+
+       .control-btn {
+         width: 28px;
+         height: 28px;
+         font-size: 12px;
+       }
+
+       .section-toggle-btn {
+         width: 32px;
+         height: 32px;
+       }
+
+       .section-toggle-btn .expand-icon {
+         font-size: 12px;
+       }
 
       .mobile-row {
-        padding: 12px;
-      }
+         padding: 10px 12px;
+         margin-bottom: 8px;
+       }
 
       .row-header {
         flex-direction: column;
@@ -806,12 +1036,22 @@ import { Observable } from 'rxjs';
        }
 
        .tarjeta-header {
-         padding: 12px;
-       }
+          padding: 10px 12px;
+          min-height: 50px;
+        }
 
-       .tarjeta-info {
-         gap: 2px;
-       }
+        .tarjeta-info {
+          gap: 2px;
+        }
+
+        .gasto-item {
+          padding: 8px 12px;
+        }
+
+        .gasto-item .gasto-stats {
+          grid-template-columns: 1fr;
+          gap: 6px;
+        }
 
        .tarjeta-total {
           font-size: 13px;
@@ -823,9 +1063,27 @@ import { Observable } from 'rxjs';
         }
 
         .expand-icon {
-          font-size: 14px;
-        }
-     }
+         font-size: 14px;
+       }
+
+       .summary-preview {
+         padding: 16px;
+         margin: 10px 0;
+       }
+
+       .summary-icon {
+         font-size: 28px;
+         margin-right: 12px;
+       }
+
+       .summary-title {
+         font-size: 15px;
+       }
+
+       .summary-stat {
+         font-size: 13px;
+       }
+    }
 
      @media (max-width: 480px) {
       .page {
@@ -869,12 +1127,40 @@ import { Observable } from 'rxjs';
       }
 
       .content-card {
-        padding: 12px;
-      }
+         padding: 12px;
+       }
 
-      .card-title {
-        font-size: 16px;
-      }
+       .card-header {
+         margin-bottom: 10px;
+         flex-direction: column;
+         align-items: flex-start;
+         gap: 8px;
+       }
+
+       .card-title {
+         font-size: 16px;
+         margin: 0;
+       }
+
+       .card-controls {
+         align-self: flex-end;
+         gap: 4px;
+       }
+
+       .control-btn {
+         width: 24px;
+         height: 24px;
+         font-size: 10px;
+       }
+
+       .section-toggle-btn {
+         width: 28px;
+         height: 28px;
+       }
+
+       .section-toggle-btn .expand-icon {
+         font-size: 10px;
+       }
 
       .mobile-row {
         padding: 10px;
@@ -912,9 +1198,190 @@ import { Observable } from 'rxjs';
         }
 
         .expand-icon {
+           font-size: 12px;
+         }
+
+         .summary-preview {
+           padding: 14px;
+           margin: 8px 0;
+         }
+
+         .summary-icon {
+           font-size: 24px;
+           margin-right: 10px;
+         }
+
+         .summary-title {
+           font-size: 14px;
+         }
+
+         .summary-stat {
+           font-size: 12px;
+         }
+      }
+
+     @media (max-width: 360px) {
+        .page {
+          padding: 6px;
+        }
+
+        .header {
+          margin-bottom: 16px;
+        }
+
+        .header h2 {
+          font-size: 18px;
+          margin-bottom: 12px;
+        }
+
+        .month-nav {
+          gap: 8px;
+        }
+
+        .btn-nav {
+          width: 36px;
+          height: 36px;
+        }
+
+        .nav-icon {
+          font-size: 14px;
+        }
+
+        .month-label {
+          font-size: 14px;
+          min-width: 70px;
+        }
+
+        .stats-grid {
+          gap: 8px;
+          margin-bottom: 16px;
+        }
+
+        .stat-card {
+          padding: 10px;
+        }
+
+        .stat-icon {
+          width: 36px;
+          height: 36px;
+          font-size: 18px;
+        }
+
+        .stat-value {
+          font-size: 16px;
+        }
+
+        .content-card {
+          padding: 10px;
+          margin-bottom: 12px;
+        }
+
+        .card-header {
+          margin-bottom: 8px;
+          gap: 6px;
+        }
+
+        .card-title {
+          font-size: 14px;
+          padding-bottom: 6px;
+        }
+
+        .card-controls {
+          gap: 3px;
+        }
+
+        .control-btn {
+          width: 22px;
+          height: 22px;
+          font-size: 9px;
+        }
+
+        .section-toggle-btn {
+          width: 26px;
+          height: 26px;
+        }
+
+        .section-toggle-btn .expand-icon {
+          font-size: 9px;
+        }
+
+        .mobile-row {
+          padding: 8px;
+          margin-bottom: 6px;
+        }
+
+        .tarjeta-group {
+          margin-bottom: 8px;
+        }
+
+        .tarjeta-header {
+          padding: 8px;
+          min-height: 40px;
+        }
+
+        .gasto-item {
+          padding: 6px 8px;
+        }
+
+        .stat-item {
+          padding: 6px 0;
+        }
+
+        .stat-item .stat-label {
           font-size: 12px;
         }
-     }
+
+        .stat-item .stat-value {
+          font-size: 13px;
+        }
+
+        .resumen-simple, .total-por-persona {
+          padding: 10px;
+          margin-top: 12px;
+        }
+
+        .resumen-title, .total-title {
+          font-size: 14px;
+          margin-bottom: 10px;
+        }
+
+        .resumen-item, .total-item {
+          padding: 8px;
+          margin-bottom: 8px;
+        }
+
+        .empty-state {
+          padding: 24px 12px;
+        }
+
+        .empty-icon {
+          font-size: 36px;
+          margin-bottom: 12px;
+        }
+
+        .empty-text {
+           font-size: 14px;
+         }
+
+         .summary-preview {
+           padding: 12px;
+           margin: 6px 0;
+         }
+
+         .summary-icon {
+           font-size: 20px;
+           margin-right: 8px;
+         }
+
+         .summary-title {
+           font-size: 13px;
+           margin-bottom: 6px;
+         }
+
+         .summary-stat {
+           font-size: 11px;
+         }
+      }
   `
 })
 export class ResumenComponent {
@@ -948,6 +1415,12 @@ export class ResumenComponent {
     }>;
   }>>;
   tarjetasExpandidas: Set<string> = new Set();
+  mostrarSeccionCompleta: { [key: string]: boolean } = {
+    'resumenTarjetas': true,
+    'detalleGastos': false,
+    'gastosCompartidos': false,
+    'resumenGeneral': false
+  };
   detalleGastosCompartidosMes$!: Observable<Array<{
     descripcion: string;
     montoCuota: number;
@@ -978,6 +1451,27 @@ export class ResumenComponent {
 
   isTarjetaExpandida(nombreTarjeta: string): boolean {
     return this.tarjetasExpandidas.has(nombreTarjeta);
+  }
+
+  toggleSeccionCompleta(seccion: string): void {
+    this.mostrarSeccionCompleta[seccion] = !this.mostrarSeccionCompleta[seccion];
+  }
+
+  isSeccionExpandida(seccion: string): boolean {
+    return this.mostrarSeccionCompleta[seccion];
+  }
+
+  expandirTodasTarjetas(): void {
+    // Obtener todas las tarjetas del mes actual
+    this.detalleGastosAgrupadosMes$.subscribe(detalleAgrupado => {
+      detalleAgrupado.forEach(grupo => {
+        this.tarjetasExpandidas.add(grupo.nombreTarjeta);
+      });
+    }).unsubscribe();
+  }
+
+  colapsarTodasTarjetas(): void {
+    this.tarjetasExpandidas.clear();
   }
 
   private monthKeyFromDate(d: Date): string {
