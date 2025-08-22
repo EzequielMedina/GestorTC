@@ -7,6 +7,14 @@ import { TarjetaService } from '../../services/tarjeta';
 import { GastoService } from '../../services/gasto';
 import { GastoDialogComponent } from '../../components/gasto-dialog/gasto-dialog';
 
+interface GastosPorTarjeta {
+  nombreTarjeta: string;
+  tarjetaId: string;
+  totalTarjeta: number;
+  cantidadGastos: number;
+  gastos: Gasto[];
+}
+
 @Component({
   selector: 'app-gastos',
   standalone: true,
@@ -18,6 +26,7 @@ export class GastosComponent implements OnInit {
   gastos: Gasto[] = [];
   tarjetas: Tarjeta[] = [];
   gastosFiltrados: Gasto[] = [];
+  gastosAgrupados: GastosPorTarjeta[] = [];
   
   // Filtros
   filtroTarjeta: string = '';
@@ -39,6 +48,12 @@ export class GastosComponent implements OnInit {
   
   // Meses disponibles para filtro
   mesesDisponibles: string[] = [];
+  
+  // Control de expansión de tarjetas
+  tarjetasExpandidas: Set<string> = new Set();
+  
+  // Modo de visualización
+  vistaAgrupada: boolean = true;
 
   constructor(
     private gastoService: GastoService,
@@ -59,6 +74,7 @@ export class GastosComponent implements OnInit {
     this.gastoService.getGastos$().subscribe(gastos => {
       this.gastos = gastos;
       this.gastosFiltrados = gastos;
+      this.agruparGastos();
       this.generarMesesDisponibles();
       this.loading = false;
     });
@@ -133,6 +149,8 @@ export class GastosComponent implements OnInit {
       
       return true;
     });
+    
+    this.agruparGastos();
   }
 
   limpiarFiltros(): void {
@@ -140,6 +158,7 @@ export class GastosComponent implements OnInit {
     this.filtroMes = '';
     this.filtroCompartido = '';
     this.gastosFiltrados = this.gastos;
+    this.agruparGastos();
   }
 
   get hayFiltrosActivos(): boolean {
@@ -232,5 +251,47 @@ export class GastosComponent implements OnInit {
       monto: 0,
       fecha: new Date().toISOString().slice(0, 10)
     };
+  }
+
+  agruparGastos(): void {
+    const gastosPorTarjeta = new Map<string, GastosPorTarjeta>();
+    
+    this.gastosFiltrados.forEach(gasto => {
+      const nombreTarjeta = this.obtenerNombreTarjeta(gasto.tarjetaId);
+      
+      if (!gastosPorTarjeta.has(gasto.tarjetaId)) {
+        gastosPorTarjeta.set(gasto.tarjetaId, {
+          nombreTarjeta,
+          tarjetaId: gasto.tarjetaId,
+          totalTarjeta: 0,
+          cantidadGastos: 0,
+          gastos: []
+        });
+      }
+      
+      const grupo = gastosPorTarjeta.get(gasto.tarjetaId)!;
+      grupo.gastos.push(gasto);
+      grupo.totalTarjeta += gasto.monto;
+      grupo.cantidadGastos++;
+    });
+    
+    this.gastosAgrupados = Array.from(gastosPorTarjeta.values())
+      .sort((a, b) => a.nombreTarjeta.localeCompare(b.nombreTarjeta));
+  }
+
+  toggleTarjetaExpansion(tarjetaId: string): void {
+    if (this.tarjetasExpandidas.has(tarjetaId)) {
+      this.tarjetasExpandidas.delete(tarjetaId);
+    } else {
+      this.tarjetasExpandidas.add(tarjetaId);
+    }
+  }
+
+  isTarjetaExpandida(tarjetaId: string): boolean {
+    return this.tarjetasExpandidas.has(tarjetaId);
+  }
+
+  toggleVistaAgrupada(): void {
+    this.vistaAgrupada = !this.vistaAgrupada;
   }
 }

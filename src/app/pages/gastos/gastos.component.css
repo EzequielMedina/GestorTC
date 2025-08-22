@@ -94,9 +94,21 @@
   margin-bottom: 20px;
 }
 
+.card-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 .card-stats {
   display: flex;
   gap: 16px;
+}
+
+.view-toggle-btn {
+  padding: 8px 12px;
+  font-size: 14px;
+  white-space: nowrap;
 }
 
 .stat-item {
@@ -215,6 +227,108 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+/* Vista agrupada por tarjetas */
+.gastos-agrupados {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.tarjeta-group {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.tarjeta-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: var(--primary);
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.tarjeta-header:hover {
+  background: #1d4ed8;
+}
+
+.tarjeta-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.tarjeta-nombre {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.tarjeta-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tarjeta-total {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e3f2fd;
+}
+
+.tarjeta-contadores {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #c8e6c9;
+}
+
+.contador-gastos {
+  font-weight: 500;
+}
+
+.expand-icon {
+  font-size: 16px;
+  font-weight: bold;
+  transition: transform 0.3s ease;
+  color: white;
+}
+
+.expand-icon.expanded {
+  transform: rotate(180deg);
+}
+
+.tarjeta-gastos {
+  padding: 0;
+  background: var(--bg);
+}
+
+.gasto-item {
+  margin: 0;
+  border-radius: 0;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.gasto-item:last-child {
+  border-bottom: none;
+}
+
+.gasto-item:hover {
+  transform: none;
+  box-shadow: none;
+  background: var(--bg);
 }
 
 .gasto-card {
@@ -443,9 +557,20 @@
     gap: 12px;
   }
 
+  .card-controls {
+    width: 100%;
+    flex-direction: column;
+    gap: 12px;
+  }
+
   .card-stats {
     width: 100%;
     justify-content: space-between;
+  }
+
+  .view-toggle-btn {
+    align-self: stretch;
+    justify-content: center;
   }
 
   .filters {
@@ -460,6 +585,26 @@
 
   .gasto-card {
     padding: 16px;
+  }
+
+  .tarjeta-header {
+    padding: 12px 16px;
+  }
+
+  .tarjeta-nombre {
+    font-size: 16px;
+  }
+
+  .tarjeta-total {
+    font-size: 12px;
+  }
+
+  .tarjeta-contadores {
+    font-size: 11px;
+  }
+
+  .expand-icon {
+    font-size: 14px;
   }
 
   .gasto-icon {
@@ -527,6 +672,29 @@
 
   .stat-item {
     justify-content: space-between;
+  }
+
+  .tarjeta-header {
+    padding: 10px 12px;
+  }
+
+  .tarjeta-nombre {
+    font-size: 14px;
+  }
+
+  .tarjeta-total {
+    font-size: 11px;
+  }
+
+  .tarjeta-contadores {
+    font-size: 10px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .expand-icon {
+    font-size: 12px;
   }
 
   .gasto-card {

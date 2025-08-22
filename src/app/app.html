@@ -13,7 +13,16 @@
         <a mat-list-item class="nav-item" routerLink="/resumen" routerLinkActive="active" (click)="drawer.close()">
           <mat-icon>insights</mat-icon>
           <span>Resumen</span>
+        </a>        
+        <a mat-list-item class="nav-item" routerLink="/simulacion-compra" routerLinkActive="active" (click)="drawer.close()">
+          <mat-icon>calculate</mat-icon>
+          <span>Simulador</span>
         </a>
+                <a mat-list-item class="nav-item" routerLink="/graficos" routerLinkActive="active" (click)="drawer.close()">
+          <mat-icon>bar_chart</mat-icon>
+          <span>Gráficos</span>
+        </a>
+
         <a mat-list-item class="nav-item" routerLink="/compra-dolares" routerLinkActive="active" (click)="drawer.close()">
           <mat-icon>attach_money</mat-icon>
           <span>Compra Dólares</span>
@@ -26,14 +35,7 @@
           <mat-icon>analytics</mat-icon>
           <span>Análisis</span>
         </a> -->
-        <a mat-list-item class="nav-item" routerLink="/graficos" routerLinkActive="active" (click)="drawer.close()">
-          <mat-icon>bar_chart</mat-icon>
-          <span>Gráficos</span>
-        </a>
-        <a mat-list-item class="nav-item" routerLink="/simulacion-compra" routerLinkActive="active" (click)="drawer.close()">
-          <mat-icon>calculate</mat-icon>
-          <span>Simulador</span>
-        </a>
+
       </mat-nav-list>
     </mat-sidenav>
 
@@ -48,11 +50,12 @@
           <a mat-button routerLink="/tarjetas" routerLinkActive="active">Tarjetas</a>
           <a mat-button routerLink="/gastos" routerLinkActive="active">Gastos</a>
           <a mat-button routerLink="/resumen" routerLinkActive="active">Resumen</a>
+          <a mat-button routerLink="/simulacion-compra" routerLinkActive="active">Simulador</a>
+          <a mat-button routerLink="/graficos" routerLinkActive="active">Gráficos</a>
           <a mat-button routerLink="/compra-dolares" routerLinkActive="active">Compra Dólares</a>
           <a mat-button routerLink="/importar-exportar" routerLinkActive="active">Importar/Exportar</a>
           <!-- <a mat-button routerLink="/analisis" routerLinkActive="active">Análisis</a> -->
-          <a mat-button routerLink="/graficos" routerLinkActive="active">Gráficos</a>
-          <a mat-button routerLink="/simulacion-compra" routerLinkActive="active">Simulador</a>
+
         </nav>
       </mat-toolbar>
 
