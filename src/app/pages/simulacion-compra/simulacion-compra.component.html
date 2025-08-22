@@ -83,7 +83,7 @@
         <span class="btn-icon">🗑️</span>
         <span class="btn-text">Limpiar</span>
       </button>
-      <button class="btn btn-primary" (click)="onSubmit()" [disabled]="!isFormValid">
+      <button class="btn btn-primary" (click)="simularCompra()" [disabled]="!isFormValid">
         <span class="btn-icon">📊</span>
         <span class="btn-text">Simular Compra</span>
       </button>
@@ -91,10 +91,10 @@
   </section>
 
   <!-- Resultados de la Simulación -->
-  <section class="content-card" *ngIf="tarjetaSeleccionada && isFormValid && resumenMensualProyectado.length > 0">
+  <section class="content-card" *ngIf="simulacionCalculada && resumenMensualProyectado.length > 0">
     <h3 class="card-title">
       <mat-icon>calendar_month</mat-icon>
-      Proyección Mensual - {{tarjetaSeleccionada.nombre}}
+      Proyección Mensual - {{tarjetaSeleccionada?.nombre}}
     </h3>
     <p class="card-subtitle">Cómo quedará el resumen de cada mes con esta compra</p>
         <div class="proyeccion-mensual">
@@ -111,7 +111,7 @@
               <div class="detalle-item">
                 <div class="detalle-label">
                   <mat-icon>credit_card</mat-icon>
-                  <span>{{tarjetaSeleccionada.nombre}}</span>
+                  <span>{{tarjetaSeleccionada?.nombre}}</span>
                 </div>
                 <div class="detalle-valor">${{mes.totalTarjetaSeleccionada | number:'1.0-2'}}</div>
               </div>
@@ -128,5 +128,42 @@
             <mat-divider *ngIf="!last"></mat-divider>
           </div>
         </div>
+  </section>
+
+  <!-- Gráficos de Simulación -->
+  <section class="content-card" *ngIf="simulacionCalculada && resumenMensualProyectado.length > 0">
+    <h3 class="card-title">
+      <mat-icon>bar_chart</mat-icon>
+      Gráficos de Simulación
+    </h3>
+    <p class="card-subtitle">Visualización del impacto de la compra en tus proyecciones</p>
+    
+    <div class="charts-row">
+      <!-- Gráfico de proyección por tarjeta -->
+      <div class="chart-container half-width">
+        <div class="chart-card">
+          <div class="chart-wrapper">
+            <canvas baseChart
+              [type]="'bar'"
+              [data]="proyeccionPorTarjetaData"
+              [options]="proyeccionPorTarjetaOptions">
+            </canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gráfico de total por mes -->
+      <div class="chart-container half-width">
+        <div class="chart-card">
+          <div class="chart-wrapper">
+            <canvas baseChart
+              [type]="'line'"
+              [data]="totalPorMesData"
+              [options]="totalPorMesOptions">
+            </canvas>
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
 </div>
