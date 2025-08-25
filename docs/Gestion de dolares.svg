@@ -1,0 +1,89 @@
+<svg width="800" height="1200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Header -->
+  <rect x="0" y="0" width="800" height="80" fill="#1976d2" />
+  <text x="40" y="50" fill="white" font-size="24" font-weight="bold">Gestión de Dólares</text>
+  
+  <!-- Balance Card -->
+  <rect x="20" y="100" width="760" height="120" rx="12" fill="#f5f5f5" stroke="#e0e0e0" />
+  <text x="40" y="130" font-size="18" font-weight="bold">💰 Balance General</text>
+  
+  <!-- Balance Stats -->
+  <rect x="40" y="140" width="180" height="60" rx="8" fill="white" stroke="#e0e0e0" />
+  <text x="50" y="160" font-size="12" fill="#666">Dólares Disponibles</text>
+  <text x="50" y="180" font-size="20" font-weight="bold" fill="#1976d2">$1,250.00</text>
+  
+  <rect x="240" y="140" width="180" height="60" rx="8" fill="white" stroke="#e0e0e0" />
+  <text x="250" y="160" font-size="12" fill="#666">Ganancia Total</text>
+  <text x="250" y="180" font-size="20" font-weight="bold" fill="#4caf50">+$125,000</text>
+  
+  <rect x="440" y="140" width="180" height="60" rx="8" fill="white" stroke="#e0e0e0" />
+  <text x="450" y="160" font-size="12" fill="#666">Rendimiento</text>
+  <text x="450" y="180" font-size="20" font-weight="bold" fill="#4caf50">+15.2%</text>
+  
+  <rect x="640" y="140" width="120" height="60" rx="8" fill="white" stroke="#e0e0e0" />
+  <text x="650" y="160" font-size="12" fill="#666">Precio Actual</text>
+  <text x="650" y="180" font-size="16" font-weight="bold">$1,025</text>
+  
+  <!-- Tabs -->
+  <rect x="20" y="240" width="760" height="50" rx="8" fill="white" stroke="#e0e0e0" />
+  <rect x="30" y="250" width="120" height="30" rx="4" fill="#1976d2" />
+  <text x="70" y="270" fill="white" font-size="14" text-anchor="middle">Comprar</text>
+  
+  <rect x="160" y="250" width="120" height="30" rx="4" fill="#f5f5f5" stroke="#e0e0e0" />
+  <text x="220" y="270" fill="#666" font-size="14" text-anchor="middle">Vender</text>
+  
+  <rect x="290" y="250" width="120" height="30" rx="4" fill="#f5f5f5" stroke="#e0e0e0" />
+  <text x="350" y="270" fill="#666" font-size="14" text-anchor="middle">Historial</text>
+  
+  <!-- Compra Form (Active) -->
+  <rect x="20" y="310" width="760" height="200" rx="12" fill="white" stroke="#e0e0e0" />
+  <text x="40" y="340" font-size="16" font-weight="bold">Registrar Nueva Compra</text>
+  
+  <!-- Form Fields -->
+  <rect x="40" y="360" width="150" height="40" rx="4" fill="#f5f5f5" stroke="#e0e0e0" />
+  <text x="50" y="380" font-size="12" fill="#666">Mes</text>
+  
+  <rect x="210" y="360" width="150" height="40" rx="4" fill="#f5f5f5" stroke="#e0e0e0" />
+  <text x="220" y="380" font-size="12" fill="#666">Año</text>
+  
+  <rect x="380" y="360" width="150" height="40" rx="4" fill="#f5f5f5" stroke="#e0e0e0" />
+  <text x="390" y="380" font-size="12" fill="#666">Cantidad USD</text>
+  
+  <rect x="550" y="360" width="150" height="40" rx="4" fill="#f5f5f5" stroke="#e0e0e0" />
+  <text x="560" y="380" font-size="12" fill="#666">Precio Compra</text>
+  
+  <!-- Submit Button -->
+  <rect x="40" y="420" width="120" height="40" rx="20" fill="#1976d2" />
+  <text x="100" y="445" fill="white" font-size="14" text-anchor="middle">Guardar</text>
+  
+  <!-- Historial Table -->
+  <rect x="20" y="530" width="760" height="300" rx="12" fill="white" stroke="#e0e0e0" />
+  <text x="40" y="560" font-size="16" font-weight="bold">Historial de Transacciones</text>
+  
+  <!-- Table Header -->
+  <rect x="40" y="580" width="720" height="30" fill="#f5f5f5" />
+  <text x="60" y="600" font-size="12" font-weight="bold">Período</text>
+  <text x="160" y="600" font-size="12" font-weight="bold">Tipo</text>
+  <text x="240" y="600" font-size="12" font-weight="bold">Cantidad</text>
+  <text x="340" y="600" font-size="12" font-weight="bold">Precio</text>
+  <text x="440" y="600" font-size="12" font-weight="bold">Total</text>
+  <text x="540" y="600" font-size="12" font-weight="bold">Ganancia</text>
+  <text x="640" y="600" font-size="12" font-weight="bold">Acciones</text>
+  
+  <!-- Table Rows -->
+  <rect x="40" y="610" width="720" height="30" fill="white" stroke="#f0f0f0" />
+  <text x="60" y="630" font-size="12">Ene 2024</text>
+  <text x="160" y="630" font-size="12" fill="#4caf50">Compra</text>
+  <text x="240" y="630" font-size="12">$500</text>
+  <text x="340" y="630" font-size="12">$950</text>
+  <text x="440" y="630" font-size="12">$475,000</text>
+  <text x="540" y="630" font-size="12">-</text>
+  
+  <rect x="40" y="640" width="720" height="30" fill="#f9f9f9" stroke="#f0f0f0" />
+  <text x="60" y="660" font-size="12">Feb 2024</text>
+  <text x="160" y="660" font-size="12" fill="#f44336">Venta</text>
+  <text x="240" y="660" font-size="12">$200</text>
+  <text x="340" y="660" font-size="12">$1,025</text>
+  <text x="440" y="660" font-size="12">$205,000</text>
+  <text x="540" y="660" font-size="12" fill="#4caf50">+$15,000</text>
+</svg>

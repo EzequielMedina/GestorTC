@@ -1,0 +1,459 @@
+<div class="page">
+  <div class="header">
+    <h2>Gestión Dólares</h2>
+    <p class="subtitle">Administra tus compras y ventas de dólares</p>
+  </div>
+
+  <!-- Información del dólar actual -->
+  <div class="card dolar-info-card">
+    <div class="card-header">
+      <h3>Información del Dólar</h3>
+      <button mat-icon-button (click)="actualizarDolar()" [disabled]="cargandoDolar" class="refresh-button">
+        <mat-icon [class.spinning]="cargandoDolar">refresh</mat-icon>
+      </button>
+    </div>
+    <div class="card-content">
+      <div class="dolar-info" *ngIf="dolarActual; else noDolarInfo">
+        <div class="precio-item">
+          <span class="label">Compra:</span>
+          <span class="precio compra">{{ formatearPesos(dolarActual.compra) }}</span>
+        </div>
+        <div class="precio-item">
+          <span class="label">Venta:</span>
+          <span class="precio venta">{{ formatearPesos(dolarActual.venta) }}</span>
+        </div>
+        <div class="precio-item">
+          <span class="label">Última actualización:</span>
+          <span class="fecha">{{ dolarActual.fechaActualizacion | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+      </div>
+      <ng-template #noDolarInfo>
+        <div class="no-data" *ngIf="!cargandoDolar">
+          <mat-icon>info</mat-icon>
+          <p>No se pudo obtener la información del dólar</p>
+        </div>
+        <div class="loading" *ngIf="cargandoDolar">
+          <mat-spinner diameter="30"></mat-spinner>
+          <p>Cargando información del dólar...</p>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+
+  <!-- Balance general -->
+  <div class="card balance-card">
+    <div class="card-header">
+      <h3>Balance General</h3>
+    </div>
+    <div class="card-content">
+      <div class="balance-grid">
+        <div class="balance-item">
+          <span class="label">Dólares Disponibles:</span>
+          <span class="valor disponibles">{{ formatearDolares(balance.dolaresDisponibles) }}</span>
+        </div>
+        <div class="balance-item">
+          <span class="label">Inversión Total:</span>
+          <span class="valor inversion">{{ formatearPesos(balance.inversionTotal) }}</span>
+        </div>
+        <div class="balance-item">
+          <span class="label">Recuperado:</span>
+          <span class="valor recuperado">{{ formatearPesos(balance.recuperado) }}</span>
+        </div>
+        <div class="balance-item">
+          <span class="label">Ganancia Total:</span>
+          <span class="valor" [ngClass]="obtenerClaseDiferencia(balance.gananciaTotal)">{{ formatearPesos(balance.gananciaTotal) }}</span>
+        </div>
+        <div class="balance-item">
+          <span class="label">% Ganancia:</span>
+          <span class="valor" [ngClass]="obtenerClaseDiferencia(balance.porcentajeGananciaTotal)">{{ formatearPorcentaje(balance.porcentajeGananciaTotal) }}</span>
+        </div>
+        <div class="balance-item">
+          <span class="label">Valor Actual:</span>
+          <span class="valor actual">{{ formatearPesos(balance.valorActualDisponibles) }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs para gestión -->
+  <div class="card tabs-card">
+    <mat-tab-group [(selectedIndex)]="selectedTabIndex" class="gestion-tabs">
+      
+      <!-- Tab de Compra -->
+      <mat-tab label="Comprar Dólares">
+        <div class="tab-content">
+          <form [formGroup]="compraForm" (ngSubmit)="onSubmitCompra()" class="compra-form">
+            <div class="form-row">
+              <mat-form-field appearance="outline">
+                <mat-label>Fecha de Compra</mat-label>
+                <input matInput [matDatepicker]="compraDatePicker" formControlName="fecha" 
+                       placeholder="Seleccione una fecha">
+                <mat-datepicker-toggle matIconSuffix [for]="compraDatePicker"></mat-datepicker-toggle>
+                <mat-datepicker #compraDatePicker></mat-datepicker>
+                <mat-error *ngIf="compraForm.get('fecha')?.invalid && compraForm.get('fecha')?.touched">
+                  La fecha es requerida
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline">
+                <mat-label>Cantidad de Dólares</mat-label>
+                <input matInput type="number" formControlName="dolares" 
+                       placeholder="0.00" step="0.01" min="0.01"
+                       [class.mat-input-invalid]="dolaresCompraInvalido">
+                <mat-error *ngIf="dolaresCompraInvalido">
+                  Ingrese una cantidad válida mayor a 0
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Precio de Compra (ARS)</mat-label>
+                <input matInput type="number" formControlName="precioCompra" 
+                       placeholder="0.00" step="0.01" min="0.01"
+                       [class.mat-input-invalid]="precioCompraInvalido">
+                <mat-hint *ngIf="dolarActual">Precio sugerido: {{ formatearPesos(dolarActual.venta) }}</mat-hint>
+                <mat-error *ngIf="precioCompraInvalido">
+                  Ingrese un precio válido mayor a 0
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <!-- Vista previa de la compra -->
+            <div class="preview-card" *ngIf="compraForm.get('dolares')?.value && compraForm.get('precioCompra')?.value">
+              <h4>Vista Previa</h4>
+              <div class="preview-content">
+                <p><strong>Período:</strong> {{ obtenerNombreMes(compraForm.get('mes')?.value) }} {{ compraForm.get('anio')?.value }}</p>
+                <p><strong>Dólares:</strong> {{ formatearDolares(compraForm.get('dolares')?.value) }}</p>
+                <p><strong>Precio:</strong> {{ formatearPesos(compraForm.get('precioCompra')?.value) }}</p>
+                <p><strong>Total:</strong> {{ formatearPesos(compraForm.get('dolares')?.value * compraForm.get('precioCompra')?.value) }}</p>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button mat-raised-button color="primary" type="submit" 
+                      [disabled]="!compraFormValid || guardandoCompra">
+                <mat-icon *ngIf="guardandoCompra">hourglass_empty</mat-icon>
+                <mat-icon *ngIf="!guardandoCompra">save</mat-icon>
+                {{ guardandoCompra ? 'Guardando...' : 'Guardar Compra' }}
+              </button>
+              <button mat-button type="button" (click)="compraForm.reset()" 
+                      [disabled]="guardandoCompra">
+                <mat-icon>clear</mat-icon>
+                Limpiar
+              </button>
+            </div>
+          </form>
+
+          <!-- Historial de compras -->
+          <div class="historial-section">
+            <h3>Historial de Compras</h3>
+            <div class="table-container" *ngIf="compras.length > 0; else noCompras">
+              <table mat-table [dataSource]="compras" class="compras-table">
+                <ng-container matColumnDef="periodo">
+                  <th mat-header-cell *matHeaderCellDef>Período</th>
+                  <td mat-cell *matCellDef="let compra">{{ obtenerNombreMes(compra.mes) }} {{ compra.anio }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="dolares">
+                  <th mat-header-cell *matHeaderCellDef>Dólares</th>
+                  <td mat-cell *matCellDef="let compra">{{ formatearDolares(compra.dolares) }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="precioCompra">
+                  <th mat-header-cell *matHeaderCellDef>Precio Compra</th>
+                  <td mat-cell *matCellDef="let compra">{{ formatearPesos(compra.precioCompra) }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="totalCompra">
+                  <th mat-header-cell *matHeaderCellDef>Total Compra</th>
+                  <td mat-cell *matCellDef="let compra">{{ formatearPesos(compra.precioCompraTotal) }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="precioAPI">
+                  <th mat-header-cell *matHeaderCellDef>Precio Actual</th>
+                  <td mat-cell *matCellDef="let compra">{{ formatearPesos(compra.precioAPI) }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="totalAPI">
+                  <th mat-header-cell *matHeaderCellDef>Valor Actual</th>
+                  <td mat-cell *matCellDef="let compra">{{ formatearPesos(compra.precioAPITotal) }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="diferencia">
+                  <th mat-header-cell *matHeaderCellDef>Diferencia</th>
+                  <td mat-cell *matCellDef="let compra" [ngClass]="obtenerClaseDiferencia(compra.diferencia)">
+                    {{ formatearPesos(compra.diferencia) }}
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="acciones">
+                  <th mat-header-cell *matHeaderCellDef>Acciones</th>
+                  <td mat-cell *matCellDef="let compra">
+                    <button mat-icon-button (click)="editarCompra(compra)" matTooltip="Editar">
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                    <button mat-icon-button (click)="eliminarCompra(compra)" matTooltip="Eliminar" color="warn">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="comprasColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: comprasColumns;"></tr>
+              </table>
+            </div>
+            <ng-template #noCompras>
+              <div class="no-data">
+                <mat-icon>shopping_cart</mat-icon>
+                <p>No hay compras registradas</p>
+              </div>
+            </ng-template>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Tab de Venta -->
+      <mat-tab label="Vender Dólares">
+        <div class="tab-content">
+          <form [formGroup]="ventaForm" (ngSubmit)="onSubmitVenta()" class="venta-form">
+            <div class="form-row">
+              <mat-form-field appearance="outline">
+                <mat-label>Fecha de Venta</mat-label>
+                <input matInput [matDatepicker]="ventaDatePicker" formControlName="fecha" 
+                       placeholder="Seleccione una fecha">
+                <mat-datepicker-toggle matIconSuffix [for]="ventaDatePicker"></mat-datepicker-toggle>
+                <mat-datepicker #ventaDatePicker></mat-datepicker>
+                <mat-error *ngIf="ventaForm.get('fecha')?.invalid && ventaForm.get('fecha')?.touched">
+                  La fecha es requerida
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline">
+                <mat-label>Cantidad de Dólares</mat-label>
+                <input matInput type="number" formControlName="dolares" 
+                       placeholder="0.00" step="0.01" min="0.01" 
+                       [max]="dolaresDisponiblesParaVenta"
+                       [class.mat-input-invalid]="dolaresVentaInvalido || dolaresVentaExcedidos">
+                <mat-hint>Disponibles: {{ formatearDolares(dolaresDisponiblesParaVenta) }}</mat-hint>
+                <mat-error *ngIf="dolaresVentaInvalido">
+                  Ingrese una cantidad válida mayor a 0
+                </mat-error>
+                <mat-error *ngIf="dolaresVentaExcedidos">
+                  No puede vender más dólares de los disponibles
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Precio de Venta (ARS)</mat-label>
+                <input matInput type="number" formControlName="precioVenta" 
+                       placeholder="0.00" step="0.01" min="0.01"
+                       [class.mat-input-invalid]="precioVentaInvalido">
+                <mat-hint *ngIf="dolarActual">Precio sugerido: {{ formatearPesos(dolarActual.compra) }}</mat-hint>
+                <mat-error *ngIf="precioVentaInvalido">
+                  Ingrese un precio válido mayor a 0
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <!-- Vista previa de la venta -->
+            <div class="preview-card" *ngIf="ventaForm.get('dolares')?.value && ventaForm.get('precioVenta')?.value">
+              <h4>Vista Previa</h4>
+              <div class="preview-content">
+                <p><strong>Período:</strong> {{ obtenerNombreMes(ventaForm.get('mes')?.value) }} {{ ventaForm.get('anio')?.value }}</p>
+                <p><strong>Dólares:</strong> {{ formatearDolares(ventaForm.get('dolares')?.value) }}</p>
+                <p><strong>Precio:</strong> {{ formatearPesos(ventaForm.get('precioVenta')?.value) }}</p>
+                <p><strong>Total:</strong> {{ formatearPesos(ventaForm.get('dolares')?.value * ventaForm.get('precioVenta')?.value) }}</p>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button mat-raised-button color="accent" type="submit" 
+                      [disabled]="!ventaFormValid || guardandoVenta || dolaresVentaExcedidos || dolaresDisponiblesParaVenta === 0">
+                <mat-icon *ngIf="guardandoVenta">hourglass_empty</mat-icon>
+                <mat-icon *ngIf="!guardandoVenta">sell</mat-icon>
+                {{ guardandoVenta ? 'Registrando...' : 'Registrar Venta' }}
+              </button>
+              <button mat-button type="button" (click)="ventaForm.reset()" 
+                      [disabled]="guardandoVenta">
+                <mat-icon>clear</mat-icon>
+                Limpiar
+              </button>
+            </div>
+          </form>
+
+          <!-- Historial de ventas -->
+          <div class="historial-section">
+            <h3>Historial de Ventas</h3>
+            <div class="table-container" *ngIf="ventas.length > 0; else noVentas">
+              <table mat-table [dataSource]="ventas" class="ventas-table">
+                <ng-container matColumnDef="periodo">
+                  <th mat-header-cell *matHeaderCellDef>Período</th>
+                  <td mat-cell *matCellDef="let venta">{{ obtenerNombreMes(venta.mes) }} {{ venta.anio }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="dolares">
+                  <th mat-header-cell *matHeaderCellDef>Dólares</th>
+                  <td mat-cell *matCellDef="let venta">{{ formatearDolares(venta.dolares) }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="precioVenta">
+                  <th mat-header-cell *matHeaderCellDef>Precio Venta</th>
+                  <td mat-cell *matCellDef="let venta">{{ formatearPesos(venta.precioVenta) }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="totalVenta">
+                  <th mat-header-cell *matHeaderCellDef>Total Venta</th>
+                  <td mat-cell *matCellDef="let venta">{{ formatearPesos(venta.totalVenta) }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="ganancia">
+                  <th mat-header-cell *matHeaderCellDef>Ganancia</th>
+                  <td mat-cell *matCellDef="let venta" [ngClass]="obtenerClaseDiferencia(venta.ganancia)">
+                    {{ formatearPesos(venta.ganancia) }}
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="porcentajeGanancia">
+                  <th mat-header-cell *matHeaderCellDef>% Ganancia</th>
+                  <td mat-cell *matCellDef="let venta" [ngClass]="obtenerClaseDiferencia(venta.porcentajeGanancia)">
+                    {{ formatearPorcentaje(venta.porcentajeGanancia) }}
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="acciones">
+                  <th mat-header-cell *matHeaderCellDef>Acciones</th>
+                  <td mat-cell *matCellDef="let venta">
+                    <button mat-icon-button (click)="editarVenta(venta)" matTooltip="Editar">
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                    <button mat-icon-button (click)="eliminarVenta(venta)" matTooltip="Eliminar" color="warn">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="ventasColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: ventasColumns;"></tr>
+              </table>
+            </div>
+            <ng-template #noVentas>
+              <div class="no-data">
+                <mat-icon>sell</mat-icon>
+                <p>No hay ventas registradas</p>
+              </div>
+            </ng-template>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Tab de Historial Unificado -->
+      <mat-tab label="Historial Completo">
+        <div class="tab-content">
+          <div class="historial-section">
+            <h3>Historial de Transacciones</h3>
+            <div class="table-container" *ngIf="transacciones.length > 0; else noTransacciones">
+              <table mat-table [dataSource]="transacciones" class="transacciones-table">
+                <ng-container matColumnDef="periodo">
+                  <th mat-header-cell *matHeaderCellDef>Período</th>
+                  <td mat-cell *matCellDef="let transaccion">{{ obtenerNombreMes(transaccion.mes) }} {{ transaccion.anio }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="tipo">
+                  <th mat-header-cell *matHeaderCellDef>Tipo</th>
+                  <td mat-cell *matCellDef="let transaccion">
+                    <span class="tipo-badge" [ngClass]="obtenerClaseTipo(transaccion.tipo)">
+                      <mat-icon>{{ transaccion.tipo === 'compra' ? 'shopping_cart' : 'sell' }}</mat-icon>
+                      {{ transaccion.tipo === 'compra' ? 'Compra' : 'Venta' }}
+                    </span>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="dolares">
+                  <th mat-header-cell *matHeaderCellDef>Dólares</th>
+                  <td mat-cell *matCellDef="let transaccion">{{ formatearDolares(transaccion.dolares) }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="precio">
+                  <th mat-header-cell *matHeaderCellDef>Precio</th>
+                  <td mat-cell *matCellDef="let transaccion">{{ formatearPesos(transaccion.precio) }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="total">
+                  <th mat-header-cell *matHeaderCellDef>Total</th>
+                  <td mat-cell *matCellDef="let transaccion">{{ formatearPesos(transaccion.total) }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="ganancia">
+                  <th mat-header-cell *matHeaderCellDef>Ganancia</th>
+                  <td mat-cell *matCellDef="let transaccion">
+                    <span *ngIf="transaccion.ganancia !== undefined" [ngClass]="obtenerClaseDiferencia(transaccion.ganancia)">
+                      {{ formatearPesos(transaccion.ganancia) }}
+                    </span>
+                    <span *ngIf="transaccion.ganancia === undefined" class="no-aplica">-</span>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="acciones">
+                  <th mat-header-cell *matHeaderCellDef>Acciones</th>
+                  <td mat-cell *matCellDef="let transaccion">
+                    <button mat-icon-button 
+                            (click)="transaccion.tipo === 'compra' ? editarCompra(transaccion) : editarVenta(transaccion)" 
+                            matTooltip="Editar">
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                    <button mat-icon-button 
+                            (click)="transaccion.tipo === 'compra' ? eliminarCompra(transaccion) : eliminarVenta(transaccion)" 
+                            matTooltip="Eliminar" color="warn">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="transaccionesColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: transaccionesColumns;"></tr>
+              </table>
+            </div>
+            <ng-template #noTransacciones>
+              <div class="no-data">
+                <mat-icon>history</mat-icon>
+                <p>No hay transacciones registradas</p>
+              </div>
+            </ng-template>
+          </div>
+
+          <!-- Resumen acumulado -->
+          <div class="card resumen-card">
+            <div class="card-header">
+              <h3>Resumen Acumulado</h3>
+            </div>
+            <div class="card-content">
+              <div class="resumen-grid">
+                <div class="resumen-item">
+                  <span class="label">Total Dólares Comprados:</span>
+                  <span class="valor">{{ formatearDolares(resumen.totalDolares) }}</span>
+                </div>
+                <div class="resumen-item">
+                  <span class="label">Total Invertido:</span>
+                  <span class="valor">{{ formatearPesos(resumen.totalPesosCompra) }}</span>
+                </div>
+                <div class="resumen-item">
+                  <span class="label">Valor Actual (Compras):</span>
+                  <span class="valor">{{ formatearPesos(resumen.totalPesosAPI) }}</span>
+                </div>
+                <div class="resumen-item">
+                  <span class="label">Variación (Solo Compras):</span>
+                  <span class="valor" [ngClass]="obtenerClaseDiferencia(resumen.variacionTotal)">
+                    {{ formatearPesos(resumen.variacionTotal) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+</div>

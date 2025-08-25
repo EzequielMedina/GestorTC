@@ -1,0 +1,743 @@
+:host {
+  --bg: var(--color1);
+  --surface: var(--color2);
+  --primary: var(--color3);
+  --border: var(--color5);
+  --pos: #1b5e20;
+  --neg: #b71c1c;
+  --highlight: #1976d2;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+
+.page {
+  min-height: 100vh;
+  background: var(--bg);
+  padding: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Header */
+.header {
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.header h2 {
+  margin: 0 0 8px 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #333;
+}
+
+.subtitle {
+  margin: 0 0 20px 0;
+  color: #666;
+  font-size: 16px;
+}
+
+/* Cards generales */
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  transition: transform 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.card h3 {
+  margin: 0 0 16px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid var(--primary);
+  padding-bottom: 8px;
+}
+
+.card-content {
+  /* Contenido de la card */
+}
+
+/* Card de información del dólar */
+.dolar-info-card {
+  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+  color: white;
+}
+
+.dolar-info-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: white;
+  font-weight: 600;
+  font-size: 1.2rem;
+  margin-bottom: 16px;
+}
+
+.dolar-info-card h3 mat-icon {
+  font-size: 1.4rem;
+  width: 1.4rem;
+  height: 1.4rem;
+}
+
+.refresh-button {
+  color: white;
+}
+
+.refresh-button mat-icon.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.dolar-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.precio-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-sm);
+  backdrop-filter: blur(10px);
+  transition: transform 0.2s ease;
+}
+
+.precio-item:hover {
+  transform: scale(1.02);
+}
+
+.precio-item .label {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  margin-bottom: 8px;
+}
+
+.precio-item .precio {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.precio-item .fecha {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+/* Card de balance */
+.balance-card {
+  background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+  color: white;
+}
+
+.balance-card h3 {
+  color: white;
+  font-weight: 600;
+  font-size: 1.2rem;
+  margin-bottom: 16px;
+}
+
+.balance-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.balance-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-sm);
+  backdrop-filter: blur(10px);
+  transition: transform 0.2s ease;
+}
+
+.balance-item:hover {
+  transform: scale(1.02);
+}
+
+.balance-item .label {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.balance-item .valor {
+  font-size: 1.3rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* Tabs */
+.tabs-card {
+  flex: 1;
+}
+
+.gestion-tabs {
+  height: 100%;
+}
+
+.gestion-tabs .mat-mdc-tab-group {
+  height: 100%;
+}
+
+.gestion-tabs .mat-mdc-tab-body-wrapper {
+  flex: 1;
+}
+
+.tab-content {
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+/* Formularios */
+.compra-form,
+.venta-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-lg);
+  background: #fafafa;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.form-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.form-actions button {
+  min-width: 150px;
+}
+
+/* Vista previa */
+.preview-card {
+  background: #e3f2fd;
+  border: 1px solid #2196f3;
+  border-radius: var(--border-radius);
+  padding: var(--spacing-md);
+  margin-top: var(--spacing-md);
+}
+
+.preview-card h4 {
+  margin: 0 0 var(--spacing-md) 0;
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
+.preview-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-sm);
+}
+
+.preview-content p {
+  margin: var(--spacing-xs) 0;
+  font-size: 0.9rem;
+}
+
+/* Secciones de historial */
+.historial-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.historial-section h3 {
+  margin: 0;
+  color: var(--text-primary);
+  font-weight: 500;
+  border-bottom: 2px solid var(--primary-color);
+  padding-bottom: var(--spacing-sm);
+}
+
+/* Contenedor de tablas */
+.table-container {
+  overflow-x: auto;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+  background: var(--card-background);
+}
+
+/* Estilos de tablas */
+.compras-table,
+.ventas-table,
+.transacciones-table {
+  width: 100%;
+  background: var(--card-background);
+}
+
+.compras-table th,
+.ventas-table th,
+.transacciones-table th {
+  background: #f5f5f5;
+  font-weight: 600;
+  color: var(--text-primary);
+  border-bottom: 2px solid var(--border-color);
+}
+
+.compras-table td,
+.ventas-table td,
+.transacciones-table td {
+  border-bottom: 1px solid var(--border-color);
+  padding: var(--spacing-md);
+}
+
+.compras-table tr:hover,
+.ventas-table tr:hover,
+.transacciones-table tr:hover {
+  background: #fafafa;
+}
+
+/* Clases para diferencias y tipos */
+.positivo {
+  color: var(--success-color) !important;
+  font-weight: 600;
+}
+
+.negativo {
+  color: var(--warn-color) !important;
+  font-weight: 600;
+}
+
+.neutro {
+  color: var(--text-secondary) !important;
+}
+
+.disponibles {
+  color: #2196f3 !important;
+  font-weight: 600;
+}
+
+.inversion {
+  color: #ff9800 !important;
+  font-weight: 600;
+}
+
+.recuperado {
+  color: #9c27b0 !important;
+  font-weight: 600;
+}
+
+.actual {
+  color: #607d8b !important;
+  font-weight: 600;
+}
+
+/* Badges de tipo */
+.tipo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: 16px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.tipo-compra {
+  background: #e8f5e8;
+  color: #2e7d32;
+  border: 1px solid #4caf50;
+}
+
+.tipo-venta {
+  background: #fff3e0;
+  color: #e65100;
+  border: 1px solid #ff9800;
+}
+
+.tipo-badge mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+/* Estados sin datos */
+.no-data {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl);
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.no-data mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  margin-bottom: var(--spacing-md);
+  opacity: 0.5;
+}
+
+.no-data p {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.no-aplica {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/* Estado de carga */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl);
+  color: var(--text-secondary);
+}
+
+.loading mat-spinner {
+  margin-bottom: var(--spacing-md);
+}
+
+.loading p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+/* Card de resumen */
+.resumen-card {
+  margin-top: var(--spacing-lg);
+}
+
+.resumen-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-md);
+}
+
+.resumen-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md);
+  background: #fafafa;
+  border-radius: var(--border-radius);
+  border-left: 4px solid var(--primary-color);
+}
+
+.resumen-item .label {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.resumen-item .valor {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .gestion-dolares-container {
+    padding: var(--spacing-md);
+    gap: var(--spacing-md);
+  }
+
+  .tab-content {
+    padding: var(--spacing-md);
+    gap: var(--spacing-lg);
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .form-actions button {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .dolar-info {
+    grid-template-columns: 1fr;
+  }
+
+  .balance-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .resumen-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .preview-content {
+    grid-template-columns: 1fr;
+  }
+
+  .resumen-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
+
+  .table-container {
+    font-size: 0.8rem;
+  }
+
+  .compras-table td,
+  .ventas-table td,
+  .transacciones-table td {
+    padding: var(--spacing-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  .gestion-dolares-container {
+    padding: var(--spacing-sm);
+  }
+
+  .tab-content {
+    padding: var(--spacing-sm);
+  }
+
+  .compra-form,
+  .venta-form {
+    padding: var(--spacing-md);
+  }
+
+  .precio-item,
+  .balance-item {
+    padding: var(--spacing-sm);
+  }
+
+  .precio-item .precio {
+    font-size: 1.2rem;
+  }
+
+  .balance-item .valor {
+    font-size: 1.1rem;
+  }
+
+  .table-container {
+    font-size: 0.7rem;
+  }
+
+  .tipo-badge {
+    font-size: 0.7rem;
+    padding: 2px var(--spacing-xs);
+  }
+
+  .tipo-badge mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+  }
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tab-content {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Mejoras de accesibilidad */
+.form-actions button:focus,
+button[mat-icon-button]:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Estados de validación */
+.mat-form-field-invalid .mat-form-field-outline-thick {
+  color: var(--warn-color) !important;
+}
+
+.mat-input-invalid {
+  caret-color: var(--warn-color) !important;
+}
+
+/* Personalización de Material Design */
+.mat-mdc-tab-group {
+  --mdc-tab-indicator-active-indicator-color: var(--primary-color);
+}
+
+.mat-mdc-tab:not(.mat-mdc-tab-disabled) {
+  --mdc-secondary-navigation-tab-label-text-color: var(--text-primary);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .page {
+    padding: 12px;
+  }
+
+  .header h2 {
+    font-size: 24px;
+  }
+
+  .card {
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .card h3 {
+    font-size: 18px;
+  }
+
+  .dolar-info {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .balance-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .form-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .transacciones-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .page {
+    padding: 8px;
+  }
+
+  .header h2 {
+    font-size: 20px;
+  }
+
+  .card {
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+
+  .card h3 {
+    font-size: 16px;
+  }
+
+  .precio-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .balance-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .resumen-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}
+
+@media (max-width: 360px) {
+  .page {
+    padding: 6px;
+  }
+
+  .header {
+    margin-bottom: 16px;
+  }
+
+  .header h2 {
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+
+  .card {
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+
+  .card h3 {
+    font-size: 14px;
+    padding-bottom: 6px;
+  }
+
+  .dolar-info-card h3 mat-icon {
+    font-size: 1.2rem;
+    width: 1.2rem;
+    height: 1.2rem;
+  }
+}
+
+.mat-mdc-tab.mdc-tab--active {
+  --mdc-secondary-navigation-tab-label-text-color: var(--primary-color);
+}
+
+/* Snackbar personalizado */
+.success-snackbar {
+  background: var(--success-color) !important;
+  color: white !important;
+}
+
+.error-snackbar {
+  background: var(--warn-color) !important;
+  color: white !important;
+}

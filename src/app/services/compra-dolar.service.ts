@@ -54,12 +54,17 @@ export class CompraDolarService {
     let compraGuardada: CompraDolar;
     
     if (existente) {
-      // Actualizar compra existente
+      // Sumar a la compra existente
       const index = compras.indexOf(existente);
+      const nuevosDelares = existente.dolares + compra.dolares;
+      const nuevoTotalARS = existente.precioCompraTotal + (compra.dolares * compra.precioCompra);
+      const nuevoPrecioPromedio = nuevoTotalARS / nuevosDelares;
+      
       compraGuardada = {
         ...existente,
-        ...compra,
-        precioCompraTotal: compra.dolares * compra.precioCompra,
+        dolares: nuevosDelares,
+        precioCompra: nuevoPrecioPromedio,
+        precioCompraTotal: nuevoTotalARS,
         fechaActualizacion: new Date()
       };
       compras[index] = compraGuardada;
