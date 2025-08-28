@@ -1,0 +1,58 @@
+<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+  <!-- Header -->
+  <rect x="0" y="0" width="800" height="60" fill="#673ab7" />
+  <text x="30" y="40" fill="white" font-size="20" font-weight="bold">📊 Análisis de Rendimiento</text>
+  
+  <!-- Summary Cards -->
+  <rect x="30" y="80" width="180" height="100" rx="8" fill="white" stroke="#e0e0e0" />
+  <text x="50" y="105" font-size="12" fill="#666">Total Invertido</text>
+  <text x="50" y="130" font-size="24" font-weight="bold" fill="#1976d2">$950,000</text>
+  <text x="50" y="150" font-size="12" fill="#666">1,000 USD comprados</text>
+  
+  <rect x="230" y="80" width="180" height="100" rx="8" fill="white" stroke="#e0e0e0" />
+  <text x="250" y="105" font-size="12" fill="#666">Total Recuperado</text>
+  <text x="250" y="130" font-size="24" font-weight="bold" fill="#4caf50">$512,500</text>
+  <text x="250" y="150" font-size="12" fill="#666">500 USD vendidos</text>
+  
+  <rect x="430" y="80" width="180" height="100" rx="8" fill="white" stroke="#e0e0e0" />
+  <text x="450" y="105" font-size="12" fill="#666">Ganancia Neta</text>
+  <text x="450" y="130" font-size="24" font-weight="bold" fill="#4caf50">+$37,500</text>
+  <text x="450" y="150" font-size="12" fill="#4caf50">+7.89% rendimiento</text>
+  
+  <rect x="630" y="80" width="150" height="100" rx="8" fill="white" stroke="#e0e0e0" />
+  <text x="650" y="105" font-size="12" fill="#666">Dólares Restantes</text>
+  <text x="650" y="130" font-size="24" font-weight="bold" fill="#ff9800">500 USD</text>
+  <text x="650" y="150" font-size="12" fill="#666">Valor: $512,500</text>
+  
+  <!-- Chart Area -->
+  <rect x="30" y="200" width="740" height="300" rx="8" fill="white" stroke="#e0e0e0" />
+  <text x="50" y="230" font-size="16" font-weight="bold">Evolución de la Inversión</text>
+  
+  <!-- Chart Grid -->
+  <line x1="80" y1="250" x2="750" y2="250" stroke="#f0f0f0" />
+  <line x1="80" y1="300" x2="750" y2="300" stroke="#f0f0f0" />
+  <line x1="80" y1="350" x2="750" y2="350" stroke="#f0f0f0" />
+  <line x1="80" y1="400" x2="750" y2="400" stroke="#f0f0f0" />
+  <line x1="80" y1="450" x2="750" y2="450" stroke="#f0f0f0" />
+  
+  <!-- Chart Lines -->
+  <polyline points="80,400 200,380 320,360 440,340 560,320 680,300" 
+            fill="none" stroke="#1976d2" stroke-width="3" />
+  <polyline points="80,400 200,390 320,385 440,375 560,365 680,350" 
+            fill="none" stroke="#4caf50" stroke-width="3" />
+  
+  <!-- Legend -->
+  <rect x="580" y="260" width="150" height="60" rx="4" fill="#f9f9f9" stroke="#e0e0e0" />
+  <line x1="600" y1="280" x2="620" y2="280" stroke="#1976d2" stroke-width="3" />
+  <text x="630" y="285" font-size="12">Valor de Compra</text>
+  <line x1="600" y1="300" x2="620" y2="300" stroke="#4caf50" stroke-width="3" />
+  <text x="630" y="305" font-size="12">Valor Actual</text>
+  
+  <!-- Bottom Stats -->
+  <rect x="30" y="520" width="740" height="60" rx="8" fill="#f5f5f5" stroke="#e0e0e0" />
+  <text x="50" y="545" font-size="12" fill="#666">Mejor Operación:</text>
+  <text x="50" y="565" font-size="14" font-weight="bold" fill="#4caf50">Feb 2024 - +15.2% (+$15,000)</text>
+  
+  <text x="400" y="545" font-size="12" fill="#666">Próxima Recomendación:</text>
+  <text x="400" y="565" font-size="14" font-weight="bold" fill="#ff9800">Mantener - Tendencia alcista</text>
+</svg>

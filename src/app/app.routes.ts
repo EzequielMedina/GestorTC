@@ -22,9 +22,14 @@ export const routes: Routes = [
     title: 'Resumen - Gestor de Tarjetas de Crédito'
   },
   {
+    path: 'gestion-dolares',
+    loadComponent: () => import('./pages/gestion-dolares/gestion-dolares.component').then(m => m.GestionDolaresComponent),
+    title: 'Gestión Dólares - Gestor de Tarjetas de Crédito'
+  },
+  {
     path: 'compra-dolares',
-    loadComponent: () => import('./pages/compra-dolares/compra-dolares.component').then(m => m.CompraDolaresComponent),
-    title: 'Compra Dólares - Gestor de Tarjetas de Crédito'
+    redirectTo: 'gestion-dolares',
+    pathMatch: 'full'
   },
   {
     path: 'importar-exportar',
@@ -46,6 +51,7 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/simulacion-compra/simulacion-compra.component').then(m => m.SimulacionCompraComponent),
     title: 'Simulador de Compra - Gestor de Tarjetas de Crédito'
   },
+
   {
     path: '**',
     redirectTo: 'tarjetas'

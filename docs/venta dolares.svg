@@ -1,0 +1,65 @@
+<svg width="500" height="600" xmlns="http://www.w3.org/2000/svg">
+  <!-- Modal Background -->
+  <rect x="0" y="0" width="500" height="600" rx="12" fill="white" stroke="#e0e0e0" stroke-width="2" />
+  
+  <!-- Header -->
+  <rect x="0" y="0" width="500" height="60" rx="12" fill="#f44336" />
+  <text x="30" y="40" fill="white" font-size="18" font-weight="bold">💸 Vender Dólares</text>
+  <circle cx="460" cy="30" r="15" fill="rgba(255,255,255,0.2)" />
+  <text x="460" y="35" fill="white" font-size="16" text-anchor="middle">×</text>
+  
+  <!-- Available Balance -->
+  <rect x="30" y="80" width="440" height="60" rx="8" fill="#fff3e0" stroke="#ffb74d" />
+  <text x="50" y="105" font-size="14" font-weight="bold">Dólares Disponibles</text>
+  <text x="50" y="125" font-size="24" font-weight="bold" fill="#f57c00">$1,250.00 USD</text>
+  
+  <!-- Current Price -->
+  <rect x="30" y="160" width="440" height="50" rx="8" fill="#e8f5e8" stroke="#4caf50" />
+  <text x="50" y="180" font-size="12" fill="#2e7d32">Precio de Venta Actual</text>
+  <text x="50" y="200" font-size="20" font-weight="bold" fill="#2e7d32">$1,025.00 ARS</text>
+  
+  <!-- Form Fields -->
+  <text x="30" y="240" font-size="14" font-weight="bold">Detalles de la Venta</text>
+  
+  <!-- Mes/Año -->
+  <rect x="30" y="260" width="200" height="40" rx="4" fill="#f5f5f5" stroke="#e0e0e0" />
+  <text x="40" y="275" font-size="10" fill="#666">MES</text>
+  <text x="40" y="290" font-size="14">Marzo 2024</text>
+  
+  <rect x="250" y="260" width="220" height="40" rx="4" fill="#f5f5f5" stroke="#e0e0e0" />
+  <text x="260" y="275" font-size="10" fill="#666">AÑO</text>
+  <text x="260" y="290" font-size="14">2024</text>
+  
+  <!-- Cantidad -->
+  <rect x="30" y="320" width="200" height="40" rx="4" fill="#f5f5f5" stroke="#e0e0e0" />
+  <text x="40" y="335" font-size="10" fill="#666">CANTIDAD USD</text>
+  <text x="40" y="350" font-size="14">500.00</text>
+  
+  <!-- Precio Venta -->
+  <rect x="250" y="320" width="220" height="40" rx="4" fill="#f5f5f5" stroke="#e0e0e0" />
+  <text x="260" y="335" font-size="10" fill="#666">PRECIO VENTA</text>
+  <text x="260" y="350" font-size="14">$1,025.00</text>
+  
+  <!-- Preview Calculation -->
+  <rect x="30" y="380" width="440" height="120" rx="8" fill="#f3e5f5" stroke="#9c27b0" />
+  <text x="50" y="405" font-size="14" font-weight="bold">Vista Previa del Cálculo</text>
+  
+  <text x="50" y="430" font-size="12" fill="#666">Total a Recibir:</text>
+  <text x="350" y="430" font-size="14" font-weight="bold">$512,500 ARS</text>
+  
+  <text x="50" y="450" font-size="12" fill="#666">Precio Compra Promedio:</text>
+  <text x="350" y="450" font-size="14">$950.00</text>
+  
+  <text x="50" y="470" font-size="12" fill="#666">Ganancia Estimada:</text>
+  <text x="350" y="470" font-size="14" font-weight="bold" fill="#4caf50">+$37,500 ARS</text>
+  
+  <text x="50" y="490" font-size="12" fill="#666">Rendimiento:</text>
+  <text x="350" y="490" font-size="14" font-weight="bold" fill="#4caf50">+7.89%</text>
+  
+  <!-- Action Buttons -->
+  <rect x="30" y="520" width="100" height="40" rx="20" fill="#e0e0e0" stroke="#bdbdbd" />
+  <text x="80" y="545" font-size="14" text-anchor="middle" fill="#666">Cancelar</text>
+  
+  <rect x="370" y="520" width="100" height="40" rx="20" fill="#f44336" />
+  <text x="420" y="545" font-size="14" text-anchor="middle" fill="white">Vender</text>
+</svg>
