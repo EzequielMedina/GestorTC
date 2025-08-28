@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Subscription } from 'rxjs';
 import { Tarjeta } from '../../models/tarjeta.model';
 import { Gasto } from '../../models/gasto.model';
 import { CompraDolar } from '../../models/compra-dolar.model';
@@ -14,6 +15,7 @@ interface ExcelPreview {
   tarjetas: number;
   gastos: number;
   compraDolares: number;
+  ventaDolares: number;
   totalGastos: number;
   gastosCompartidos: number;
   cuotasPendientes: number;
@@ -31,7 +33,7 @@ interface ExcelPreview {
   templateUrl: './importar-exportar.component.html',
   styleUrls: ['./importar-exportar.component.css']
 })
-export class ImportarExportarComponent implements OnInit {
+export class ImportarExportarComponent implements OnInit, OnDestroy {
   public tarjetas: Tarjeta[] = [];
   public gastos: Gasto[] = [];
   public compraDolares: CompraDolar[] = [];
@@ -44,6 +46,8 @@ export class ImportarExportarComponent implements OnInit {
   isDragOver: boolean = false;
   excelPreview: ExcelPreview | null = null;
   mostrarInfoMontos: boolean = false;
+  
+  private subscriptions = new Subscription();
 
   constructor(
     private tarjetaService: TarjetaService,
@@ -54,25 +58,43 @@ export class ImportarExportarComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.verificarYCrearDatosMuestra();
     this.cargarDatos();
   }
 
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+  }
+
   cargarDatos(): void {
-    this.tarjetaService.getTarjetas$().subscribe(tarjetas => {
-      this.tarjetas = tarjetas;
-    });
+    // Limpiar suscripciones anteriores
+    this.subscriptions.unsubscribe();
+    this.subscriptions = new Subscription();
+    
+    // Crear nuevas suscripciones
+    this.subscriptions.add(
+      this.tarjetaService.getTarjetas$().subscribe(tarjetas => {
+        this.tarjetas = tarjetas;
+      })
+    );
 
-    this.gastoService.getGastos$().subscribe(gastos => {
-      this.gastos = gastos;
-    });
+    this.subscriptions.add(
+      this.gastoService.getGastos$().subscribe(gastos => {
+        this.gastos = gastos;
+      })
+    );
 
-    this.compraDolarService.getCompras$().subscribe(compraDolares => {
-      this.compraDolares = compraDolares;
-    });
+    this.subscriptions.add(
+      this.compraDolarService.getCompras$().subscribe(compraDolares => {
+        this.compraDolares = compraDolares;
+      })
+    );
 
-    this.ventaDolarService.getVentas$().subscribe(ventaDolares => {
-      this.ventaDolares = ventaDolares;
-    });
+    this.subscriptions.add(
+      this.ventaDolarService.getVentas$().subscribe(ventaDolares => {
+        this.ventaDolares = ventaDolares;
+      })
+    );
   }
 
   get totalGastos(): number {
@@ -149,12 +171,14 @@ export class ImportarExportarComponent implements OnInit {
         tarjetas = excelData.tarjetas;
         gastos = excelData.gastos;
         compraDolares = excelData.compraDolares;
+        ventaDolares = excelData.ventaDolares || [];
       }
       
       this.excelPreview = {
         tarjetas: tarjetas.length,
         gastos: gastos.length,
         compraDolares: compraDolares.length,
+        ventaDolares: ventaDolares.length,
         totalGastos: gastos.reduce((total, gasto) => total + gasto.monto, 0),
         gastosCompartidos: gastos.filter(g => g.compartidoCon && g.compartidoCon.trim() !== '').length,
         cuotasPendientes: gastos.filter(g => (g.cantidadCuotas || 1) > 1 && this.esCuotaPendiente(g)).length,
@@ -280,5 +304,84 @@ export class ImportarExportarComponent implements OnInit {
 
   toggleInfoMontos(): void {
     this.mostrarInfoMontos = !this.mostrarInfoMontos;
+  }
+
+  private verificarYCrearDatosMuestra(): void {
+    // Verificar si hay datos en localStorage
+    const tieneTarjetas = localStorage.getItem('gestor_tc_tarjetas');
+    const tieneGastos = localStorage.getItem('gestor_tc_gastos');
+    const tieneCompras = localStorage.getItem('compras_dolar');
+    const tieneVentas = localStorage.getItem('ventas_dolar');
+    
+    if (!tieneTarjetas || !tieneGastos || !tieneCompras || !tieneVentas) {
+      console.log('Creando datos de muestra...');
+      
+      // Crear datos de muestra para tarjetas
+      if (!tieneTarjetas) {
+        const tarjetasMuestra = [
+          {
+            id: '1',
+            nombre: 'Visa Principal',
+            banco: 'Banco Nacional',
+            ultimosDigitos: '1234',
+            limiteCredito: 50000,
+            fechaVencimiento: '12/25',
+            color: '#1976d2'
+          }
+        ];
+        localStorage.setItem('gestor_tc_tarjetas', JSON.stringify(tarjetasMuestra));
+      }
+      
+      // Crear datos de muestra para gastos
+      if (!tieneGastos) {
+        const gastosMuestra = [
+          {
+            id: '1',
+            descripcion: 'Compra de prueba',
+            monto: 1000,
+            fecha: new Date().toISOString(),
+            tarjetaId: '1',
+            categoria: 'Otros',
+            cuotas: 1,
+            esCompartido: false
+          }
+        ];
+        localStorage.setItem('gestor_tc_gastos', JSON.stringify(gastosMuestra));
+      }
+      
+      // Crear datos de muestra para compras de dólares
+      if (!tieneCompras) {
+        const comprasMuestra = [
+          {
+            id: '1',
+            fecha: new Date().toISOString(),
+            dolares: 100,
+            precioCompra: 1000,
+            precioCompraTotal: 100000,
+            disponibles: 100
+          }
+        ];
+        localStorage.setItem('compras_dolar', JSON.stringify(comprasMuestra));
+      }
+      
+      // Crear datos de muestra para ventas de dólares
+      if (!tieneVentas) {
+        const ventasMuestra = [
+          {
+            id: '1',
+            fecha: new Date().toISOString(),
+            dolares: 50,
+            precioVenta: 1050,
+            precioVentaTotal: 52500,
+            precioCompraPromedio: 1000,
+            ganancia: 2500,
+            porcentajeGanancia: 5
+          }
+        ];
+        localStorage.setItem('ventas_dolar', JSON.stringify(ventasMuestra));
+      }
+      
+      console.log('Datos de muestra creados.');
+    }
   }
 }

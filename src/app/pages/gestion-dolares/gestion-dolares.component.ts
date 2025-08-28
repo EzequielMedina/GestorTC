@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -27,6 +27,7 @@ import { DolarService } from '../../services/dolar.service';
 @Component({
   selector: 'app-gestion-dolares',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     FormsModule,
@@ -150,7 +151,9 @@ export class GestionDolaresComponent implements OnInit, OnDestroy {
     this.subscriptions.add(
       this.compraDolarService.obtenerCompras().subscribe((compras: CompraDolar[]) => {
         this.compras = compras;
-        this.actualizarResumen();
+        this.cdr.markForCheck();
+        // Removed actualizarResumen() call to prevent infinite loop
+        // The resumen will be updated separately
       })
     );
 
@@ -158,6 +161,7 @@ export class GestionDolaresComponent implements OnInit, OnDestroy {
     this.subscriptions.add(
       this.ventaDolarService.obtenerVentas().subscribe((ventas: VentaDolar[]) => {
         this.ventas = ventas;
+        this.cdr.markForCheck();
       })
     );
 
@@ -165,6 +169,7 @@ export class GestionDolaresComponent implements OnInit, OnDestroy {
     this.subscriptions.add(
       this.balanceDolarService.obtenerBalanceCompleto().subscribe((balance: BalanceDolar) => {
         this.balance = balance;
+        this.cdr.markForCheck();
       })
     );
 
@@ -172,6 +177,15 @@ export class GestionDolaresComponent implements OnInit, OnDestroy {
     this.subscriptions.add(
       this.ventaDolarService.obtenerTransaccionesUnificadas().subscribe((transacciones: TransaccionDolar[]) => {
         this.transacciones = transacciones;
+        this.cdr.markForCheck();
+      })
+    );
+
+    // Suscripción separada para el resumen para evitar loops infinitos
+    this.subscriptions.add(
+      this.compraDolarService.obtenerResumen().subscribe((resumen: ResumenCompraDolar) => {
+        this.resumen = resumen;
+        this.cdr.markForCheck();
       })
     );
   }
@@ -196,12 +210,8 @@ export class GestionDolaresComponent implements OnInit, OnDestroy {
           this.balance = balance;
           this.transacciones = transacciones;
           this.cargandoDolar = false;
-          this.actualizarResumen();
-          // Actualizar precios API solo si hay compras
-          if (compras.length > 0) {
-            this.actualizarPreciosAPI();
-          }
-          this.cdr.detectChanges();
+          // Resumen se actualiza automáticamente por suscripción
+          this.cdr.markForCheck();
         },
         error: (error: any) => {
           console.error('Error al cargar datos:', error);
@@ -212,13 +222,7 @@ export class GestionDolaresComponent implements OnInit, OnDestroy {
     );
   }
 
-  private actualizarResumen(): void {
-    this.subscriptions.add(
-      this.compraDolarService.obtenerResumen().subscribe(resumen => {
-        this.resumen = resumen;
-      })
-    );
-  }
+  // actualizarResumen method removed - now handled by direct subscription
 
   // Métodos para compras
   onSubmitCompra(): void {
@@ -249,15 +253,15 @@ export class GestionDolaresComponent implements OnInit, OnDestroy {
               fecha: new Date()
             });
             this.guardandoCompra = false;
-            // Forzar la detección de cambios
-            this.cdr.detectChanges();
+            // Marcar para verificación de cambios
+            this.cdr.markForCheck();
             // Los datos se actualizarán automáticamente por las suscripciones existentes
           },
           error: (error) => {
             console.error('Error al guardar compra:', error);
             this.mostrarError('Error al guardar la compra');
             this.guardandoCompra = false;
-            this.cdr.detectChanges();
+            this.cdr.markForCheck();
           }
         })
       );
@@ -294,15 +298,15 @@ export class GestionDolaresComponent implements OnInit, OnDestroy {
               fecha: new Date()
             });
             this.guardandoVenta = false;
-            // Forzar la detección de cambios
-            this.cdr.detectChanges();
+            // Marcar para verificación de cambios
+            this.cdr.markForCheck();
             // Los datos se actualizarán automáticamente por las suscripciones existentes
           },
           error: (error) => {
             console.error('Error al guardar venta:', error);
             this.mostrarError(error.message || 'Error al registrar la venta');
             this.guardandoVenta = false;
-            this.cdr.detectChanges();
+            this.cdr.markForCheck();
           }
         })
       );
@@ -328,33 +332,31 @@ export class GestionDolaresComponent implements OnInit, OnDestroy {
 
   eliminarCompra(compra: CompraDolar): void {
     if (compra.id && confirm('¿Está seguro de que desea eliminar esta compra?')) {
-      this.subscriptions.add(
-        this.compraDolarService.eliminarCompra(compra.id).subscribe({
-          next: () => {
-            this.mostrarExito('Compra eliminada exitosamente');
-          },
-          error: (error) => {
-            console.error('Error al eliminar compra:', error);
-            this.mostrarError('Error al eliminar la compra');
-          }
-        })
-      );
+      this.compraDolarService.eliminarCompra(compra.id).subscribe({
+        next: () => {
+          this.mostrarExito('Compra eliminada exitosamente');
+          this.cdr.markForCheck();
+        },
+        error: (error) => {
+          console.error('Error al eliminar compra:', error);
+          this.mostrarError('Error al eliminar la compra');
+        }
+      });
     }
   }
 
   eliminarVenta(venta: VentaDolar): void {
     if (venta.id && confirm('¿Está seguro de que desea eliminar esta venta?')) {
-      this.subscriptions.add(
-        this.ventaDolarService.eliminarVenta(venta.id).subscribe({
-          next: () => {
-            this.mostrarExito('Venta eliminada exitosamente');
-          },
-          error: (error) => {
-            console.error('Error al eliminar venta:', error);
-            this.mostrarError('Error al eliminar la venta');
-          }
-        })
-      );
+      this.ventaDolarService.eliminarVenta(venta.id).subscribe({
+        next: () => {
+          this.mostrarExito('Venta eliminada exitosamente');
+          this.cdr.markForCheck();
+        },
+        error: (error) => {
+          console.error('Error al eliminar venta:', error);
+          this.mostrarError('Error al eliminar la venta');
+        }
+      });
     }
   }
 
@@ -438,8 +440,7 @@ export class GestionDolaresComponent implements OnInit, OnDestroy {
         },
         error: (error: any) => {
           console.error('Error al actualizar precios API:', error);
-          // Aún así, intentar actualizar el resumen
-          this.actualizarResumen();
+          // El resumen se actualiza automáticamente por suscripción
         }
       })
     );
@@ -534,15 +535,15 @@ export class GestionDolaresComponent implements OnInit, OnDestroy {
   }
 
   // Función trackBy para mejorar la detección de cambios en las tablas
-  trackByCompraId(index: number, compra: CompraDolar): any {
-    return compra.id || index;
+  trackByCompraId(index: number, compra: CompraDolar): number {
+    return compra.id ?? index;
   }
 
-  trackByVentaId(index: number, venta: VentaDolar): any {
-    return venta.id || index;
+  trackByVentaId(index: number, venta: VentaDolar): number {
+    return venta.id ?? index;
   }
 
-  trackByTransaccionId(index: number, transaccion: TransaccionDolar): any {
-    return `${transaccion.tipo}-${transaccion.id}` || index;
+  trackByTransaccionId(index: number, transaccion: TransaccionDolar): string {
+    return transaccion.id ? `${transaccion.tipo}-${transaccion.id}` : `${transaccion.tipo}-${index}`;
   }
 }

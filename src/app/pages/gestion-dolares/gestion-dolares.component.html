@@ -158,7 +158,7 @@
           <div class="historial-section">
             <h3>Historial de Compras</h3>
             <div class="table-container" *ngIf="compras.length > 0; else noCompras">
-              <table mat-table [dataSource]="compras" class="compras-table">
+              <table mat-table [dataSource]="compras" [trackBy]="trackByCompraId" class="compras-table">
                 <!-- columnas existentes -->
                 <ng-container matColumnDef="periodo">
                   <th mat-header-cell *matHeaderCellDef>Período</th>
@@ -208,7 +208,7 @@
                 </ng-container>
 
                 <tr mat-header-row *matHeaderRowDef="comprasColumns"></tr>
-                <tr mat-row *matRowDef="let row; columns: comprasColumns; trackBy: trackByCompraId"></tr>
+                <tr mat-row *matRowDef="let row; columns: comprasColumns;"></tr>
               </table>
             </div>
             <ng-template #noCompras>
@@ -298,7 +298,7 @@
           <div class="historial-section">
             <h3>Historial de Ventas</h3>
             <div class="table-container" *ngIf="ventas.length > 0; else noVentas">
-              <table mat-table [dataSource]="ventas" class="ventas-table">
+              <table mat-table [dataSource]="ventas" [trackBy]="trackByVentaId" class="ventas-table">
                 <!-- columnas existentes -->
                 <ng-container matColumnDef="periodo">
                   <th mat-header-cell *matHeaderCellDef>Período</th>
@@ -346,7 +346,7 @@
                 </ng-container>
 
                 <tr mat-header-row *matHeaderRowDef="ventasColumns"></tr>
-                <tr mat-row *matRowDef="let row; columns: ventasColumns; trackBy: trackByVentaId"></tr>
+                <tr mat-row *matRowDef="let row; columns: ventasColumns;"></tr>
               </table>
             </div>
             <ng-template #noVentas>
@@ -367,7 +367,7 @@
               <h3>Historial de Transacciones</h3>
             </div>
             <div class="table-container" *ngIf="transacciones.length > 0; else noTransacciones">
-              <table mat-table [dataSource]="transacciones" class="transacciones-table">
+              <table mat-table [dataSource]="transacciones" [trackBy]="trackByTransaccionId" class="transacciones-table">
                 <!-- columnas existentes -->
                 <ng-container matColumnDef="periodo">
                   <th mat-header-cell *matHeaderCellDef>Período</th>
@@ -425,7 +425,7 @@
                 </ng-container>
 
                 <tr mat-header-row *matHeaderRowDef="transaccionesColumns"></tr>
-                <tr mat-row *matRowDef="let row; columns: transaccionesColumns; trackBy: trackByTransaccionId"></tr>
+                <tr mat-row *matRowDef="let row; columns: transaccionesColumns;"></tr>
               </table>
             </div>
             <ng-template #noTransacciones>

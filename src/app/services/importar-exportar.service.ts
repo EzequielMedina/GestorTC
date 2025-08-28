@@ -718,7 +718,22 @@ export class ImportarExportarService {
       'PrecioCompraTotal': 100000,
       'PrecioAPI': 1050,
       'PrecioAPITotal': 105000,
-      'Diferencia': 5000
+      'Diferencia': 5000,
+      'FechaCreacion': '2024-01-01T00:00:00.000Z',
+      'FechaActualizacion': '2024-01-01T00:00:00.000Z'
+    }];
+
+    const ventaDolaresTemplate = [{
+      'Mes': 'Enero',
+      'Año': 2024,
+      'Dólares': 100,
+      'PrecioVenta': 1100,
+      'PrecioVentaTotal': 110000,
+      'PrecioCompraPromedio': 1000,
+      'Ganancia': 10000,
+      'PorcentajeGanancia': 10,
+      'FechaCreacion': '2024-01-01T00:00:00.000Z',
+      'FechaActualizacion': '2024-01-01T00:00:00.000Z'
     }];
 
     // Crear el libro de trabajo
@@ -728,6 +743,7 @@ export class ImportarExportarService {
     const wsResumenMensual = XLSX.utils.json_to_sheet(resumenMensualTemplate);
     const wsCuotasDetalle = XLSX.utils.json_to_sheet(cuotasDetalleTemplate);
     const wsCompraDolares = XLSX.utils.json_to_sheet(compraDolaresTemplate);
+    const wsVentaDolares = XLSX.utils.json_to_sheet(ventaDolaresTemplate);
     
     // Añadir todas las hojas como en el export
     XLSX.utils.book_append_sheet(wb, wsTarjetas, this.HOJA_TARJETAS);
@@ -735,6 +751,7 @@ export class ImportarExportarService {
     XLSX.utils.book_append_sheet(wb, wsResumenMensual, this.HOJA_RESUMEN_MENSUAL);
     XLSX.utils.book_append_sheet(wb, wsCuotasDetalle, this.HOJA_CUOTAS_DETALLE);
     XLSX.utils.book_append_sheet(wb, wsCompraDolares, this.HOJA_COMPRA_DOLARES);
+    XLSX.utils.book_append_sheet(wb, wsVentaDolares, this.HOJA_VENTA_DOLARES);
     
     // Generar el archivo
     const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });

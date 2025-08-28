@@ -400,7 +400,11 @@ export class VentaDolarService {
   reemplazarVentas(nuevasVentas: VentaDolar[]): Observable<VentaDolar[]> {
     this.ventasSubject.next(nuevasVentas);
     this.guardarEnStorage(nuevasVentas);
-    return this.obtenerVentas();
+    
+    return new Observable(observer => {
+      observer.next(nuevasVentas);
+      observer.complete();
+    });
   }
 
   private cargarVentas(): void {
