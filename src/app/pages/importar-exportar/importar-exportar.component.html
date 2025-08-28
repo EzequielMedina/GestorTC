@@ -123,10 +123,16 @@
         </div>
       </div>
       
-      <button class="btn btn-primary export-btn" (click)="exportar()" [disabled]="tarjetas.length === 0 && gastos.length === 0">
-        <span class="btn-icon">📊</span>
-        <span class="btn-text">Exportar a Excel</span>
-      </button>
+      <div class="export-actions">
+        <button class="btn btn-primary export-btn" (click)="exportar()" [disabled]="tarjetas.length === 0 && gastos.length === 0">
+          <span class="btn-icon">📊</span>
+          <span class="btn-text">Exportar a Excel</span>
+        </button>
+        <button class="btn btn-outline export-btn" (click)="exportarXML()" [disabled]="tarjetas.length === 0 && gastos.length === 0 && compraDolares.length === 0 && ventaDolares.length === 0">
+          <span class="btn-icon">🗂️</span>
+          <span class="btn-text">Exportar a XML</span>
+        </button>
+      </div>
     </div>
   </section>
 
@@ -145,7 +151,7 @@
       <div class="file-upload-area" [class.has-file]="archivoSeleccionado" [class.dragover]="isDragOver">
         <div class="upload-icon">📁</div>
         <div class="upload-text">
-          <span *ngIf="!archivoSeleccionado">Arrastra un archivo Excel aquí o haz clic para seleccionar</span>
+          <span *ngIf="!archivoSeleccionado">Arrastra un archivo Excel/XML aquí o haz clic para seleccionar</span>
           <span *ngIf="archivoSeleccionado" class="file-name">{{ archivoSeleccionado.name }}</span>
         </div>
         <input 
@@ -154,7 +160,7 @@
           (dragover)="onDragOver($event)"
           (dragleave)="onDragLeave($event)"
           (drop)="onDrop($event)"
-          accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,.xml,application/xml,text/xml"
           class="file-input"
           id="fileInput"
         />

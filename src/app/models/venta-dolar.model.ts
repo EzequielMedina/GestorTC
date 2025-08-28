@@ -6,41 +6,48 @@ export interface VentaDolar {
   precioVenta: number; // precio en pesos por dólar al momento de la venta
   precioVentaTotal: number; // dolares * precioVenta
   precioCompraPromedio: number; // precio promedio de compra de los dólares vendidos
-  ganancia: number; // (precioVenta - precioCompraPromedio) * dolares
-  porcentajeGanancia: number; // (ganancia / (precioCompraPromedio * dolares)) * 100
+  ganancia: number; // ganancia en pesos
+  porcentajeGanancia: number; // porcentaje de ganancia
   fechaCreacion?: Date;
   fechaActualizacion?: Date;
 }
 
+export interface ResumenVentaDolar {
+  totalDolaresVendidos: number;
+  totalPesosVenta: number;
+  totalGanancia: number;
+  porcentajeGananciaPromedio: number;
+}
+
 export interface BalanceDolar {
   dolaresDisponibles: number;
-  dolaresComprados: number;
   dolaresVendidos: number;
-  inversionTotal: number; // total invertido en compras
-  recuperado: number; // total recuperado en ventas
-  gananciaTotal: number; // recuperado - inversionTotal
+  valorTotalCompra: number;
+  valorTotalVenta: number;
+  gananciaTotal: number;
   porcentajeGananciaTotal: number;
-  precioCompraPromedio: number; // precio promedio ponderado de compra
-  valorActualDisponibles: number; // dolaresDisponibles * precioAPI actual
+  precioCompraPromedio: number;
+  valorActualDisponibles: number;
 }
 
 export interface TransaccionDolar {
   id?: number;
   tipo: 'compra' | 'venta';
-  mes: number;
-  anio: number;
   dolares: number;
   precio: number;
   total: number;
-  ganancia?: number; // solo para ventas
-  porcentajeGanancia?: number; // solo para ventas
+  fecha: Date;
+  mes: number;
+  anio: number;
+  ganancia?: number;
+  porcentajeGanancia?: number;
   fechaCreacion?: Date;
 }
 
 export interface ResumenDolarCompleto {
   balance: BalanceDolar;
-  transacciones: TransaccionDolar[];
-  mejorOperacion?: TransaccionDolar;
-  peorOperacion?: TransaccionDolar;
-  rendimientoMensual: { mes: number; anio: number; rendimiento: number }[];
+  mejorTransaccion?: TransaccionDolar;
+  peorTransaccion?: TransaccionDolar;
+  tendencia: 'alcista' | 'bajista' | 'estable';
+  recomendacion: string;
 }

@@ -63,7 +63,8 @@ export class BalanceDolarService {
           total: mejorOperacion.precioVentaTotal,
           ganancia: mejorOperacion.ganancia,
           porcentajeGanancia: mejorOperacion.porcentajeGanancia,
-          fechaCreacion: mejorOperacion.fechaCreacion
+          fechaCreacion: mejorOperacion.fechaCreacion,
+          fecha: mejorOperacion.fechaCreacion || new Date()
         } : undefined;
 
         const peorTransaccion: TransaccionDolar | undefined = peorOperacion ? {
@@ -76,15 +77,34 @@ export class BalanceDolarService {
           total: peorOperacion.precioVentaTotal,
           ganancia: peorOperacion.ganancia,
           porcentajeGanancia: peorOperacion.porcentajeGanancia,
-          fechaCreacion: peorOperacion.fechaCreacion
+          fechaCreacion: peorOperacion.fechaCreacion,
+          fecha: peorOperacion.fechaCreacion || new Date()
         } : undefined;
+
+        // Determinar tendencia basada en el rendimiento
+        let tendencia: 'alcista' | 'bajista' | 'estable' = 'estable';
+        if (balance.porcentajeGananciaTotal > 5) {
+          tendencia = 'alcista';
+        } else if (balance.porcentajeGananciaTotal < -5) {
+          tendencia = 'bajista';
+        }
+
+        // Generar recomendación
+        let recomendacion = 'Mantener posición actual';
+        if (balance.porcentajeGananciaTotal > 20) {
+          recomendacion = 'Considerar tomar ganancias parciales';
+        } else if (balance.porcentajeGananciaTotal < -10) {
+          recomendacion = 'Evaluar estrategia de salida';
+        } else if (balance.dolaresDisponibles > 0) {
+          recomendacion = 'Monitorear mercado para oportunidades de venta';
+        }
 
         return {
           balance,
-          transacciones,
-          mejorOperacion: mejorTransaccion,
-          peorOperacion: peorTransaccion,
-          rendimientoMensual
+          mejorTransaccion,
+          peorTransaccion,
+          tendencia,
+          recomendacion
         };
       })
     );

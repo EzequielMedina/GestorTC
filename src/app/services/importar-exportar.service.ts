@@ -4,6 +4,7 @@ import { saveAs } from 'file-saver';
 import { Gasto } from '../models/gasto.model';
 import { Tarjeta } from '../models/tarjeta.model';
 import { CompraDolar } from '../models/compra-dolar.model';
+import { VentaDolar } from '../models/venta-dolar.model';
 
 /**
  * Servicio para manejar la importación y exportación de datos en formato Excel
@@ -17,6 +18,7 @@ export class ImportarExportarService {
   private readonly HOJA_RESUMEN_MENSUAL = 'ResumenMensual';
   private readonly HOJA_CUOTAS_DETALLE = 'CuotasDetalle';
   private readonly HOJA_COMPRA_DOLARES = 'CompraDolares';
+  private readonly HOJA_VENTA_DOLARES = 'VentaDolares';
 
   constructor() {}
 
@@ -27,7 +29,13 @@ export class ImportarExportarService {
    * @param compraDolares Lista de compras de dólares a exportar
    * @param nombreArchivo Nombre del archivo a generar (sin extensión)
    */
-  exportarAExcel(tarjetas: Tarjeta[], gastos: Gasto[], compraDolares: CompraDolar[] = [], nombreArchivo: string = 'gestor-tc-exportacion'): void {
+  exportarAExcel(
+    tarjetas: Tarjeta[],
+    gastos: Gasto[],
+    compraDolares: CompraDolar[] = [],
+    nombreArchivo: string = 'gestor-tc-exportacion',
+    ventaDolares: VentaDolar[] = []
+  ): void {
     try {
       // Crear un nuevo libro de trabajo
       const wb = XLSX.utils.book_new();
@@ -38,6 +46,7 @@ export class ImportarExportarService {
       const wsResumenMensual = XLSX.utils.json_to_sheet(this.generarResumenMensual(tarjetas, gastos));
       const wsCuotasDetalle = XLSX.utils.json_to_sheet(this.generarCuotasDetalle(tarjetas, gastos));
       const wsCompraDolares = XLSX.utils.json_to_sheet(this.prepararDatosParaExportar(compraDolares, 'compraDolar'));
+      const wsVentaDolares = XLSX.utils.json_to_sheet(this.prepararDatosParaExportar(ventaDolares, 'ventaDolar'));
       
       // Añadir las hojas al libro de trabajo
       XLSX.utils.book_append_sheet(wb, wsTarjetas, this.HOJA_TARJETAS);
@@ -45,6 +54,7 @@ export class ImportarExportarService {
       XLSX.utils.book_append_sheet(wb, wsResumenMensual, this.HOJA_RESUMEN_MENSUAL);
       XLSX.utils.book_append_sheet(wb, wsCuotasDetalle, this.HOJA_CUOTAS_DETALLE);
       XLSX.utils.book_append_sheet(wb, wsCompraDolares, this.HOJA_COMPRA_DOLARES);
+      XLSX.utils.book_append_sheet(wb, wsVentaDolares, this.HOJA_VENTA_DOLARES);
       
       // Generar el archivo Excel
       const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
@@ -61,11 +71,206 @@ export class ImportarExportarService {
   }
 
   /**
+   * Exporta los datos a XML (tarjetas, gastos, compras y ventas de dólares)
+   */
+  exportarAXML(
+    tarjetas: Tarjeta[],
+    gastos: Gasto[],
+    compraDolares: CompraDolar[] = [],
+    ventaDolares: VentaDolar[] = [],
+    nombreArchivo: string = 'gestor-tc-exportacion'
+  ): void {
+    const escapeXml = (value: any) => String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&apos;');
+
+    const toISO = (d: any) => {
+      try {
+        if (!d) return '';
+        const date = (d instanceof Date) ? d : new Date(d);
+        return isNaN(date.getTime()) ? '' : date.toISOString();
+      } catch { return ''; }
+    };
+
+    const xmlParts: string[] = [];
+    xmlParts.push('<?xml version="1.0" encoding="UTF-8"?>');
+    xmlParts.push('<GestorTC>');
+
+    // Tarjetas
+    xmlParts.push('  <Tarjetas>');
+    tarjetas.forEach(t => {
+      xmlParts.push('    <Tarjeta>');
+      xmlParts.push(`      <ID>${escapeXml(t.id)}</ID>`);
+      xmlParts.push(`      <Nombre>${escapeXml(t.nombre)}</Nombre>`);
+      xmlParts.push(`      <Banco>${escapeXml(t.banco)}</Banco>`);
+      xmlParts.push(`      <Limite>${escapeXml(t.limite)}</Limite>`);
+      xmlParts.push(`      <DiaCierre>${escapeXml(t.diaCierre)}</DiaCierre>`);
+      xmlParts.push(`      <DiaVencimiento>${escapeXml(t.diaVencimiento)}</DiaVencimiento>`);
+      xmlParts.push(`      <UltimosDigitos>${escapeXml(t.ultimosDigitos)}</UltimosDigitos>`);
+      xmlParts.push('    </Tarjeta>');
+    });
+    xmlParts.push('  </Tarjetas>');
+
+    // Gastos
+    xmlParts.push('  <Gastos>');
+    gastos.forEach(g => {
+      xmlParts.push('    <Gasto>');
+      xmlParts.push(`      <ID>${escapeXml(g.id)}</ID>`);
+      xmlParts.push(`      <TarjetaId>${escapeXml(g.tarjetaId)}</TarjetaId>`);
+      xmlParts.push(`      <Descripcion>${escapeXml(g.descripcion)}</Descripcion>`);
+      xmlParts.push(`      <Monto>${escapeXml(g.monto)}</Monto>`);
+      xmlParts.push(`      <Fecha>${escapeXml(g.fecha)}</Fecha>`);
+      xmlParts.push(`      <CompartidoCon>${escapeXml(g.compartidoCon)}</CompartidoCon>`);
+      xmlParts.push(`      <PorcentajeCompartido>${escapeXml(g.porcentajeCompartido)}</PorcentajeCompartido>`);
+      xmlParts.push(`      <CantidadCuotas>${escapeXml(g.cantidadCuotas)}</CantidadCuotas>`);
+      xmlParts.push(`      <PrimerMesCuota>${escapeXml(g.primerMesCuota)}</PrimerMesCuota>`);
+      xmlParts.push(`      <MontoPorCuota>${escapeXml(g.montoPorCuota)}</MontoPorCuota>`);
+      xmlParts.push('    </Gasto>');
+    });
+    xmlParts.push('  </Gastos>');
+
+    // Compras de dólares
+    xmlParts.push('  <CompraDolares>');
+    compraDolares.forEach(c => {
+      xmlParts.push('    <CompraDolar>');
+      xmlParts.push(`      <ID>${escapeXml(c.id)}</ID>`);
+      xmlParts.push(`      <Mes>${escapeXml(c.mes)}</Mes>`);
+      xmlParts.push(`      <Anio>${escapeXml(c.anio)}</Anio>`);
+      xmlParts.push(`      <Dolares>${escapeXml(c.dolares)}</Dolares>`);
+      xmlParts.push(`      <PrecioCompra>${escapeXml(c.precioCompra)}</PrecioCompra>`);
+      xmlParts.push(`      <PrecioCompraTotal>${escapeXml(c.precioCompraTotal)}</PrecioCompraTotal>`);
+      xmlParts.push(`      <PrecioAPI>${escapeXml(c.precioAPI ?? '')}</PrecioAPI>`);
+      xmlParts.push(`      <PrecioAPITotal>${escapeXml(c.precioAPITotal ?? '')}</PrecioAPITotal>`);
+      xmlParts.push(`      <Diferencia>${escapeXml(c.diferencia ?? '')}</Diferencia>`);
+      xmlParts.push(`      <FechaCreacion>${escapeXml(toISO(c.fechaCreacion))}</FechaCreacion>`);
+      xmlParts.push(`      <FechaActualizacion>${escapeXml(toISO(c.fechaActualizacion))}</FechaActualizacion>`);
+      xmlParts.push('    </CompraDolar>');
+    });
+    xmlParts.push('  </CompraDolares>');
+
+    // Ventas de dólares
+    xmlParts.push('  <VentaDolares>');
+    ventaDolares.forEach(v => {
+      xmlParts.push('    <VentaDolar>');
+      xmlParts.push(`      <ID>${escapeXml(v.id)}</ID>`);
+      xmlParts.push(`      <Mes>${escapeXml(v.mes)}</Mes>`);
+      xmlParts.push(`      <Anio>${escapeXml(v.anio)}</Anio>`);
+      xmlParts.push(`      <Dolares>${escapeXml(v.dolares)}</Dolares>`);
+      xmlParts.push(`      <PrecioVenta>${escapeXml(v.precioVenta)}</PrecioVenta>`);
+      xmlParts.push(`      <PrecioVentaTotal>${escapeXml(v.precioVentaTotal)}</PrecioVentaTotal>`);
+      xmlParts.push(`      <PrecioCompraPromedio>${escapeXml(v.precioCompraPromedio)}</PrecioCompraPromedio>`);
+      xmlParts.push(`      <Ganancia>${escapeXml(v.ganancia)}</Ganancia>`);
+      xmlParts.push(`      <PorcentajeGanancia>${escapeXml(v.porcentajeGanancia)}</PorcentajeGanancia>`);
+      xmlParts.push(`      <FechaCreacion>${escapeXml(toISO(v.fechaCreacion))}</FechaCreacion>`);
+      xmlParts.push(`      <FechaActualizacion>${escapeXml(toISO(v.fechaActualizacion))}</FechaActualizacion>`);
+      xmlParts.push('    </VentaDolar>');
+    });
+    xmlParts.push('  </VentaDolares>');
+
+    xmlParts.push('</GestorTC>');
+
+    const xmlString = xmlParts.join('\n');
+    const blob = new Blob([xmlString], { type: 'application/xml' });
+    saveAs(blob, `${nombreArchivo}_${new Date().toISOString().split('T')[0]}.xml`);
+  }
+
+  /**
+   * Importa datos desde un archivo XML
+   */
+  async importarDesdeXML(file: File): Promise<{ tarjetas: Tarjeta[]; gastos: Gasto[]; compraDolares: CompraDolar[]; ventaDolares: VentaDolar[] }> {
+    return new Promise((resolve, reject) => {
+      try {
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const text = String(reader.result || '');
+            const parser = new DOMParser();
+            const xml = parser.parseFromString(text, 'application/xml');
+            const parseError = xml.getElementsByTagName('parsererror')[0];
+            if (parseError) throw new Error('XML inválido');
+
+            const getText = (el: Element | null, tag: string): string => {
+              const n = el?.getElementsByTagName(tag)[0];
+              return n ? (n.textContent || '') : '';
+            };
+
+            // Tarjetas
+            const tarjetas: Tarjeta[] = Array.from(xml.getElementsByTagName('Tarjeta')).map(t => ({
+              id: getText(t, 'ID'),
+              nombre: getText(t, 'Nombre'),
+              banco: getText(t, 'Banco'),
+              limite: Number(getText(t, 'Limite') || 0),
+              diaCierre: Number(getText(t, 'DiaCierre') || 1),
+              diaVencimiento: Number(getText(t, 'DiaVencimiento') || 1),
+              ultimosDigitos: getText(t, 'UltimosDigitos') || undefined
+            }));
+
+            // Gastos
+            const gastos: Gasto[] = Array.from(xml.getElementsByTagName('Gasto')).map(g => ({
+              id: getText(g, 'ID'),
+              tarjetaId: getText(g, 'TarjetaId'),
+              descripcion: getText(g, 'Descripcion'),
+              monto: Number(getText(g, 'Monto') || 0),
+              fecha: getText(g, 'Fecha') || new Date().toISOString().split('T')[0],
+              compartidoCon: getText(g, 'CompartidoCon') || undefined,
+              porcentajeCompartido: getText(g, 'PorcentajeCompartido') ? Number(getText(g, 'PorcentajeCompartido')) : undefined,
+              cantidadCuotas: getText(g, 'CantidadCuotas') ? Number(getText(g, 'CantidadCuotas')) : undefined,
+              primerMesCuota: getText(g, 'PrimerMesCuota') || undefined,
+              montoPorCuota: getText(g, 'MontoPorCuota') ? Number(getText(g, 'MontoPorCuota')) : undefined
+            } as Gasto));
+
+            // Compras
+            const compraDolares: CompraDolar[] = Array.from(xml.getElementsByTagName('CompraDolar')).map(c => ({
+              id: Number(getText(c, 'ID') || 0) || undefined,
+              mes: Number(getText(c, 'Mes') || 1),
+              anio: Number(getText(c, 'Anio') || new Date().getFullYear()),
+              dolares: Number(getText(c, 'Dolares') || 0),
+              precioCompra: Number(getText(c, 'PrecioCompra') || 0),
+              precioCompraTotal: Number(getText(c, 'PrecioCompraTotal') || 0),
+              precioAPI: getText(c, 'PrecioAPI') ? Number(getText(c, 'PrecioAPI')) : undefined,
+              precioAPITotal: getText(c, 'PrecioAPITotal') ? Number(getText(c, 'PrecioAPITotal')) : undefined,
+              diferencia: getText(c, 'Diferencia') ? Number(getText(c, 'Diferencia')) : undefined,
+              fechaCreacion: getText(c, 'FechaCreacion') ? new Date(getText(c, 'FechaCreacion')) : undefined,
+              fechaActualizacion: getText(c, 'FechaActualizacion') ? new Date(getText(c, 'FechaActualizacion')) : undefined
+            }));
+
+            // Ventas
+            const ventaDolares: VentaDolar[] = Array.from(xml.getElementsByTagName('VentaDolar')).map(v => ({
+              id: Number(getText(v, 'ID') || 0) || undefined,
+              mes: Number(getText(v, 'Mes') || 1),
+              anio: Number(getText(v, 'Anio') || new Date().getFullYear()),
+              dolares: Number(getText(v, 'Dolares') || 0),
+              precioVenta: Number(getText(v, 'PrecioVenta') || 0),
+              precioVentaTotal: Number(getText(v, 'PrecioVentaTotal') || 0),
+              precioCompraPromedio: Number(getText(v, 'PrecioCompraPromedio') || 0),
+              ganancia: Number(getText(v, 'Ganancia') || 0),
+              porcentajeGanancia: Number(getText(v, 'PorcentajeGanancia') || 0),
+              fechaCreacion: getText(v, 'FechaCreacion') ? new Date(getText(v, 'FechaCreacion')) : new Date(),
+              fechaActualizacion: getText(v, 'FechaActualizacion') ? new Date(getText(v, 'FechaActualizacion')) : new Date()
+            } as VentaDolar));
+
+            resolve({ tarjetas, gastos, compraDolares, ventaDolares });
+          } catch (err) {
+            reject(err);
+          }
+        };
+        reader.onerror = reject;
+        reader.readAsText(file);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  /**
    * Importa datos desde un archivo Excel
    * @param file Archivo Excel a importar
    * @returns Promesa con los datos importados { tarjetas: Tarjeta[], gastos: Gasto[], compraDolares: CompraDolar[] }
    */
-  async importarDesdeExcel(file: File): Promise<{ tarjetas: Tarjeta[]; gastos: Gasto[]; compraDolares: CompraDolar[] }> {
+  async importarDesdeExcel(file: File): Promise<{ tarjetas: Tarjeta[]; gastos: Gasto[]; compraDolares: CompraDolar[]; ventaDolares: VentaDolar[] }> {
     return new Promise((resolve, reject) => {
       try {
         const fileReader = new FileReader();
@@ -82,8 +287,9 @@ export class ImportarExportarService {
             const wsTarjetas = workbook.Sheets[this.HOJA_TARJETAS];
             const wsGastos = workbook.Sheets[this.HOJA_GASTOS];
             const wsCompraDolares = workbook.Sheets[this.HOJA_COMPRA_DOLARES];
+            const wsVentaDolares = workbook.Sheets[this.HOJA_VENTA_DOLARES];
             
-            if (!wsTarjetas && !wsGastos && !wsCompraDolares) {
+            if (!wsTarjetas && !wsGastos && !wsCompraDolares && !wsVentaDolares) {
               throw new Error('El archivo no contiene las hojas de datos esperadas');
             }
             
@@ -97,10 +303,14 @@ export class ImportarExportarService {
             const compraDolaresRaw = wsCompraDolares
               ? XLSX.utils.sheet_to_json(wsCompraDolares)
               : [];
+            const ventaDolaresRaw = wsVentaDolares
+              ? XLSX.utils.sheet_to_json(wsVentaDolares)
+              : [];
               
             console.log('DEBUG - Datos raw de tarjetas:', tarjetasRaw);
             console.log('DEBUG - Datos raw de gastos:', gastosRaw);
             console.log('DEBUG - Datos raw de compra dólares:', compraDolaresRaw);
+            console.log('DEBUG - Datos raw de venta dólares:', ventaDolaresRaw);
             
             const tarjetas: Tarjeta[] = wsTarjetas 
               ? this.prepararDatosDesdeImportar(tarjetasRaw, 'tarjeta') as Tarjeta[]
@@ -113,12 +323,15 @@ export class ImportarExportarService {
             const compraDolares: CompraDolar[] = wsCompraDolares
               ? this.prepararDatosDesdeImportar(compraDolaresRaw, 'compraDolar') as CompraDolar[]
               : [];
+            const ventaDolares: VentaDolar[] = wsVentaDolares
+              ? this.prepararDatosDesdeImportar(ventaDolaresRaw, 'ventaDolar') as VentaDolar[]
+              : [];
             
             console.log('DEBUG - Tarjetas procesadas:', tarjetas);
             console.log('DEBUG - Gastos procesados:', gastos);
             console.log('DEBUG - Compra dólares procesadas:', compraDolares);
             
-            resolve({ tarjetas, gastos, compraDolares });
+            resolve({ tarjetas, gastos, compraDolares, ventaDolares });
           } catch (error) {
             console.error('Error al procesar el archivo Excel:', error);
             reject(new Error('Formato de archivo no válido'));
@@ -141,7 +354,7 @@ export class ImportarExportarService {
   /**
    * Prepara los datos para exportar, asegurando que solo se incluyan las propiedades necesarias
    */
-  private prepararDatosParaExportar(datos: any[], tipo: 'tarjeta' | 'gasto' | 'compraDolar'): any[] {
+  private prepararDatosParaExportar(datos: any[], tipo: 'tarjeta' | 'gasto' | 'compraDolar' | 'ventaDolar'): any[] {
     if (tipo === 'tarjeta') {
       return (datos as Tarjeta[]).map(t => ({
         'ID': t.id,
@@ -174,7 +387,22 @@ export class ImportarExportarService {
         'PrecioCompraTotal': c.dolares * c.precioCompra,
         'PrecioAPI': c.precioAPI || '',
         'PrecioAPITotal': c.precioAPI ? (c.dolares * c.precioAPI) : '',
-        'Diferencia': c.precioAPI ? ((c.dolares * c.precioAPI) - (c.dolares * c.precioCompra)) : ''
+        'Diferencia': c.precioAPI ? ((c.dolares * c.precioAPI) - (c.dolares * c.precioCompra)) : '',
+        'FechaCreacion': c.fechaCreacion ? new Date(c.fechaCreacion).toISOString() : '',
+        'FechaActualizacion': c.fechaActualizacion ? new Date(c.fechaActualizacion).toISOString() : ''
+      }));
+    } else if (tipo === 'ventaDolar') {
+      return (datos as VentaDolar[]).map(v => ({
+        'Mes': this.obtenerNombreMes(v.mes),
+        'Año': v.anio,
+        'Dólares': v.dolares,
+        'PrecioVenta': v.precioVenta,
+        'PrecioVentaTotal': v.precioVentaTotal,
+        'PrecioCompraPromedio': v.precioCompraPromedio,
+        'Ganancia': v.ganancia,
+        'PorcentajeGanancia': v.porcentajeGanancia,
+        'FechaCreacion': v.fechaCreacion ? new Date(v.fechaCreacion).toISOString() : '',
+        'FechaActualizacion': v.fechaActualizacion ? new Date(v.fechaActualizacion).toISOString() : ''
       }));
     }
     return [];
@@ -183,7 +411,7 @@ export class ImportarExportarService {
   /**
    * Prepara los datos importados, convirtiéndolos al formato interno de la aplicación
    */
-  private prepararDatosDesdeImportar(datos: any[], tipo: 'tarjeta' | 'gasto' | 'compraDolar'): any[] {
+  private prepararDatosDesdeImportar(datos: any[], tipo: 'tarjeta' | 'gasto' | 'compraDolar' | 'ventaDolar'): any[] {
     if (tipo === 'tarjeta') {
       return datos.map((item: any) => ({
         id: item['ID'] || item['id'] || '',
@@ -268,8 +496,47 @@ export class ImportarExportarService {
           precioCompra: precioCompra,
           precioCompraTotal: precioCompraTotal,
           precioAPI: item['PrecioAPI'] && item['PrecioAPI'] !== '' ? Number(item['PrecioAPI']) : undefined,
-          fechaActualizacionAPI: item['FechaActualizacionAPI'] || undefined
+          precioAPITotal: item['PrecioAPITotal'] && item['PrecioAPITotal'] !== '' ? Number(item['PrecioAPITotal']) : undefined,
+          diferencia: item['Diferencia'] && item['Diferencia'] !== '' ? Number(item['Diferencia']) : undefined,
+          fechaCreacion: item['FechaCreacion'] ? new Date(item['FechaCreacion']) : new Date(anio, Number(mes) - 1, 1),
+          fechaActualizacion: item['FechaActualizacion'] ? new Date(item['FechaActualizacion']) : new Date()
         } as unknown as CompraDolar;
+      });
+    } else if (tipo === 'ventaDolar') {
+      return datos.map((item: any) => {
+        let mes = item['Mes'] || item['mes'] || 1;
+        if (typeof mes === 'string') {
+          mes = this.convertirNombreMesANumero(mes);
+        }
+        const anioRaw = item['Año'] || item['anio'] || new Date().getFullYear();
+        const dolaresRaw = item['Dólares'] || item['dolares'] || 0;
+        const precioVentaRaw = item['PrecioVenta'] || item['precioVenta'] || 0;
+        const precioVentaTotalRaw = item['PrecioVentaTotal'] || item['precioVentaTotal'];
+        const precioCompraPromedioRaw = item['PrecioCompraPromedio'] || item['precioCompraPromedio'] || 0;
+        const gananciaRaw = item['Ganancia'] || item['ganancia'] || 0;
+        const porcentajeGananciaRaw = item['PorcentajeGanancia'] || item['porcentajeGanancia'] || 0;
+
+        const anio = isNaN(Number(anioRaw)) ? new Date().getFullYear() : Number(anioRaw);
+        const dolares = isNaN(Number(dolaresRaw)) ? 0 : Number(dolaresRaw);
+        const precioVenta = isNaN(Number(precioVentaRaw)) ? 0 : Number(precioVentaRaw);
+        const precioVentaTotal = precioVentaTotalRaw && !isNaN(Number(precioVentaTotalRaw)) ? Number(precioVentaTotalRaw) : (dolares * precioVenta);
+        const precioCompraPromedio = isNaN(Number(precioCompraPromedioRaw)) ? 0 : Number(precioCompraPromedioRaw);
+        const ganancia = isNaN(Number(gananciaRaw)) ? (precioVenta - precioCompraPromedio) * dolares : Number(gananciaRaw);
+        const porcentajeGanancia = isNaN(Number(porcentajeGananciaRaw)) ? (precioCompraPromedio > 0 ? (ganancia / (precioCompraPromedio * dolares)) * 100 : 0) : Number(porcentajeGananciaRaw);
+
+        return {
+          id: item['ID'] || item['id'] || this.generarId(),
+          mes: Number(mes),
+          anio: anio,
+          dolares: dolares,
+          precioVenta: precioVenta,
+          precioVentaTotal: precioVentaTotal,
+          precioCompraPromedio: precioCompraPromedio,
+          ganancia: ganancia,
+          porcentajeGanancia: porcentajeGanancia,
+          fechaCreacion: item['FechaCreacion'] ? new Date(item['FechaCreacion']) : new Date(anio, Number(mes) - 1, 1),
+          fechaActualizacion: item['FechaActualizacion'] ? new Date(item['FechaActualizacion']) : new Date()
+        } as unknown as VentaDolar;
       });
     }
     return [];

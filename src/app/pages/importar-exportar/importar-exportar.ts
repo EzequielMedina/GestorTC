@@ -3,9 +3,11 @@ import { CommonModule } from '@angular/common';
 import { Tarjeta } from '../../models/tarjeta.model';
 import { Gasto } from '../../models/gasto.model';
 import { CompraDolar } from '../../models/compra-dolar.model';
+import { VentaDolar } from '../../models/venta-dolar.model';
 import { TarjetaService } from '../../services/tarjeta';
 import { GastoService } from '../../services/gasto';
 import { CompraDolarService } from '../../services/compra-dolar.service';
+import { VentaDolarService } from '../../services/venta-dolar.service';
 import { ImportarExportarService } from '../../services/importar-exportar.service';
 
 interface ExcelPreview {
@@ -33,6 +35,7 @@ export class ImportarExportarComponent implements OnInit {
   public tarjetas: Tarjeta[] = [];
   public gastos: Gasto[] = [];
   public compraDolares: CompraDolar[] = [];
+  public ventaDolares: VentaDolar[] = [];
   
   archivoSeleccionado: File | null = null;
   mensaje: string = '';
@@ -46,6 +49,7 @@ export class ImportarExportarComponent implements OnInit {
     private tarjetaService: TarjetaService,
     private gastoService: GastoService,
     private compraDolarService: CompraDolarService,
+    private ventaDolarService: VentaDolarService,
     private importarExportarService: ImportarExportarService
   ) {}
 
@@ -65,6 +69,10 @@ export class ImportarExportarComponent implements OnInit {
     this.compraDolarService.getCompras$().subscribe(compraDolares => {
       this.compraDolares = compraDolares;
     });
+
+    this.ventaDolarService.getVentas$().subscribe(ventaDolares => {
+      this.ventaDolares = ventaDolares;
+    });
   }
 
   get totalGastos(): number {
@@ -77,8 +85,14 @@ export class ImportarExportarComponent implements OnInit {
 
   exportar(): void {
     const nombreArchivo = `gestor-tc-exportacion_${new Date().toISOString().split('T')[0]}`;
-    this.importarExportarService.exportarAExcel(this.tarjetas, this.gastos, this.compraDolares, nombreArchivo);
+    this.importarExportarService.exportarAExcel(this.tarjetas, this.gastos, this.compraDolares, nombreArchivo, this.ventaDolares);
     this.setMensaje('Datos exportados correctamente', false);
+  }
+
+  exportarXML(): void {
+    const nombreArchivo = `gestor-tc-exportacion_${new Date().toISOString().split('T')[0]}`;
+    this.importarExportarService.exportarAXML(this.tarjetas, this.gastos, this.compraDolares, this.ventaDolares, nombreArchivo);
+    this.setMensaje('XML exportado correctamente', false);
   }
 
   onFileSelected(event: any): void {
@@ -119,7 +133,23 @@ export class ImportarExportarComponent implements OnInit {
     this.limpiarMensaje();
     
     try {
-      const { tarjetas, gastos, compraDolares } = await this.importarExportarService.importarDesdeExcel(file);
+      let tarjetas: Tarjeta[] = [];
+      let gastos: Gasto[] = [];
+      let compraDolares: CompraDolar[] = [];
+      let ventaDolares: VentaDolar[] = [];
+
+      if (file.name.endsWith('.xml')) {
+        const xmlData = await this.importarExportarService.importarDesdeXML(file);
+        tarjetas = xmlData.tarjetas;
+        gastos = xmlData.gastos;
+        compraDolares = xmlData.compraDolares;
+        ventaDolares = xmlData.ventaDolares;
+      } else {
+        const excelData = await this.importarExportarService.importarDesdeExcel(file);
+        tarjetas = excelData.tarjetas;
+        gastos = excelData.gastos;
+        compraDolares = excelData.compraDolares;
+      }
       
       this.excelPreview = {
         tarjetas: tarjetas.length,
@@ -190,22 +220,28 @@ export class ImportarExportarComponent implements OnInit {
     this.importando = true;
     this.limpiarMensaje();
     
-    this.importarExportarService.importarDesdeExcel(this.archivoSeleccionado)
-      .then(({ tarjetas, gastos, compraDolares }) => {
+    const importPromise = this.archivoSeleccionado.name.endsWith('.xml')
+      ? this.importarExportarService.importarDesdeXML(this.archivoSeleccionado)
+      : this.importarExportarService.importarDesdeExcel(this.archivoSeleccionado);
+
+    (importPromise as Promise<{ tarjetas: Tarjeta[]; gastos: Gasto[]; compraDolares: CompraDolar[]; ventaDolares?: VentaDolar[] }>)
+      .then(({ tarjetas, gastos, compraDolares, ventaDolares }: { tarjetas: Tarjeta[]; gastos: Gasto[]; compraDolares: CompraDolar[]; ventaDolares?: VentaDolar[] }) => {
         console.log('DEBUG - Datos importados:', { tarjetas, gastos, compraDolares });
         
         // Reemplazar completamente los datos existentes
         this.tarjetaService.reemplazarTarjetas(tarjetas).subscribe(() => {
           this.gastoService.reemplazarGastos(gastos).subscribe(() => {
             this.compraDolarService.reemplazarCompras(compraDolares).subscribe(() => {
-              this.cargarDatos();
-              this.limpiarSeleccion();
-              this.setMensaje(`Importación exitosa: ${tarjetas.length} tarjetas, ${gastos.length} gastos y ${compraDolares.length} compras de dólares importados`, false);
+              this.ventaDolarService.reemplazarVentas(ventaDolares || []).subscribe(() => {
+                this.cargarDatos();
+                this.limpiarSeleccion();
+                this.setMensaje(`Importación exitosa: ${tarjetas.length} tarjetas, ${gastos.length} gastos, ${compraDolares.length} compras y ${(ventaDolares || []).length} ventas de dólares`, false);
+              });
             });
           });
         });
       })
-      .catch(error => {
+      .catch((error: unknown) => {
         console.error('Error en importación:', error);
         this.setMensaje('Error al importar los datos. Verifica el formato del archivo.', true);
       })

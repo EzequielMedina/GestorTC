@@ -47,44 +47,27 @@ export class CompraDolarService {
   /**
    * Agrega o actualiza una compra de dólares
    */
-  guardarCompra(compra: Omit<CompraDolar, 'id' | 'fechaCreacion' | 'fechaActualizacion'>): Observable<CompraDolar> {
+  guardarCompra(compra: Omit<CompraDolar, 'id' | 'fechaActualizacion'>): Observable<CompraDolar> {
     const compras = [...this.comprasSubject.value];
-    const existente = compras.find(c => c.mes === compra.mes && c.anio === compra.anio);
+    const fechaActual = new Date();
     
-    let compraGuardada: CompraDolar;
-    
-    if (existente) {
-      // Sumar a la compra existente
-      const index = compras.indexOf(existente);
-      const nuevosDelares = existente.dolares + compra.dolares;
-      const nuevoTotalARS = existente.precioCompraTotal + (compra.dolares * compra.precioCompra);
-      const nuevoPrecioPromedio = nuevoTotalARS / nuevosDelares;
-      
-      compraGuardada = {
-        ...existente,
-        dolares: nuevosDelares,
-        precioCompra: nuevoPrecioPromedio,
-        precioCompraTotal: nuevoTotalARS,
-        fechaActualizacion: new Date()
-      };
-      compras[index] = compraGuardada;
-    } else {
-      // Crear nueva compra
-      const nuevoId = this.generarNuevoId(compras);
-      compraGuardada = {
-        ...compra,
-        id: nuevoId,
-        precioCompraTotal: compra.dolares * compra.precioCompra,
-        fechaCreacion: new Date(),
-        fechaActualizacion: new Date()
-      };
-      compras.push(compraGuardada);
-    }
+    // Siempre crear una nueva compra, incluso si es el mismo mes/año
+    const compraGuardada: CompraDolar = {
+      ...compra,
+      id: this.generarNuevoId(compras),
+      // Usar la fecha proporcionada por el formulario si viene, si no, ahora
+      fechaCreacion: (compra as any).fechaCreacion ? new Date((compra as any).fechaCreacion) : fechaActual,
+      fechaActualizacion: fechaActual
+    };
+    compras.push(compraGuardada);
 
-    // Ordenar por año y mes
+    // Ordenar por fecha de creación (más reciente primero) y luego por año/mes
     compras.sort((a, b) => {
-      if (a.anio !== b.anio) return a.anio - b.anio;
-      return a.mes - b.mes;
+      const fa = a.fechaCreacion ? new Date(a.fechaCreacion).getTime() : 0;
+      const fb = b.fechaCreacion ? new Date(b.fechaCreacion).getTime() : 0;
+      if (fb !== fa) return fb - fa;
+      if (a.anio !== b.anio) return b.anio - a.anio;
+      return b.mes - a.mes;
     });
 
     this.comprasSubject.next(compras);
@@ -111,28 +94,53 @@ export class CompraDolarService {
   }
 
   /**
-   * Actualiza los precios API de todas las compras
+   * Obtiene el total de dólares comprados
    */
-  actualizarPreciosAPI(): Observable<CompraDolar[]> {
-    return this.dolarService.obtenerDolarOficial().pipe(
-      map(dolarAPI => {
-        const compras = this.comprasSubject.value.map(compra => ({
-          ...compra,
-          precioAPI: dolarAPI.venta,
-          precioAPITotal: compra.dolares * dolarAPI.venta,
-          diferencia: (compra.dolares * dolarAPI.venta) - compra.precioCompraTotal,
-          fechaActualizacion: new Date()
-        }));
-        
-        this.comprasSubject.next(compras);
-        this.guardarEnStorage(compras);
-        return compras;
+  obtenerTotalDolaresComprados(): Observable<number> {
+    return this.compras$.pipe(
+      map(compras => compras.reduce((total, compra) => total + compra.dolares, 0))
+    );
+  }
+
+  /**
+   * Obtiene el total invertido en pesos
+   */
+  obtenerTotalInvertido(): Observable<number> {
+    return this.compras$.pipe(
+      map(compras => compras.reduce((total, compra) => total + (compra.dolares * compra.precioCompra), 0))
+    );
+  }
+
+  /**
+   * Obtiene el precio promedio de compra
+   */
+  obtenerPrecioPromedio(): Observable<number> {
+    return combineLatest([
+      this.obtenerTotalDolaresComprados(),
+      this.obtenerTotalInvertido()
+    ]).pipe(
+      map(([totalDolares, totalInvertido]) => {
+        return totalDolares > 0 ? totalInvertido / totalDolares : 0;
       })
     );
   }
 
   /**
-   * Obtiene el resumen de todas las compras
+   * Obtiene el valor actual de los dólares comprados
+   */
+  obtenerValorActual(): Observable<number> {
+    return combineLatest([
+      this.obtenerTotalDolaresComprados(),
+      this.dolarService.dolarActual$
+    ]).pipe(
+      map(([totalDolares, dolarActual]) => {
+        return totalDolares * (dolarActual?.venta || 0);
+      })
+    );
+  }
+
+  /**
+   * Obtiene el resumen completo de las compras
    */
   obtenerResumen(): Observable<ResumenCompraDolar> {
     return combineLatest([
@@ -140,65 +148,77 @@ export class CompraDolarService {
       this.dolarService.dolarActual$
     ]).pipe(
       map(([compras, dolarActual]) => {
-        const resumen: ResumenCompraDolar = {
-          totalDolares: 0,
-          totalPesosCompra: 0,
-          totalPesosAPI: 0,
-          variacionTotal: 0
+        const totalDolares = compras.reduce((sum, c) => sum + c.dolares, 0);
+        const totalPesosCompra = compras.reduce((sum, c) => sum + (c.dolares * c.precioCompra), 0);
+        const totalPesosAPI = totalDolares * (dolarActual?.venta || 0);
+        const variacionTotal = totalPesosAPI - totalPesosCompra;
+
+        return {
+          totalDolares,
+          totalPesosCompra,
+          totalPesosAPI,
+          variacionTotal
         };
-
-        compras.forEach(compra => {
-          // Validar que los valores sean números válidos
-          const dolares = isNaN(compra.dolares) ? 0 : compra.dolares;
-          const precioCompraTotal = isNaN(compra.precioCompraTotal) ? 0 : compra.precioCompraTotal;
-          
-          resumen.totalDolares += dolares;
-          resumen.totalPesosCompra += precioCompraTotal;
-          
-          if (dolarActual) {
-            const precioAPITotal = dolares * dolarActual.venta;
-            resumen.totalPesosAPI += precioAPITotal;
-          }
-        });
-
-        resumen.variacionTotal = resumen.totalPesosAPI - resumen.totalPesosCompra;
-        return resumen;
       })
     );
   }
 
   /**
-   * Importa compras desde un array (usado por ExcelService)
+   * Obtiene las compras de un año específico
+   */
+  obtenerComprasPorAnio(anio: number): Observable<CompraDolar[]> {
+    return this.compras$.pipe(
+      map(compras => compras.filter(c => c.anio === anio))
+    );
+  }
+
+  /**
+   * Importa un array de compras
    */
   importarCompras(compras: CompraDolar[]): Observable<CompraDolar[]> {
-    // Asegurar que todas las compras tengan ID y fechas
-    const comprasConId = compras.map((compra, index) => {
-      // Validar valores numéricos antes de calcular
-      const dolares = isNaN(compra.dolares) ? 0 : compra.dolares;
-      const precioCompra = isNaN(compra.precioCompra) ? 0 : compra.precioCompra;
+    // Validar y limpiar las compras importadas
+    const comprasValidas = compras.filter(compra => {
+      return compra.mes && compra.anio && compra.dolares > 0 && compra.precioCompra > 0;
+    }).map(compra => ({
+      ...compra,
+      id: compra.id || 0, // Se regenerará al guardar
+      fechaCreacion: compra.fechaCreacion ? new Date(compra.fechaCreacion) : new Date(),
+      fechaActualizacion: new Date()
+    }));
+
+    // Combinar con compras existentes, evitando duplicados por mes/año
+    const comprasExistentes = this.comprasSubject.value;
+    const comprasCombinadas = [...comprasExistentes];
+
+    comprasValidas.forEach(nuevaCompra => {
+      const indiceExistente = comprasCombinadas.findIndex(
+        c => c.mes === nuevaCompra.mes && c.anio === nuevaCompra.anio
+      );
       
-      return {
-        ...compra,
-        id: compra.id || (index + 1),
-        dolares: dolares,
-        precioCompra: precioCompra,
-        precioCompraTotal: dolares * precioCompra,
-        fechaCreacion: compra.fechaCreacion || new Date(),
-        fechaActualizacion: compra.fechaActualizacion || new Date()
-      };
+      if (indiceExistente >= 0) {
+        comprasCombinadas[indiceExistente] = {
+          ...nuevaCompra,
+          id: comprasCombinadas[indiceExistente].id
+        };
+      } else {
+        comprasCombinadas.push({
+          ...nuevaCompra,
+          id: this.generarNuevoId(comprasCombinadas)
+        });
+      }
     });
 
-    // Ordenar por año y mes
-    comprasConId.sort((a, b) => {
-      if (a.anio !== b.anio) return a.anio - b.anio;
-      return a.mes - b.mes;
+    // Ordenar y guardar
+    comprasCombinadas.sort((a, b) => {
+      if (a.anio !== b.anio) return b.anio - a.anio;
+      return b.mes - a.mes;
     });
 
-    this.comprasSubject.next(comprasConId);
-    this.guardarEnStorage(comprasConId);
+    this.comprasSubject.next(comprasCombinadas);
+    this.guardarEnStorage(comprasCombinadas);
 
     return new Observable(observer => {
-      observer.next(comprasConId);
+      observer.next(comprasCombinadas);
       observer.complete();
     });
   }
@@ -217,7 +237,7 @@ export class CompraDolarService {
   }
 
   /**
-   * Reemplaza todas las compras con nuevos datos (para importación)
+   * Reemplaza todas las compras con un nuevo array
    */
   reemplazarCompras(nuevasCompras: CompraDolar[]): Observable<CompraDolar[]> {
     this.comprasSubject.next(nuevasCompras);
@@ -229,30 +249,63 @@ export class CompraDolarService {
     });
   }
 
+  /**
+   * Actualiza los precios API de todas las compras usando el valor de dólar actual
+   */
+  actualizarPreciosAPI(): Observable<CompraDolar[]> {
+    return this.dolarService.obtenerDolarOficial().pipe(
+      map(dolarAPI => {
+        const precioAPI = (dolarAPI && !isNaN(dolarAPI.venta) && dolarAPI.venta > 0) ? dolarAPI.venta : 0;
+        const comprasActualizadas = this.comprasSubject.value.map(compra => {
+          const dolares = isNaN(compra.dolares) ? 0 : compra.dolares;
+          const precioCompra = isNaN(compra.precioCompra) ? 0 : compra.precioCompra;
+          const precioCompraTotal = dolares * precioCompra;
+          const precioAPITotal = dolares * precioAPI;
+          const diferencia = precioAPITotal - precioCompraTotal;
+
+          return {
+            ...compra,
+            precioAPI,
+            precioAPITotal: isNaN(precioAPITotal) ? 0 : precioAPITotal,
+            diferencia: isNaN(diferencia) ? 0 : diferencia,
+            fechaActualizacion: new Date()
+          } as CompraDolar;
+        });
+
+        this.comprasSubject.next(comprasActualizadas);
+        this.guardarEnStorage(comprasActualizadas);
+        return comprasActualizadas;
+      })
+    );
+  }
+
   private cargarCompras(): void {
     try {
       const comprasStr = localStorage.getItem(this.STORAGE_KEY);
       if (comprasStr) {
-        const compras: CompraDolar[] = JSON.parse(comprasStr);
-        // Convertir fechas de string a Date y validar campos numéricos
-        compras.forEach(compra => {
+        const compras = JSON.parse(comprasStr) as CompraDolar[];
+        
+        // Validar y convertir fechas
+        const comprasValidas = compras.map(compra => {
           if (compra.fechaCreacion && typeof compra.fechaCreacion === 'string') {
             compra.fechaCreacion = new Date(compra.fechaCreacion);
           }
           if (compra.fechaActualizacion && typeof compra.fechaActualizacion === 'string') {
             compra.fechaActualizacion = new Date(compra.fechaActualizacion);
           }
-          
-          // Validar y corregir valores numéricos
-          compra.dolares = isNaN(compra.dolares) ? 0 : compra.dolares;
-          compra.precioCompra = isNaN(compra.precioCompra) ? 0 : compra.precioCompra;
-          
-          // Si precioCompraTotal no existe o es NaN, calcularlo
-          if (isNaN(compra.precioCompraTotal) || compra.precioCompraTotal === undefined) {
-            compra.precioCompraTotal = compra.dolares * compra.precioCompra;
-          }
+          return compra;
+        }).filter(compra => {
+          // Filtrar compras válidas
+          return compra.mes && compra.anio && compra.dolares > 0 && compra.precioCompra > 0;
         });
-        this.comprasSubject.next(compras);
+
+        // Ordenar por año y mes (más reciente primero)
+        comprasValidas.sort((a, b) => {
+          if (a.anio !== b.anio) return b.anio - a.anio;
+          return b.mes - a.mes;
+        });
+
+        this.comprasSubject.next(comprasValidas);
       }
     } catch (error) {
       console.error('Error al cargar compras de dólares:', error);

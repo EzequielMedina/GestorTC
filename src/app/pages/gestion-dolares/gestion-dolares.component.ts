@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -11,6 +11,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
@@ -40,6 +41,7 @@ import { DolarService } from '../../services/dolar.service';
     MatProgressSpinnerModule,
     MatTabsModule,
     MatDialogModule,
+    MatTooltipModule,
     MatDatepickerModule,
     MatNativeDateModule
   ],
@@ -57,10 +59,9 @@ export class GestionDolaresComponent implements OnInit, OnDestroy {
   transacciones: TransaccionDolar[] = [];
   balance: BalanceDolar = {
     dolaresDisponibles: 0,
-    dolaresComprados: 0,
     dolaresVendidos: 0,
-    inversionTotal: 0,
-    recuperado: 0,
+    valorTotalCompra: 0,
+    valorTotalVenta: 0,
     gananciaTotal: 0,
     porcentajeGananciaTotal: 0,
     precioCompraPromedio: 0,
@@ -97,6 +98,7 @@ export class GestionDolaresComponent implements OnInit, OnDestroy {
   private dolarService = inject(DolarService);
   private snackBar = inject(MatSnackBar);
   private dialog = inject(MatDialog);
+  private cdr = inject(ChangeDetectorRef);
 
   constructor() {
     this.initializeForms();
@@ -143,6 +145,37 @@ export class GestionDolaresComponent implements OnInit, OnDestroy {
 
   // Ya no necesitamos generar años
 
+  private suscribirACambios(): void {
+    // Suscripción a cambios en compras
+    this.subscriptions.add(
+      this.compraDolarService.obtenerCompras().subscribe((compras: CompraDolar[]) => {
+        this.compras = compras;
+        this.actualizarResumen();
+      })
+    );
+
+    // Suscripción a cambios en ventas
+    this.subscriptions.add(
+      this.ventaDolarService.obtenerVentas().subscribe((ventas: VentaDolar[]) => {
+        this.ventas = ventas;
+      })
+    );
+
+    // Suscripción a cambios en balance
+    this.subscriptions.add(
+      this.balanceDolarService.obtenerBalanceCompleto().subscribe((balance: BalanceDolar) => {
+        this.balance = balance;
+      })
+    );
+
+    // Suscripción a cambios en transacciones
+    this.subscriptions.add(
+      this.ventaDolarService.obtenerTransaccionesUnificadas().subscribe((transacciones: TransaccionDolar[]) => {
+        this.transacciones = transacciones;
+      })
+    );
+  }
+
   private cargarDatos(): void {
     this.cargandoDolar = true;
     
@@ -164,39 +197,17 @@ export class GestionDolaresComponent implements OnInit, OnDestroy {
           this.transacciones = transacciones;
           this.cargandoDolar = false;
           this.actualizarResumen();
+          // Actualizar precios API solo si hay compras
+          if (compras.length > 0) {
+            this.actualizarPreciosAPI();
+          }
+          this.cdr.detectChanges();
         },
-        error: (error) => {
+        error: (error: any) => {
           console.error('Error al cargar datos:', error);
           this.cargandoDolar = false;
           this.mostrarError('Error al cargar los datos');
         }
-      })
-    );
-  }
-
-  private suscribirACambios(): void {
-    this.subscriptions.add(
-      this.compraDolarService.obtenerCompras().subscribe(compras => {
-        this.compras = compras;
-        this.actualizarResumen();
-      })
-    );
-
-    this.subscriptions.add(
-      this.ventaDolarService.obtenerVentas().subscribe(ventas => {
-        this.ventas = ventas;
-      })
-    );
-
-    this.subscriptions.add(
-      this.balanceDolarService.obtenerBalanceCompleto().subscribe(balance => {
-        this.balance = balance;
-      })
-    );
-
-    this.subscriptions.add(
-      this.ventaDolarService.obtenerTransaccionesUnificadas().subscribe(transacciones => {
-        this.transacciones = transacciones;
       })
     );
   }
@@ -220,7 +231,9 @@ export class GestionDolaresComponent implements OnInit, OnDestroy {
         mes: fecha.getMonth() + 1,
         anio: fecha.getFullYear(),
         dolares: formData.dolares,
-        precioCompra: formData.precioCompra
+        precioCompra: formData.precioCompra,
+        // Persistimos la fecha seleccionada para mostrarla en historiales
+        fechaCreacion: fecha
       };
       
       this.subscriptions.add(
@@ -230,16 +243,21 @@ export class GestionDolaresComponent implements OnInit, OnDestroy {
         }).subscribe({
           next: (compra) => {
             this.mostrarExito('Compra guardada exitosamente');
+            // Resetear el formulario completamente
             this.compraForm.reset();
             this.compraForm.patchValue({
               fecha: new Date()
             });
             this.guardandoCompra = false;
+            // Forzar la detección de cambios
+            this.cdr.detectChanges();
+            // Los datos se actualizarán automáticamente por las suscripciones existentes
           },
           error: (error) => {
             console.error('Error al guardar compra:', error);
             this.mostrarError('Error al guardar la compra');
             this.guardandoCompra = false;
+            this.cdr.detectChanges();
           }
         })
       );
@@ -255,30 +273,36 @@ export class GestionDolaresComponent implements OnInit, OnDestroy {
       const formData = this.ventaForm.value;
       const fecha = new Date(formData.fecha);
       
+      const dolares = formData.dolares;
+      const precioVenta = formData.precioVenta;
       const ventaData = {
         mes: fecha.getMonth() + 1,
         anio: fecha.getFullYear(),
-        dolares: formData.dolares,
-        precioVenta: formData.precioVenta
+        dolares: dolares,
+        precioVenta: precioVenta,
+        precioVentaTotal: dolares * precioVenta,
+        fechaCreacion: fecha
       };
       
       this.subscriptions.add(
-        this.ventaDolarService.guardarVenta({
-          ...ventaData,
-          precioVentaTotal: ventaData.dolares * ventaData.precioVenta
-        }).subscribe({
+        this.ventaDolarService.guardarVenta(ventaData).subscribe({
           next: (venta) => {
             this.mostrarExito('Venta registrada exitosamente');
+            // Resetear el formulario completamente
             this.ventaForm.reset();
             this.ventaForm.patchValue({
               fecha: new Date()
             });
             this.guardandoVenta = false;
+            // Forzar la detección de cambios
+            this.cdr.detectChanges();
+            // Los datos se actualizarán automáticamente por las suscripciones existentes
           },
           error: (error) => {
             console.error('Error al guardar venta:', error);
             this.mostrarError(error.message || 'Error al registrar la venta');
             this.guardandoVenta = false;
+            this.cdr.detectChanges();
           }
         })
       );
@@ -288,6 +312,20 @@ export class GestionDolaresComponent implements OnInit, OnDestroy {
   }
 
   // Métodos de utilidad
+  limpiarFormularioCompra(): void {
+    this.compraForm.reset();
+    this.compraForm.patchValue({
+      fecha: new Date()
+    });
+  }
+
+  limpiarFormularioVenta(): void {
+    this.ventaForm.reset();
+    this.ventaForm.patchValue({
+      fecha: new Date()
+    });
+  }
+
   eliminarCompra(compra: CompraDolar): void {
     if (compra.id && confirm('¿Está seguro de que desea eliminar esta compra?')) {
       this.subscriptions.add(
@@ -359,14 +397,49 @@ export class GestionDolaresComponent implements OnInit, OnDestroy {
     );
   }
 
+  forzarActualizacionPrecios(): void {
+    this.subscriptions.add(
+      this.compraDolarService.actualizarPreciosAPI().subscribe({
+        next: (compras: any) => {
+          this.compras = compras;
+          this.mostrarExito('Precios actualizados correctamente');
+          this.cdr.detectChanges();
+        },
+        error: (error: any) => {
+          console.error('Error al forzar actualización de precios:', error);
+          this.mostrarError('Error al actualizar los precios');
+        }
+      })
+    );
+  }
+
+  limpiarVentasDuplicadas(): void {
+    this.subscriptions.add(
+      this.ventaDolarService.limpiarVentasDuplicadas().subscribe({
+        next: (ventas) => {
+          this.ventas = ventas;
+          this.mostrarExito('Ventas duplicadas eliminadas correctamente');
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('Error al limpiar ventas duplicadas:', error);
+          this.mostrarError('Error al limpiar ventas duplicadas');
+        }
+      })
+    );
+  }
+
   private actualizarPreciosAPI(): void {
     this.subscriptions.add(
       this.compraDolarService.actualizarPreciosAPI().subscribe({
-        next: () => {
+        next: (compras: any) => {
           // Los precios se actualizarán automáticamente por la suscripción
+          console.log('Precios API actualizados correctamente');
         },
-        error: (error) => {
+        error: (error: any) => {
           console.error('Error al actualizar precios API:', error);
+          // Aún así, intentar actualizar el resumen
+          this.actualizarResumen();
         }
       })
     );
@@ -458,5 +531,18 @@ export class GestionDolaresComponent implements OnInit, OnDestroy {
   get dolaresVentaExcedidos(): boolean {
     const dolares = this.ventaForm.get('dolares')?.value || 0;
     return dolares > this.balance.dolaresDisponibles;
+  }
+
+  // Función trackBy para mejorar la detección de cambios en las tablas
+  trackByCompraId(index: number, compra: CompraDolar): any {
+    return compra.id || index;
+  }
+
+  trackByVentaId(index: number, venta: VentaDolar): any {
+    return venta.id || index;
+  }
+
+  trackByTransaccionId(index: number, transaccion: TransaccionDolar): any {
+    return `${transaccion.tipo}-${transaccion.id}` || index;
   }
 }

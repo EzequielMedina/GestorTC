@@ -83,6 +83,7 @@ export class GastosComponent implements OnInit {
   generarMesesDisponibles(): void {
     const meses = new Set<string>();
     
+    // Agregar meses de gastos existentes
     this.gastos.forEach(gasto => {
       const fecha = new Date(gasto.fecha);
       const mesKey = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
@@ -99,6 +100,15 @@ export class GastosComponent implements OnInit {
         }
       }
     });
+    
+    // Agregar meses futuros (próximos 12 meses)
+    const fechaActual = new Date();
+    for (let i = 0; i < 12; i++) {
+      const fechaFutura = new Date(fechaActual);
+      fechaFutura.setMonth(fechaFutura.getMonth() + i);
+      const mesKey = `${fechaFutura.getFullYear()}-${String(fechaFutura.getMonth() + 1).padStart(2, '0')}`;
+      meses.add(mesKey);
+    }
     
     this.mesesDisponibles = Array.from(meses).sort().reverse();
   }

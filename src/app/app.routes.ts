@@ -24,7 +24,12 @@ export const routes: Routes = [
   {
     path: 'gestion-dolares',
     loadComponent: () => import('./pages/gestion-dolares/gestion-dolares.component').then(m => m.GestionDolaresComponent),
-    title: 'Gestión de Dólares - Gestor de Tarjetas de Crédito'
+    title: 'Gestión Dólares - Gestor de Tarjetas de Crédito'
+  },
+  {
+    path: 'compra-dolares',
+    redirectTo: 'gestion-dolares',
+    pathMatch: 'full'
   },
   {
     path: 'importar-exportar',

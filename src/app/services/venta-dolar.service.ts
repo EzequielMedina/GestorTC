@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, combineLatest } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { map, switchMap, take } from 'rxjs/operators';
 import { VentaDolar, BalanceDolar, TransaccionDolar } from '../models/venta-dolar.model';
 import { CompraDolar } from '../models/compra-dolar.model';
 import { CompraDolarService } from './compra-dolar.service';
@@ -57,6 +57,7 @@ export class VentaDolarService {
       this.compraDolarService.obtenerCompras(),
       this.obtenerVentas()
     ]).pipe(
+      take(1),
       map(([compras, ventas]) => {
         const comprasOrdenadas = compras.sort((a, b) => {
           if (a.anio !== b.anio) return a.anio - b.anio;
@@ -118,6 +119,7 @@ export class VentaDolarService {
       this.compraDolarService.obtenerCompras(),
       this.obtenerVentas()
     ]).pipe(
+      take(1),
       map(([compras, ventas]) => {
         const totalComprado = compras.reduce((total, compra) => total + compra.dolares, 0);
         const totalVendido = ventas.reduce((total, venta) => total + venta.dolares, 0);
@@ -148,28 +150,28 @@ export class VentaDolarService {
    */
   guardarVenta(venta: Omit<VentaDolar, 'id' | 'fechaCreacion' | 'fechaActualizacion' | 'precioCompraPromedio' | 'ganancia' | 'porcentajeGanancia'>): Observable<VentaDolar> {
     // Validar valores de entrada
-    if (!venta.dolares || isNaN(venta.dolares) || venta.dolares <= 0) {
+    if (!venta['dolares'] || isNaN(venta['dolares']) || venta['dolares'] <= 0) {
       throw new Error('La cantidad de dólares debe ser un número válido mayor a 0');
     }
     
-    if (!venta.precioVenta || isNaN(venta.precioVenta) || venta.precioVenta <= 0) {
+    if (!venta['precioVenta'] || isNaN(venta['precioVenta']) || venta['precioVenta'] <= 0) {
       throw new Error('El precio de venta debe ser un número válido mayor a 0');
     }
     
-    return this.validarDolaresDisponibles(venta.dolares).pipe(
+    return this.validarDolaresDisponibles(venta['dolares']).pipe(
       switchMap(esValido => {
         if (!esValido) {
           throw new Error('No hay suficientes dólares disponibles para esta venta');
         }
-        return this.calcularPrecioCompraPromedio(venta.dolares);
+        return this.calcularPrecioCompraPromedio(venta['dolares']);
       }),
+      take(1),
       map(precioCompraPromedio => {
         const ventas = [...this.ventasSubject.value];
-        const existente = ventas.find(v => v.mes === venta.mes && v.anio === venta.anio);
         
         // Calcular ganancias con validaciones
-        const costoTotal = precioCompraPromedio * venta.dolares;
-        const ganancia = (venta.precioVenta - precioCompraPromedio) * venta.dolares;
+        const costoTotal = precioCompraPromedio * venta['dolares'];
+        const ganancia = (venta['precioVenta'] - precioCompraPromedio) * venta['dolares'];
         
         // Validar que el costo total sea válido para evitar división por cero
         let porcentajeGanancia = 0;
@@ -181,43 +183,31 @@ export class VentaDolarService {
         const gananciaFinal = isNaN(ganancia) || !isFinite(ganancia) ? 0 : ganancia;
         const porcentajeFinal = isNaN(porcentajeGanancia) || !isFinite(porcentajeGanancia) ? 0 : porcentajeGanancia;
         
-        let ventaGuardada: VentaDolar;
+        // Crear nueva venta con ID único
+        const nuevoId = this.generarNuevoId(ventas);
+        const ventaGuardada: VentaDolar = {
+          ...venta,
+          id: nuevoId,
+          precioVentaTotal: venta['dolares'] * venta['precioVenta'],
+          precioCompraPromedio,
+          ganancia: gananciaFinal,
+          porcentajeGanancia: porcentajeFinal,
+          fechaCreacion: new Date(),
+          fechaActualizacion: new Date()
+        };
         
-        if (existente) {
-          // Actualizar venta existente
-          const index = ventas.indexOf(existente);
-          ventaGuardada = {
-            ...existente,
-            ...venta,
-            precioVentaTotal: venta.dolares * venta.precioVenta,
-            precioCompraPromedio,
-            ganancia: gananciaFinal,
-            porcentajeGanancia: porcentajeFinal,
-            fechaActualizacion: new Date()
-          };
-          ventas[index] = ventaGuardada;
-        } else {
-          // Crear nueva venta
-          const nuevoId = this.generarNuevoId(ventas);
-          ventaGuardada = {
-            ...venta,
-            id: nuevoId,
-            precioVentaTotal: venta.dolares * venta.precioVenta,
-            precioCompraPromedio,
-            ganancia: gananciaFinal,
-            porcentajeGanancia: porcentajeFinal,
-            fechaCreacion: new Date(),
-            fechaActualizacion: new Date()
-          };
-          ventas.push(ventaGuardada);
-        }
+        ventas.push(ventaGuardada);
 
-        // Ordenar por año y mes
+        // Ordenar por fecha de creación si existe, si no por año/mes
         ventas.sort((a, b) => {
+          const fa = a.fechaCreacion ? new Date(a.fechaCreacion).getTime() : 0;
+          const fb = b.fechaCreacion ? new Date(b.fechaCreacion).getTime() : 0;
+          if (fa !== fb) return fa - fb;
           if (a.anio !== b.anio) return a.anio - b.anio;
           return a.mes - b.mes;
         });
 
+        // Persistir en estado y storage
         this.ventasSubject.next(ventas);
         this.guardarEnStorage(ventas);
 
@@ -250,24 +240,24 @@ export class VentaDolarService {
       this.dolarService.obtenerDolarOficial()
     ]).pipe(
       map(([compras, ventas, precioAPI]) => {
-        const dolaresComprados = compras.reduce((total: number, compra: CompraDolar) => total + compra.dolares, 0);
-        const dolaresVendidos = ventas.reduce((total: number, venta: VentaDolar) => total + venta.dolares, 0);
+        const dolaresComprados = compras.reduce((total: number, compra: CompraDolar) => total + (isNaN(compra.dolares) ? 0 : compra.dolares), 0);
+        const dolaresVendidos = ventas.reduce((total: number, venta: VentaDolar) => total + (isNaN(venta.dolares) ? 0 : venta.dolares), 0);
         const dolaresDisponibles = dolaresComprados - dolaresVendidos;
         
-        const inversionTotal = compras.reduce((total: number, compra: CompraDolar) => total + compra.precioCompraTotal, 0);
-        const recuperado = ventas?.reduce((total: number, venta: VentaDolar) => total + venta.precioVentaTotal, 0) || 0;
-        const gananciaTotal = recuperado - (ventas?.reduce((total: number, venta: VentaDolar) => total + (venta.precioCompraPromedio * venta.dolares), 0) || 0);
+        const inversionTotal = compras.reduce((total: number, compra: CompraDolar) => total + (isNaN(compra.precioCompraTotal) ? 0 : compra.precioCompraTotal), 0);
+        const recuperado = ventas.reduce((total: number, venta: VentaDolar) => total + (isNaN(venta.precioVentaTotal) ? 0 : venta.precioVentaTotal), 0);
+        const costoVentas = ventas.reduce((total: number, venta: VentaDolar) => total + ((isNaN(venta.precioCompraPromedio) ? 0 : venta.precioCompraPromedio) * (isNaN(venta.dolares) ? 0 : venta.dolares)), 0);
+        const gananciaTotal = recuperado - costoVentas;
         
-        const precioCompraPromedio = inversionTotal / (dolaresComprados || 1);
+        const precioCompraPromedio = dolaresComprados > 0 ? inversionTotal / dolaresComprados : 0;
         const porcentajeGananciaTotal = inversionTotal > 0 ? (gananciaTotal / inversionTotal) * 100 : 0;
         const valorActualDisponibles = dolaresDisponibles * (precioAPI?.venta || 0);
 
         return {
           dolaresDisponibles,
-          dolaresComprados,
           dolaresVendidos,
-          inversionTotal,
-          recuperado,
+          valorTotalCompra: inversionTotal,
+          valorTotalVenta: recuperado,
           gananciaTotal,
           porcentajeGananciaTotal,
           precioCompraPromedio,
@@ -292,12 +282,13 @@ export class VentaDolarService {
         compras.forEach(compra => {
           transacciones.push({
             id: compra.id,
-            tipo: 'compra',
+            tipo: 'compra' as const,
             mes: compra.mes,
             anio: compra.anio,
             dolares: compra.dolares,
             precio: compra.precioCompra,
             total: compra.precioCompraTotal,
+            fecha: compra.fechaCreacion || new Date(),
             fechaCreacion: compra.fechaCreacion
           });
         });
@@ -306,20 +297,33 @@ export class VentaDolarService {
         ventas.forEach(venta => {
           transacciones.push({
             id: venta.id,
-            tipo: 'venta',
+            tipo: 'venta' as const,
             mes: venta.mes,
             anio: venta.anio,
             dolares: venta.dolares,
             precio: venta.precioVenta,
             total: venta.precioVentaTotal,
+            fecha: venta.fechaCreacion || new Date(),
             ganancia: venta.ganancia,
             porcentajeGanancia: venta.porcentajeGanancia,
             fechaCreacion: venta.fechaCreacion
           });
         });
 
-        // Ordenar por fecha
-        return transacciones.sort((a, b) => {
+        // Eliminar posibles duplicados por clave compuesta
+        const vistos = new Set<string>();
+        const unicas = transacciones.filter(t => {
+          const key = `${t.tipo}-${t.id}-${t.mes}-${t.anio}-${t.dolares}-${t.precio}-${t.total}-${t.ganancia ?? ''}-${t.porcentajeGanancia ?? ''}`;
+          if (vistos.has(key)) return false;
+          vistos.add(key);
+          return true;
+        });
+
+        // Ordenar por fecha de creación si existe, si no por año/mes
+        return unicas.sort((a, b) => {
+          const fa = a.fecha ? new Date(a.fecha).getTime() : 0;
+          const fb = b.fecha ? new Date(b.fecha).getTime() : 0;
+          if (fa !== fb) return fa - fb;
           if (a.anio !== b.anio) return a.anio - b.anio;
           return a.mes - b.mes;
         });
@@ -359,6 +363,25 @@ export class VentaDolarService {
   }
 
   /**
+   * Limpia ventas duplicadas
+   */
+  limpiarVentasDuplicadas(): Observable<VentaDolar[]> {
+    const ventas = this.ventasSubject.value;
+    const ventasUnicas = this.eliminarDuplicados(ventas);
+    
+    if (ventasUnicas.length !== ventas.length) {
+      console.log(`Se eliminaron ${ventas.length - ventasUnicas.length} ventas duplicadas`);
+      this.ventasSubject.next(ventasUnicas);
+      this.guardarEnStorage(ventasUnicas);
+    }
+    
+    return new Observable(observer => {
+      observer.next(ventasUnicas);
+      observer.complete();
+    });
+  }
+
+  /**
    * Limpia todas las ventas
    */
   limpiarVentas(): Observable<boolean> {
@@ -385,21 +408,60 @@ export class VentaDolarService {
       const ventasGuardadas = localStorage.getItem(this.STORAGE_KEY);
       if (ventasGuardadas) {
         const ventas: VentaDolar[] = JSON.parse(ventasGuardadas);
-        // Convertir fechas de string a Date
-        ventas.forEach(venta => {
-          if (venta.fechaCreacion) {
-            venta.fechaCreacion = new Date(venta.fechaCreacion);
+        // Convertir fechas de string a Date y sanear números
+        const ventasProcesadas = ventas.map(venta => {
+          const dolares = isNaN(venta.dolares) ? 0 : venta.dolares;
+          const precioVenta = isNaN(venta.precioVenta) ? 0 : venta.precioVenta;
+          const precioVentaTotal = isNaN(venta.precioVentaTotal) ? (dolares * precioVenta) : venta.precioVentaTotal;
+          const precioCompraPromedio = isNaN(venta.precioCompraPromedio) ? 0 : venta.precioCompraPromedio;
+          const gananciaCalculada = (precioVenta - precioCompraPromedio) * dolares;
+          const ganancia = isNaN(venta.ganancia) ? gananciaCalculada : venta.ganancia;
+          let porcentajeGanancia = 0;
+          const costoTotal = precioCompraPromedio * dolares;
+          if (costoTotal > 0) {
+            porcentajeGanancia = (ganancia / costoTotal) * 100;
           }
-          if (venta.fechaActualizacion) {
-            venta.fechaActualizacion = new Date(venta.fechaActualizacion);
-          }
+
+          return {
+            ...venta,
+            dolares,
+            precioVenta,
+            precioVentaTotal,
+            precioCompraPromedio,
+            ganancia: isNaN(ganancia) ? 0 : ganancia,
+            porcentajeGanancia: isNaN(porcentajeGanancia) ? 0 : porcentajeGanancia,
+            fechaCreacion: venta.fechaCreacion ? new Date(venta.fechaCreacion) : new Date(),
+            fechaActualizacion: venta.fechaActualizacion ? new Date(venta.fechaActualizacion) : new Date()
+          } as VentaDolar;
         });
-        this.ventasSubject.next(ventas);
+        
+        // Limpiar duplicados por ID
+        const ventasUnicas = this.eliminarDuplicados(ventasProcesadas);
+        this.ventasSubject.next(ventasUnicas);
       }
     } catch (error) {
       console.error('Error al cargar ventas desde localStorage:', error);
       this.ventasSubject.next([]);
     }
+  }
+
+  private eliminarDuplicados(ventas: VentaDolar[]): VentaDolar[] {
+    const ventasUnicas: VentaDolar[] = [];
+    const idsVistos = new Set<number>();
+    
+    ventas.forEach(venta => {
+      if (venta.id && !idsVistos.has(venta.id)) {
+        idsVistos.add(venta.id);
+        ventasUnicas.push(venta);
+      } else if (!venta.id) {
+        // Si no tiene ID, agregarlo de todas formas
+        ventasUnicas.push(venta);
+      } else {
+        console.warn('Venta con ID duplicado encontrada y eliminada:', venta);
+      }
+    });
+    
+    return ventasUnicas;
   }
 
   private guardarEnStorage(ventas: VentaDolar[]): void {

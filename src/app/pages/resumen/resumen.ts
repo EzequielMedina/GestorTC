@@ -1360,28 +1360,9 @@ import { Observable } from 'rxjs';
         }
 
         .empty-text {
-           font-size: 14px;
-         }
-
-         .summary-preview {
-           padding: 12px;
-           margin: 6px 0;
-         }
-
-         .summary-icon {
-           font-size: 20px;
-           margin-right: 8px;
-         }
-
-         .summary-title {
-           font-size: 13px;
-           margin-bottom: 6px;
-         }
-
-         .summary-stat {
-           font-size: 11px;
-         }
-      }
+          font-size: 14px;
+        }
+     }
   `
 })
 export class ResumenComponent {
