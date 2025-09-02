@@ -1,0 +1,28 @@
+<mat-toolbar color="primary">
+  <mat-toolbar-row>
+    <span>Gestor de Tarjetas de Crédito</span>
+    <span class="spacer"></span>
+    <nav>
+      <a mat-button routerLink="/tarjetas" routerLinkActive="active">
+        <mat-icon>credit_card</mat-icon>
+        Tarjetas
+      </a>
+      <a mat-button routerLink="/gastos" routerLinkActive="active">
+        <mat-icon>receipt</mat-icon>
+        Gastos
+      </a>
+      <a mat-button routerLink="/reportes" routerLinkActive="active">
+        <mat-icon>assessment</mat-icon>
+        Reportes
+      </a>
+      <a mat-button routerLink="/reportes-whatsapp" routerLinkActive="active">
+        <mat-icon>send</mat-icon>
+        WhatsApp
+      </a>
+    </nav>
+  </mat-toolbar-row>
+</mat-toolbar>
+
+<main class="main-content">
+  <router-outlet></router-outlet>
+</main>
