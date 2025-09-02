@@ -1,11 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
-import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
@@ -16,12 +16,13 @@ import { ReportePdfService, ReporteData } from '../../services/reporte-pdf.servi
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     ReactiveFormsModule,
     MatCardModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatInputModule,
     MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
     MatIconModule,
     MatProgressSpinnerModule,
     MatSnackBarModule
@@ -31,9 +32,10 @@ import { ReportePdfService, ReporteData } from '../../services/reporte-pdf.servi
 })
 export class ReportesWhatsappComponent implements OnInit {
   reporteForm: FormGroup;
-  cargando = false;
-  datosReporte: ReporteData | null = null;
-
+  generandoPdf = false;
+  generandoPdfCompartidos = false;
+  enviandoWhatsapp = false;
+  
   meses = [
     { valor: 1, nombre: 'Enero' },
     { valor: 2, nombre: 'Febrero' },
@@ -49,204 +51,320 @@ export class ReportesWhatsappComponent implements OnInit {
     { valor: 12, nombre: 'Diciembre' }
   ];
 
-  años: number[] = [];
+  anios: number[] = [];
+  datosReporte: ReporteData | null = null;
+  pdfBlob: Blob | null = null;
 
   constructor(
     private fb: FormBuilder,
-    private reporteService: ReportePdfService,
+    private reportePdfService: ReportePdfService,
     private snackBar: MatSnackBar
   ) {
     this.reporteForm = this.fb.group({
-      año: [new Date().getFullYear(), Validators.required],
       mes: [new Date().getMonth() + 1, Validators.required],
-      numeroWhatsapp: ['', [Validators.required, Validators.pattern(/^\d{10,15}$/)]]
+      anio: [new Date().getFullYear(), Validators.required],
+      numeroWhatsapp: ['', [Validators.required, Validators.pattern(/^\+?[1-9]\d{1,14}$/)]]
     });
   }
 
-  ngOnInit() {
-    // Generar años (5 años hacia atrás y 2 hacia adelante)
-    const añoActual = new Date().getFullYear();
-    for (let i = añoActual - 5; i <= añoActual + 2; i++) {
-      this.años.push(i);
+  ngOnInit(): void {
+    this.generarListaAños();
+  }
+
+  private generarListaAños(): void {
+    const anioActual = new Date().getFullYear();
+    for (let i = anioActual; i >= anioActual - 5; i--) {
+      this.anios.push(i);
     }
   }
 
-  generarReporte() {
-    if (this.reporteForm.valid) {
-      this.cargando = true;
-      const { año, mes } = this.reporteForm.value;
-      
-      this.reporteService.generarDatosReporte$(año, mes).subscribe({
-        next: (datos) => {
+  async generarReporte(): Promise<void> {
+    if (this.reporteForm.invalid) {
+      this.mostrarMensaje('Por favor, complete todos los campos correctamente', 'error');
+      return;
+    }
+
+    const { mes, anio } = this.reporteForm.value;
+    this.generandoPdf = true;
+    this.datosReporte = null;
+    this.pdfBlob = null;
+
+    try {
+      // Obtener datos del reporte
+      this.reportePdfService.generarDatosReporte$(anio, mes).subscribe(async (datos) => {
+        try {
           this.datosReporte = datos;
-          this.cargando = false;
-          this.snackBar.open('Reporte generado exitosamente', 'Cerrar', {
-            duration: 3000
-          });
-        },
-        error: (error) => {
-          console.error('Error al generar reporte:', error);
-          this.cargando = false;
-          this.snackBar.open('Error al generar el reporte', 'Cerrar', {
-            duration: 3000
-          });
+          
+          if (datos.totalGastos === 0) {
+            this.mostrarMensaje('No hay gastos registrados para el mes seleccionado', 'warning');
+            this.generandoPdf = false;
+            return;
+          }
+
+          // Generar PDF
+          this.pdfBlob = await this.reportePdfService.generarPDF(datos);
+          this.mostrarMensaje('Reporte generado exitosamente', 'success');
+        } catch (error) {
+          console.error('Error al generar PDF:', error);
+          this.mostrarMensaje('Error al generar el reporte PDF', 'error');
+        } finally {
+          this.generandoPdf = false;
         }
       });
-    }
-  }
-
-  async descargarPDF() {
-    if (!this.datosReporte) return;
-    
-    try {
-      this.cargando = true;
-      const pdfBlob = await this.reporteService.generarPDF(this.datosReporte);
-      
-      const url = window.URL.createObjectURL(pdfBlob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `reporte-${this.datosReporte.nombreMes}-${this.datosReporte.año}.pdf`;
-      link.click();
-      
-      window.URL.revokeObjectURL(url);
-      this.cargando = false;
-      
-      this.snackBar.open('PDF descargado exitosamente', 'Cerrar', {
-        duration: 3000
-      });
     } catch (error) {
-      console.error('Error al generar PDF:', error);
-      this.cargando = false;
-      this.snackBar.open('Error al generar el PDF', 'Cerrar', {
-        duration: 3000
-      });
+      console.error('Error al obtener datos del reporte:', error);
+      this.mostrarMensaje('Error al obtener los datos del reporte', 'error');
+      this.generandoPdf = false;
     }
   }
 
-  async descargarPDFGastosCompartidos() {
-    if (!this.datosReporte) return;
-    
-    try {
-      this.cargando = true;
-      const pdfBlob = await this.reporteService.generarPDFGastosCompartidos(this.datosReporte);
-      
-      const url = window.URL.createObjectURL(pdfBlob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `gastos-compartidos-${this.datosReporte.nombreMes}-${this.datosReporte.año}.pdf`;
-      link.click();
-      
-      window.URL.revokeObjectURL(url);
-      this.cargando = false;
-      
-      this.snackBar.open('PDF de gastos compartidos descargado exitosamente', 'Cerrar', {
-        duration: 3000
-      });
-    } catch (error) {
-      console.error('Error al generar PDF de gastos compartidos:', error);
-      this.cargando = false;
-      this.snackBar.open('Error al generar el PDF de gastos compartidos', 'Cerrar', {
-        duration: 3000
-      });
+  descargarPdf(): void {
+    if (!this.pdfBlob || !this.datosReporte) {
+      this.mostrarMensaje('No hay reporte generado para descargar', 'error');
+      return;
     }
+
+    const url = window.URL.createObjectURL(this.pdfBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `reporte-gastos-${this.datosReporte.mes}-${this.datosReporte.año}.pdf`;
+    link.click();
+    window.URL.revokeObjectURL(url);
   }
 
-  async enviarPorWhatsapp() {
-    if (!this.datosReporte || !this.reporteForm.valid) return;
-    
+  async enviarPorWhatsapp(): Promise<void> {
+    if (!this.pdfBlob || !this.datosReporte) {
+      this.mostrarMensaje('Primero debe generar el reporte', 'error');
+      return;
+    }
+
+    const numeroWhatsapp = this.reporteForm.get('numeroWhatsapp')?.value;
+    if (!numeroWhatsapp) {
+      this.mostrarMensaje('Ingrese un número de WhatsApp válido', 'error');
+      return;
+    }
+
+    this.enviandoWhatsapp = true;
+
     try {
-      this.cargando = true;
-      
-      // Generar PDF
-      const pdfBlob = await this.reporteService.generarPDF(this.datosReporte);
-      
       // Crear mensaje para WhatsApp
-      const mensaje = this.crearMensaje();
+      const mensaje = this.crearMensajeWhatsapp();
       
-      // Descargar PDF automáticamente
-      const url = window.URL.createObjectURL(pdfBlob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `reporte-${this.datosReporte.nombreMes}-${this.datosReporte.año}.pdf`;
-      link.click();
-      window.URL.revokeObjectURL(url);
+      // Abrir WhatsApp Web con el mensaje
+      const numeroLimpio = numeroWhatsapp.replace(/[^\d]/g, '');
+      const urlWhatsapp = `https://wa.me/${numeroLimpio}?text=${encodeURIComponent(mensaje)}`;
       
-      // Abrir WhatsApp Web
-      const numeroWhatsapp = this.reporteForm.get('numeroWhatsapp')?.value;
-      const whatsappUrl = `https://web.whatsapp.com/send?phone=${numeroWhatsapp}&text=${encodeURIComponent(mensaje)}`;
-      window.open(whatsappUrl, '_blank');
+      // Abrir en nueva ventana
+      window.open(urlWhatsapp, '_blank');
       
-      this.cargando = false;
-      this.snackBar.open('PDF descargado y WhatsApp abierto. Adjunta el archivo manualmente.', 'Cerrar', {
-        duration: 5000
-      });
+      this.mostrarMensaje('Se abrió WhatsApp Web. Adjunte manualmente el archivo PDF descargado.', 'info');
+      
+      // Descargar automáticamente el PDF para que el usuario lo pueda adjuntar
+      this.descargarPdf();
+      
     } catch (error) {
       console.error('Error al enviar por WhatsApp:', error);
-      this.cargando = false;
-      this.snackBar.open('Error al procesar el envío', 'Cerrar', {
-        duration: 3000
-      });
+      this.mostrarMensaje('Error al abrir WhatsApp', 'error');
+    } finally {
+      this.enviandoWhatsapp = false;
     }
   }
 
-  async enviarGastosCompartidosPorWhatsapp() {
-    if (!this.datosReporte || !this.reporteForm.valid) return;
+  private crearMensajeWhatsapp(): string {
+    if (!this.datosReporte) return '';
     
+    const { mes, año, totalGastos, gastosPorTarjeta } = this.datosReporte;
+    
+    let mensaje = `📊 *Reporte de Gastos - ${mes} ${año}*\n\n`;
+    mensaje += `💰 *Total del mes:* $${totalGastos.toLocaleString('es-AR', { minimumFractionDigits: 2 })}\n\n`;
+    
+    mensaje += `📋 *Resumen por tarjeta:*\n`;
+    gastosPorTarjeta.forEach(tarjeta => {
+      mensaje += `• ${tarjeta.nombreTarjeta}: $${tarjeta.totalTarjeta.toLocaleString('es-AR', { minimumFractionDigits: 2 })}\n`;
+    });
+    
+    mensaje += `\n📎 *Adjunto el reporte detallado en PDF*`;
+    
+    return mensaje;
+  }
+
+  private mostrarMensaje(mensaje: string, tipo: 'success' | 'error' | 'warning' | 'info'): void {
+    const config = {
+      duration: 4000,
+      horizontalPosition: 'end' as const,
+      verticalPosition: 'top' as const,
+      panelClass: [`snackbar-${tipo}`]
+    };
+    
+    this.snackBar.open(mensaje, 'Cerrar', config);
+  }
+
+  /**
+   * Calcula el total de gastos compartidos
+   */
+  calcularTotalGastosCompartidos(): number {
+    if (!this.datosReporte?.gastosCompartidos) {
+      return 0;
+    }
+    
+    return this.datosReporte.gastosCompartidos.reduce((total, gasto) => {
+      return total + (gasto.monto * gasto.porcentajeCompartido / 100);
+    }, 0);
+  }
+
+  get mesSeleccionado(): string {
+    const mesValor = this.reporteForm.get('mes')?.value;
+    const mes = this.meses.find(m => m.valor === mesValor);
+    return mes ? mes.nombre : '';
+  }
+
+  get anioSeleccionado(): number {
+    return this.reporteForm.get('anio')?.value || new Date().getFullYear();
+  }
+
+  get puedeGenerar(): boolean {
+    return this.reporteForm.valid && !this.generandoPdf;
+  }
+
+  get puedeEnviar(): boolean {
+    const numeroWhatsappControl = this.reporteForm.get('numeroWhatsapp');
+    return this.pdfBlob !== null && 
+           numeroWhatsappControl !== null && 
+           numeroWhatsappControl.valid === true && 
+           !this.enviandoWhatsapp;
+  }
+
+  get tieneGastosCompartidos(): boolean {
+    return !!(this.datosReporte?.gastosCompartidos && this.datosReporte.gastosCompartidos.length > 0);
+  }
+
+  async generarReporteGastosCompartidos(): Promise<void> {
+    if (!this.puedeGenerar) {
+      return;
+    }
+
     try {
-      this.cargando = true;
+      this.generandoPdfCompartidos = true;
+      const año = this.reporteForm.get('anio')?.value;
+      const mes = this.reporteForm.get('mes')?.value;
+
+      // Obtener datos del reporte
+      this.reportePdfService.generarDatosReporte$(año, mes).subscribe(async (datos) => {
+        try {
+          if (datos.gastosCompartidos.length === 0) {
+            this.mostrarMensaje('No hay gastos compartidos en el mes seleccionado', 'warning');
+            return;
+          }
+
+          // Generar PDF solo de gastos compartidos
+          this.pdfBlob = await this.reportePdfService.generarPDFGastosCompartidos(datos);
+          
+          // Descargar automáticamente
+          this.descargarPdfCompartidos();
+          
+          this.mostrarMensaje('Reporte de gastos compartidos generado exitosamente', 'success');
+        } catch (error) {
+          console.error('Error al generar PDF de gastos compartidos:', error);
+          this.mostrarMensaje('Error al generar el reporte de gastos compartidos', 'error');
+        } finally {
+          this.generandoPdfCompartidos = false;
+        }
+      });
+    } catch (error) {
+      console.error('Error al obtener datos para reporte de gastos compartidos:', error);
+      this.mostrarMensaje('Error al obtener los datos del reporte', 'error');
+      this.generandoPdfCompartidos = false;
+    }
+  }
+
+  private descargarPdfCompartidos(): void {
+    if (!this.pdfBlob) {
+      return;
+    }
+
+    const url = window.URL.createObjectURL(this.pdfBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `gastos-compartidos-${this.mesSeleccionado}-${this.anioSeleccionado}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  }
+
+  async enviarGastosCompartidosPorWhatsapp(): Promise<void> {
+    if (!this.reporteForm.valid || !this.tieneGastosCompartidos) {
+      return;
+    }
+
+    try {
+      this.enviandoWhatsapp = true;
       
-      // Generar PDF de gastos compartidos
-      const pdfBlob = await this.reporteService.generarPDFGastosCompartidos(this.datosReporte);
+      // Generar el PDF de gastos compartidos
+      const año = this.reporteForm.get('anio')?.value;
+      const mes = this.reporteForm.get('mes')?.value;
       
-      // Crear mensaje específico para gastos compartidos
-      const mensaje = this.crearMensajeGastosCompartidos();
-      
-      // Descargar PDF automáticamente
-      const url = window.URL.createObjectURL(pdfBlob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `gastos-compartidos-${this.datosReporte.nombreMes}-${this.datosReporte.año}.pdf`;
-      link.click();
-      window.URL.revokeObjectURL(url);
-      
-      // Abrir WhatsApp Web
-      const numeroWhatsapp = this.reporteForm.get('numeroWhatsapp')?.value;
-      const whatsappUrl = `https://web.whatsapp.com/send?phone=${numeroWhatsapp}&text=${encodeURIComponent(mensaje)}`;
-      window.open(whatsappUrl, '_blank');
-      
-      this.cargando = false;
-      this.snackBar.open('PDF de gastos compartidos descargado y WhatsApp abierto. Adjunta el archivo manualmente.', 'Cerrar', {
-        duration: 5000
+      this.reportePdfService.generarDatosReporte$(año, mes).subscribe(async (datos) => {
+        try {
+          const pdfBlob = await this.reportePdfService.generarPDFGastosCompartidos(datos);
+          
+          // Crear mensaje específico para gastos compartidos
+          const mensaje = this.crearMensajeGastosCompartidos();
+          const numeroWhatsapp = this.reporteForm.get('numeroWhatsapp')?.value;
+          const mensajeCodificado = encodeURIComponent(mensaje);
+          const urlWhatsapp = `https://web.whatsapp.com/send?phone=${numeroWhatsapp}&text=${mensajeCodificado}`;
+          
+          // Descargar el PDF automáticamente
+          const url = window.URL.createObjectURL(pdfBlob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `gastos-compartidos-${this.mesSeleccionado}-${this.anioSeleccionado}.pdf`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+          
+          // Abrir WhatsApp Web
+          window.open(urlWhatsapp, '_blank');
+          
+          this.mostrarMensaje('PDF de gastos compartidos descargado y WhatsApp abierto', 'success');
+        } catch (error) {
+          console.error('Error al generar PDF de gastos compartidos:', error);
+          this.mostrarMensaje('Error al generar el PDF de gastos compartidos', 'error');
+        } finally {
+          this.enviandoWhatsapp = false;
+        }
       });
     } catch (error) {
       console.error('Error al enviar gastos compartidos por WhatsApp:', error);
-      this.cargando = false;
-      this.snackBar.open('Error al procesar el envío de gastos compartidos', 'Cerrar', {
-        duration: 3000
-      });
+      this.mostrarMensaje('Error al procesar el envío', 'error');
+      this.enviandoWhatsapp = false;
     }
-  }
-
-  private crearMensaje(): string {
-    if (!this.datosReporte) return '';
-    
-    return `🏦 *Reporte de Gastos - ${this.datosReporte.nombreMes} ${this.datosReporte.año}*\n\n` +
-           `💰 Total de gastos: $${this.datosReporte.totalGastos.toFixed(2)}\n` +
-           `🤝 Gastos compartidos: $${this.datosReporte.totalGastosCompartidos.toFixed(2)}\n` +
-           `💳 Tarjetas con gastos: ${this.datosReporte.tarjetas.length}\n\n` +
-           `📎 Adjunto el reporte completo en PDF.`;
   }
 
   private crearMensajeGastosCompartidos(): string {
     if (!this.datosReporte) return '';
     
-    return `🤝 *Gastos Compartidos - ${this.datosReporte.nombreMes} ${this.datosReporte.año}*\n\n` +
-           `💰 Total gastos compartidos: $${this.datosReporte.totalGastosCompartidos.toFixed(2)}\n` +
-           `📊 Cantidad de gastos: ${this.datosReporte.gastosCompartidos.length}\n\n` +
-           `📎 Adjunto el detalle de gastos compartidos en PDF.`;
-  }
-
-  get tieneGastosCompartidos(): boolean {
-    return this.datosReporte?.gastosCompartidos && this.datosReporte.gastosCompartidos.length > 0 || false;
+    const totalCompartidos = this.calcularTotalGastosCompartidos();
+    
+    let mensaje = `🧾 *Reporte de Gastos Compartidos*\n`;
+    mensaje += `📅 Período: ${this.mesSeleccionado} ${this.anioSeleccionado}\n\n`;
+    mensaje += `💸 *Total gastos compartidos: $${totalCompartidos.toLocaleString('es-AR', { minimumFractionDigits: 2 })}*\n\n`;
+    mensaje += `📋 *Detalle de gastos compartidos:*\n`;
+    
+    this.datosReporte.gastosCompartidos.forEach((gasto, index) => {
+      const montoCompartido = (gasto.monto * gasto.porcentajeCompartido / 100);
+      mensaje += `${index + 1}. ${gasto.descripcion}\n`;
+      mensaje += `   💰 Total: $${gasto.monto.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`;
+      if (gasto.cuotaInfo) {
+        mensaje += ` (${gasto.cuotaInfo})`;
+      }
+      mensaje += `\n   👥 Compartido con: ${gasto.compartidoCon}\n`;
+      mensaje += `   📊 Tu parte (${gasto.porcentajeCompartido}%): $${montoCompartido.toLocaleString('es-AR', { minimumFractionDigits: 2 })}\n\n`;
+    });
+    
+    mensaje += `📎 *Archivo PDF adjunto con el detalle completo*`;
+    
+    return mensaje;
   }
 }
