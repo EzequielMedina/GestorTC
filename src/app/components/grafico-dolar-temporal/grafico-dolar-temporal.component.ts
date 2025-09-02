@@ -63,25 +63,35 @@ export class GraficoDolarTemporalComponent implements OnInit, OnDestroy {
         display: true,
         title: {
           display: true,
-          text: 'Fecha'
+          text: 'Fecha',
+          color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary') || '#333'
         },
         ticks: {
-          maxTicksLimit: 10
+          maxTicksLimit: 10,
+          color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary') || '#666'
+        },
+        grid: {
+          color: getComputedStyle(document.documentElement).getPropertyValue('--border-color') || '#e0e0e0'
         }
       },
       y: {
         display: true,
         title: {
           display: true,
-          text: 'Cotización (ARS)'
+          text: 'Cotización (ARS)',
+          color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary') || '#333'
         },
         ticks: {
+          color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary') || '#666',
           callback: function(value) {
             return '$' + Number(value).toLocaleString('es-AR', {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2
             });
           }
+        },
+        grid: {
+          color: getComputedStyle(document.documentElement).getPropertyValue('--border-color') || '#e0e0e0'
         }
       }
     },
@@ -92,13 +102,31 @@ export class GraficoDolarTemporalComponent implements OnInit, OnDestroy {
         font: {
           size: 16,
           weight: 'bold'
-        }
+        },
+        color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary') || '#333'
       },
       legend: {
         display: true,
-        position: 'top'
+        position: 'top',
+        labels: {
+          usePointStyle: true,
+          padding: 20,
+          font: {
+            size: 12
+          },
+          color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary') || '#333'
+        }
       },
       tooltip: {
+        mode: 'index',
+        intersect: false,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        titleColor: '#fff',
+        bodyColor: '#fff',
+        borderColor: getComputedStyle(document.documentElement).getPropertyValue('--primary-color') || '#006666',
+        borderWidth: 1,
+        cornerRadius: 8,
+        displayColors: true,
         callbacks: {
           label: function(context) {
             const label = context.dataset.label || '';
