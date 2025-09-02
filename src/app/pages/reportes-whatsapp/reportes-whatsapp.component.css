@@ -1,0 +1,300 @@
+.page {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.header h2 {
+  margin: 0;
+  color: #1976d2;
+  font-size: 2rem;
+  font-weight: 500;
+}
+
+.subtitle {
+  color: #666;
+  margin: 8px 0 0 0;
+  font-size: 1.1rem;
+}
+
+.content-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Tarjetas */
+.config-card,
+.preview-card,
+.instructions-card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+.config-card {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.preview-card {
+  background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%);
+}
+
+.instructions-card {
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+}
+
+/* Formulario */
+.reporte-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.form-field {
+  flex: 1;
+  min-width: 200px;
+}
+
+.form-field.full-width {
+  width: 100%;
+}
+
+/* Acciones de tarjeta */
+.card-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding: 16px 24px;
+  border-top: 1px solid #e0e0e0;
+  margin-top: 16px;
+}
+
+/* Spinner inline */
+.inline-spinner {
+  margin-left: 8px;
+}
+
+/* Vista previa del reporte */
+.reporte-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.summary-item .label {
+  font-weight: 500;
+  color: #333;
+}
+
+.summary-item .value {
+  font-weight: 600;
+  color: #1976d2;
+}
+
+.summary-item .value.total {
+  color: #2e7d32;
+  font-size: 1.2rem;
+}
+
+/* Resumen por tarjeta */
+.tarjetas-summary {
+  margin-top: 20px;
+}
+
+.tarjetas-summary h4 {
+  margin: 0 0 16px 0;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.tarjeta-item {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 6px;
+  border-left: 4px solid #1976d2;
+}
+
+.tarjeta-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tarjeta-nombre {
+  font-weight: 500;
+  color: #333;
+}
+
+.tarjeta-total {
+  font-weight: 600;
+  color: #1976d2;
+  font-size: 1.1rem;
+}
+
+.gastos-count {
+  font-size: 0.9rem;
+  color: #666;
+  margin-top: 4px;
+}
+
+/* Instrucciones */
+.instructions-list {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.instructions-list li {
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+.note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 12px;
+  background: rgba(255, 193, 7, 0.1);
+  border-radius: 6px;
+  border-left: 4px solid #ffc107;
+}
+
+.note mat-icon {
+  color: #ff8f00;
+  margin-top: 2px;
+}
+
+.note span {
+  line-height: 1.4;
+  color: #333;
+}
+
+/* Botones */
+button[mat-raised-button] {
+  min-width: 140px;
+}
+
+button[mat-stroked-button] {
+  min-width: 120px;
+}
+
+/* Estados de carga */
+button:disabled {
+  opacity: 0.6;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .page {
+    padding: 16px;
+  }
+  
+  .header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .form-row {
+    flex-direction: column;
+  }
+  
+  .form-field {
+    min-width: unset;
+  }
+  
+  .card-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .card-actions button {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+  
+  .summary-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  
+  .tarjeta-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page {
+    padding: 12px;
+  }
+  
+  .content-container {
+    gap: 16px;
+  }
+}
+
+/* Animaciones */
+.config-card,
+.preview-card,
+.instructions-card {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Estilos para snackbar */
+::ng-deep .snackbar-success {
+  background-color: #4caf50 !important;
+  color: white !important;
+}
+
+::ng-deep .snackbar-error {
+  background-color: #f44336 !important;
+  color: white !important;
+}
+
+::ng-deep .snackbar-warning {
+  background-color: #ff9800 !important;
+  color: white !important;
+}
+
+::ng-deep .snackbar-info {
+  background-color: #2196f3 !important;
+  color: white !important;
+}

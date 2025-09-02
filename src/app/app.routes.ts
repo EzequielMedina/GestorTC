@@ -47,6 +47,11 @@ export const routes: Routes = [
     title: 'Simulador de Compra - Gestor de Tarjetas de Crédito'
   },
   {
+    path: 'reportes-whatsapp',
+    loadComponent: () => import('./pages/reportes-whatsapp/reportes-whatsapp.component').then(m => m.ReportesWhatsappComponent),
+    title: 'Reportes WhatsApp - Gestor de Tarjetas de Crédito'
+  },
+  {
     path: '**',
     redirectTo: 'tarjetas'
   }

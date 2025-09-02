@@ -1,0 +1,157 @@
+<div class="page">
+  <div class="header">
+    <h2>📱 Reportes por WhatsApp</h2>
+    <p class="subtitle">Genera y envía reportes de gastos mensuales por WhatsApp</p>
+  </div>
+
+  <div class="content-container">
+    <!-- Formulario de configuración -->
+    <mat-card class="config-card">
+      <mat-card-header>
+        <mat-card-title>⚙️ Configuración del Reporte</mat-card-title>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <form [formGroup]="reporteForm" class="reporte-form">
+          <div class="form-row">
+            <!-- Selector de mes -->
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Mes</mat-label>
+              <mat-select formControlName="mes">
+                <mat-option *ngFor="let mes of meses" [value]="mes.valor">
+                  {{ mes.nombre }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matSuffix>calendar_month</mat-icon>
+            </mat-form-field>
+
+            <!-- Selector de año -->
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Año</mat-label>
+              <mat-select formControlName="anio">
+                <mat-option *ngFor="let anio of anios" [value]="anio">
+                  {{ anio }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matSuffix>calendar_today</mat-icon>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <!-- Campo de número de WhatsApp -->
+            <mat-form-field appearance="outline" class="form-field full-width">
+              <mat-label>Número de WhatsApp</mat-label>
+              <input matInput 
+                     formControlName="numeroWhatsapp" 
+                     placeholder="+54 9 11 1234-5678"
+                     type="tel">
+              <mat-icon matSuffix>phone</mat-icon>
+              <mat-hint>Incluya el código de país (ej: +54 para Argentina)</mat-hint>
+              <mat-error *ngIf="reporteForm.get('numeroWhatsapp')?.hasError('required')">
+                El número de WhatsApp es requerido
+              </mat-error>
+              <mat-error *ngIf="reporteForm.get('numeroWhatsapp')?.hasError('pattern')">
+                Formato de número inválido
+              </mat-error>
+            </mat-form-field>
+          </div>
+        </form>
+      </mat-card-content>
+
+      <mat-card-actions class="card-actions">
+        <button mat-raised-button 
+                color="primary" 
+                [disabled]="!puedeGenerar"
+                (click)="generarReporte()">
+          <mat-icon>picture_as_pdf</mat-icon>
+          <span *ngIf="!generandoPdf">Generar Reporte</span>
+          <span *ngIf="generandoPdf">Generando...</span>
+          <mat-spinner *ngIf="generandoPdf" diameter="20" class="inline-spinner"></mat-spinner>
+        </button>
+      </mat-card-actions>
+    </mat-card>
+
+    <!-- Vista previa del reporte -->
+    <mat-card *ngIf="datosReporte" class="preview-card">
+      <mat-card-header>
+        <mat-card-title>📋 Vista Previa del Reporte</mat-card-title>
+        <mat-card-subtitle>{{ mesSeleccionado }} {{ anioSeleccionado }}</mat-card-subtitle>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <div class="reporte-summary">
+          <div class="summary-item">
+            <span class="label">💰 Total del mes:</span>
+            <span class="value total">${{ datosReporte.totalGastos.toLocaleString('es-AR', { minimumFractionDigits: 2 }) }}</span>
+          </div>
+          
+          <div class="summary-item">
+            <span class="label">💳 Tarjetas con gastos:</span>
+            <span class="value">{{ datosReporte.gastosPorTarjeta.length }}</span>
+          </div>
+          
+          <div class="summary-item" *ngIf="datosReporte.gastosCompartidos.length > 0">
+            <span class="label">👥 Gastos compartidos:</span>
+            <span class="value">{{ datosReporte.gastosCompartidos.length }}</span>
+          </div>
+        </div>
+
+        <!-- Resumen por tarjeta -->
+        <div class="tarjetas-summary">
+          <h4>📊 Resumen por Tarjeta</h4>
+          <div class="tarjeta-item" *ngFor="let tarjeta of datosReporte.gastosPorTarjeta">
+            <div class="tarjeta-header">
+              <span class="tarjeta-nombre">{{ tarjeta.nombreTarjeta }}</span>
+              <span class="tarjeta-total">${{ tarjeta.totalTarjeta.toLocaleString('es-AR', { minimumFractionDigits: 2 }) }}</span>
+            </div>
+            <div class="gastos-count">{{ tarjeta.gastos.length }} movimiento(s)</div>
+          </div>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions class="card-actions">
+        <button mat-stroked-button 
+                color="accent"
+                [disabled]="!pdfBlob"
+                (click)="descargarPdf()">
+          <mat-icon>download</mat-icon>
+          Descargar PDF
+        </button>
+        
+        <button mat-raised-button 
+                color="primary"
+                [disabled]="!puedeEnviar"
+                (click)="enviarPorWhatsapp()">
+          <mat-icon>send</mat-icon>
+          <span *ngIf="!enviandoWhatsapp">Enviar por WhatsApp</span>
+          <span *ngIf="enviandoWhatsapp">Enviando...</span>
+          <mat-spinner *ngIf="enviandoWhatsapp" diameter="20" class="inline-spinner"></mat-spinner>
+        </button>
+      </mat-card-actions>
+    </mat-card>
+
+    <!-- Instrucciones -->
+    <mat-card class="instructions-card">
+      <mat-card-header>
+        <mat-card-title>ℹ️ Instrucciones</mat-card-title>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <ol class="instructions-list">
+          <li>Seleccione el <strong>mes y año</strong> del cual desea generar el reporte</li>
+          <li>Ingrese el <strong>número de WhatsApp</strong> de destino (incluya el código de país)</li>
+          <li>Haga clic en <strong>"Generar Reporte"</strong> para crear el PDF</li>
+          <li>Revise la vista previa del reporte generado</li>
+          <li>Haga clic en <strong>"Enviar por WhatsApp"</strong> para abrir WhatsApp Web</li>
+          <li>El archivo PDF se descargará automáticamente para que pueda adjuntarlo manualmente</li>
+        </ol>
+        
+        <div class="note">
+          <mat-icon>info</mat-icon>
+          <span><strong>Nota:</strong> El reporte incluye todos los movimientos del mes seleccionado, 
+          considerando las cuotas que corresponden a ese período.</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
