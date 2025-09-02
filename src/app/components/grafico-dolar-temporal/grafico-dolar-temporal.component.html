@@ -1,0 +1,204 @@
+<div class="grafico-dolar-container">
+  <!-- Encabezado con controles -->
+  <mat-card class="filtros-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>timeline</mat-icon>
+        Cotización Histórica del Dólar Oficial
+      </mat-card-title>
+      <mat-card-subtitle>
+        Datos obtenidos de ArgentinaDatos.com
+      </mat-card-subtitle>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <!-- Filtros de fecha y tipo -->
+      <div class="filtros-container">
+        <div class="filtros-row">
+          <!-- Fecha desde -->
+          <mat-form-field appearance="outline" class="fecha-field">
+            <mat-label>Fecha desde</mat-label>
+            <input 
+              matInput 
+              [matDatepicker]="pickerDesde"
+              [(ngModel)]="fechaDesde"
+              (dateChange)="onFechaDesdeChange($event.value)"
+              readonly>
+            <mat-datepicker-toggle matIconSuffix [for]="pickerDesde"></mat-datepicker-toggle>
+            <mat-datepicker #pickerDesde></mat-datepicker>
+          </mat-form-field>
+          
+          <!-- Fecha hasta -->
+          <mat-form-field appearance="outline" class="fecha-field">
+            <mat-label>Fecha hasta</mat-label>
+            <input 
+              matInput 
+              [matDatepicker]="pickerHasta"
+              [(ngModel)]="fechaHasta"
+              (dateChange)="onFechaHastaChange($event.value)"
+              readonly>
+            <mat-datepicker-toggle matIconSuffix [for]="pickerHasta"></mat-datepicker-toggle>
+            <mat-datepicker #pickerHasta></mat-datepicker>
+          </mat-form-field>
+          
+          <!-- Tipo de valor -->
+          <mat-form-field appearance="outline" class="tipo-field">
+            <mat-label>Tipo de cotización</mat-label>
+            <mat-select 
+              [(value)]="tipoValor"
+              (selectionChange)="onTipoValorChange()">
+              <mat-option 
+                *ngFor="let tipo of tiposValor" 
+                [value]="tipo.value">
+                {{ tipo.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+        
+        <!-- Botones de acción -->
+        <div class="botones-container">
+          <!-- Rangos predefinidos -->
+          <div class="rangos-predefinidos">
+            <button 
+              mat-stroked-button 
+              (click)="establecerRango(7)"
+              [disabled]="estadoCarga.cargando">
+              7 días
+            </button>
+            <button 
+              mat-stroked-button 
+              (click)="establecerRango(30)"
+              [disabled]="estadoCarga.cargando">
+              30 días
+            </button>
+            <button 
+              mat-stroked-button 
+              (click)="establecerRango(90)"
+              [disabled]="estadoCarga.cargando">
+              3 meses
+            </button>
+            <button 
+              mat-stroked-button 
+              (click)="establecerRango(365)"
+              [disabled]="estadoCarga.cargando">
+              1 año
+            </button>
+          </div>
+          
+          <!-- Botones principales -->
+          <div class="botones-principales">
+            <button 
+              mat-raised-button 
+              color="primary"
+              (click)="aplicarFiltros()"
+              [disabled]="estadoCarga.cargando">
+              <mat-icon>refresh</mat-icon>
+              Actualizar
+            </button>
+            <button 
+              mat-stroked-button 
+              (click)="limpiarCache()"
+              [disabled]="estadoCarga.cargando">
+              <mat-icon>clear_all</mat-icon>
+              Limpiar Caché
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Barra de progreso -->
+      <div class="progreso-container" *ngIf="estadoCarga.cargando">
+        <mat-progress-bar 
+          mode="determinate" 
+          [value]="estadoCarga.progreso">
+        </mat-progress-bar>
+        <p class="progreso-texto">{{ textoProgreso }}</p>
+      </div>
+      
+      <!-- Mensaje de error -->
+      <div class="error-container" *ngIf="estadoCarga.error">
+        <mat-icon color="warn">error</mat-icon>
+        <span>{{ estadoCarga.error }}</span>
+      </div>
+    </mat-card-content>
+  </mat-card>
+  
+  <!-- Resumen estadístico -->
+  <mat-card class="resumen-card" *ngIf="resumen && tieneDatos">
+    <mat-card-content>
+      <div class="resumen-grid">
+        <div class="stat-item">
+          <div class="stat-label">Valor Inicial</div>
+          <div class="stat-value">{{ resumen.valorInicial | currency:'ARS':'symbol':'1.2-2':'es-AR' }}</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Valor Final</div>
+          <div class="stat-value">{{ resumen.valorFinal | currency:'ARS':'symbol':'1.2-2':'es-AR' }}</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Valor Máximo</div>
+          <div class="stat-value">{{ resumen.valorMaximo | currency:'ARS':'symbol':'1.2-2':'es-AR' }}</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Valor Mínimo</div>
+          <div class="stat-value">{{ resumen.valorMinimo | currency:'ARS':'symbol':'1.2-2':'es-AR' }}</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Promedio</div>
+          <div class="stat-value">{{ resumen.valorPromedio | currency:'ARS':'symbol':'1.2-2':'es-AR' }}</div>
+        </div>
+        <div class="stat-item variacion">
+          <div class="stat-label">Variación Total</div>
+          <div class="stat-value" [style.color]="colorVariacion">
+            <mat-icon [style.color]="colorVariacion">{{ iconoVariacion }}</mat-icon>
+            {{ resumen.variacionTotal | currency:'ARS':'symbol':'1.2-2':'es-AR' }}
+            ({{ resumen.variacionPorcentual | number:'1.2-2' }}%)
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+  
+  <!-- Gráfico -->
+  <mat-card class="grafico-card">
+    <mat-card-content>
+      <div class="chart-container" *ngIf="tieneDatos && !estadoCarga.cargando">
+        <canvas 
+          baseChart
+          [data]="lineChartData"
+          [options]="lineChartOptions"
+          type="line">
+        </canvas>
+      </div>
+      
+      <!-- Estado sin datos -->
+      <div class="sin-datos" *ngIf="!tieneDatos && !estadoCarga.cargando">
+        <mat-icon>show_chart</mat-icon>
+        <h3>No hay datos disponibles</h3>
+        <p>Seleccione un rango de fechas y presione "Actualizar" para cargar las cotizaciones.</p>
+      </div>
+      
+      <!-- Estado de carga -->
+      <div class="cargando" *ngIf="estadoCarga.cargando">
+        <mat-icon class="icono-carga">hourglass_empty</mat-icon>
+        <h3>Cargando cotizaciones...</h3>
+        <p>{{ textoProgreso }}</p>
+      </div>
+    </mat-card-content>
+  </mat-card>
+  
+  <!-- Información adicional -->
+  <mat-card class="info-card" *ngIf="tieneDatos">
+    <mat-card-content>
+      <div class="info-content">
+        <mat-icon>info</mat-icon>
+        <div class="info-text">
+          <p><strong>Fuente:</strong> ArgentinaDatos.com - API de cotizaciones históricas</p>
+          <p><strong>Datos mostrados:</strong> {{ cotizaciones.length }} cotizaciones del {{ formatearFechaLegible(fechaDesde) }} al {{ formatearFechaLegible(fechaHasta) }}</p>
+          <p><strong>Última actualización:</strong> {{ fechaActual | date:'dd/MM/yyyy HH:mm':'es-AR' }}</p>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
