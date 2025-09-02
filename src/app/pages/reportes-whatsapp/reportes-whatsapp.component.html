@@ -1,0 +1,162 @@
+<div class="reportes-container">
+  <mat-card class="form-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>assessment</mat-icon>
+        Reportes por WhatsApp
+      </mat-card-title>
+      <mat-card-subtitle>
+        Genera y envía reportes de gastos por WhatsApp
+      </mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="reporteForm" (ngSubmit)="generarReporte()">
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Año</mat-label>
+            <mat-select formControlName="año">
+              <mat-option *ngFor="let año of años" [value]="año">
+                {{ año }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Mes</mat-label>
+            <mat-select formControlName="mes">
+              <mat-option *ngFor="let mes of meses" [value]="mes.valor">
+                {{ mes.nombre }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Número de WhatsApp</mat-label>
+          <input matInput 
+                 formControlName="numeroWhatsapp" 
+                 placeholder="Ej: 5491123456789"
+                 type="tel">
+          <mat-icon matSuffix>phone</mat-icon>
+          <mat-hint>Incluye código de país (sin +)</mat-hint>
+          <mat-error *ngIf="reporteForm.get('numeroWhatsapp')?.hasError('required')">
+            El número de WhatsApp es requerido
+          </mat-error>
+          <mat-error *ngIf="reporteForm.get('numeroWhatsapp')?.hasError('pattern')">
+            Formato inválido. Debe contener entre 10 y 15 dígitos
+          </mat-error>
+        </mat-form-field>
+      </form>
+    </mat-card-content>
+
+    <mat-card-actions>
+      <button mat-raised-button 
+              color="primary" 
+              (click)="generarReporte()"
+              [disabled]="!reporteForm.valid || cargando">
+        <mat-icon>assessment</mat-icon>
+        <span *ngIf="!cargando">Generar Reporte Completo</span>
+        <span *ngIf="cargando">Generando...</span>
+      </button>
+
+      <button mat-raised-button 
+              color="accent" 
+              (click)="descargarPDFGastosCompartidos()"
+              [disabled]="!datosReporte || cargando">
+        <mat-icon>group</mat-icon>
+        <span *ngIf="!cargando">Solo Gastos Compartidos</span>
+        <span *ngIf="cargando">Generando...</span>
+      </button>
+
+      <mat-spinner *ngIf="cargando" diameter="24"></mat-spinner>
+    </mat-card-actions>
+  </mat-card>
+
+  <!-- Vista previa del reporte -->
+  <mat-card *ngIf="datosReporte" class="preview-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>preview</mat-icon>
+        Vista Previa - {{ datosReporte.nombreMes }} {{ datosReporte.año }}
+      </mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <mat-icon>attach_money</mat-icon>
+          <div>
+            <h3>${{ datosReporte.totalGastos.toFixed(2) }}</h3>
+            <p>Total de gastos</p>
+          </div>
+        </div>
+
+        <div class="summary-item">
+          <mat-icon>credit_card</mat-icon>
+          <div>
+            <h3>{{ datosReporte.tarjetas.length }}</h3>
+            <p>Tarjetas con gastos</p>
+          </div>
+        </div>
+
+        <div class="summary-item" *ngIf="tieneGastosCompartidos">
+          <mat-icon>group</mat-icon>
+          <div>
+            <h3>${{ datosReporte.totalGastosCompartidos.toFixed(2) }}</h3>
+            <p>Gastos compartidos</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="tarjetas-list" *ngIf="datosReporte.tarjetas.length > 0">
+        <h4>Tarjetas con gastos:</h4>
+        <div class="tarjeta-item" *ngFor="let tarjeta of datosReporte.tarjetas">
+          <mat-icon>credit_card</mat-icon>
+          <span>{{ tarjeta.nombre }}</span>
+          <span class="monto">
+            ${{ datosReporte.gastos
+                .filter(g => g.tarjetaId === tarjeta.id)
+                .reduce((sum, g) => sum + g.monto, 0)
+                .toFixed(2) }}
+          </span>
+        </div>
+      </div>
+    </mat-card-content>
+
+    <mat-card-actions>
+      <button mat-raised-button 
+              color="primary" 
+              (click)="descargarPDF()"
+              [disabled]="cargando">
+        <mat-icon>download</mat-icon>
+        Descargar PDF Completo
+      </button>
+
+      <button mat-raised-button 
+              color="accent" 
+              (click)="enviarPorWhatsapp()"
+              [disabled]="!reporteForm.valid || cargando">
+        <mat-icon>send</mat-icon>
+        Enviar Completo por WhatsApp
+      </button>
+
+      <button mat-raised-button 
+              color="warn" 
+              (click)="enviarGastosCompartidosPorWhatsapp()"
+              [disabled]="!tieneGastosCompartidos || !reporteForm.valid || cargando">
+        <mat-icon>group</mat-icon>
+        Enviar Solo Gastos Compartidos
+      </button>
+    </mat-card-actions>
+
+    <div class="instructions" *ngIf="!cargando">
+      <mat-icon>info</mat-icon>
+      <p>
+        <strong>Instrucciones:</strong> 
+        Al hacer clic en "Enviar por WhatsApp", se descargará automáticamente el PDF 
+        y se abrirá WhatsApp Web. Deberás adjuntar manualmente el archivo descargado.
+      </p>
+    </div>
+  </mat-card>
+</div>
