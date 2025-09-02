@@ -12,7 +12,8 @@ const STORAGE_KEY = 'gestor_tc_gastos';
 export class GastoService {
   private gastosSubject = new BehaviorSubject<Gasto[]>(this.loadFromStorage());
 
-  constructor() {}
+  constructor() {
+  }
 
   /**
    * Obtiene todos los gastos como un Observable
@@ -162,7 +163,15 @@ export class GastoService {
   private loadFromStorage(): Gasto[] {
     try {
       const storedData = localStorage.getItem(STORAGE_KEY);
-      return storedData ? JSON.parse(storedData) : [];
+      if (!storedData) return [];
+      
+      const gastos = JSON.parse(storedData);
+      // Convertir fechas de string a Date
+      const parsed = gastos.map((gasto: any) => ({
+        ...gasto,
+        fecha: new Date(gasto.fecha)
+      }));
+      return parsed;
     } catch (error) {
       console.error('Error al cargar gastos del almacenamiento local:', error);
       return [];

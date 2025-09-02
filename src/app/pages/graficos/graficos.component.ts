@@ -19,6 +19,7 @@ import { TarjetaService } from '../../services/tarjeta';
 import { GastoService } from '../../services/gasto';
 import { CompraDolarService } from '../../services/compra-dolar.service';
 import { ResumenService } from '../../services/resumen.service';
+import { GraficoDolarTemporalComponent } from '../../components/grafico-dolar-temporal/grafico-dolar-temporal.component';
 
 @Component({
   selector: 'app-graficos',
@@ -33,7 +34,8 @@ import { ResumenService } from '../../services/resumen.service';
     MatSelectModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    MatInputModule
+    MatInputModule,
+    GraficoDolarTemporalComponent
   ],
   templateUrl: './graficos.component.html',
   styleUrls: ['./graficos.component.css']

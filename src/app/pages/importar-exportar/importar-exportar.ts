@@ -1,17 +1,21 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Subscription } from 'rxjs';
 import { Tarjeta } from '../../models/tarjeta.model';
 import { Gasto } from '../../models/gasto.model';
 import { CompraDolar } from '../../models/compra-dolar.model';
+import { VentaDolar } from '../../models/venta-dolar.model';
 import { TarjetaService } from '../../services/tarjeta';
 import { GastoService } from '../../services/gasto';
 import { CompraDolarService } from '../../services/compra-dolar.service';
+import { VentaDolarService } from '../../services/venta-dolar.service';
 import { ImportarExportarService } from '../../services/importar-exportar.service';
 
 interface ExcelPreview {
   tarjetas: number;
   gastos: number;
   compraDolares: number;
+  ventaDolares: number;
   totalGastos: number;
   gastosCompartidos: number;
   cuotasPendientes: number;
@@ -29,10 +33,11 @@ interface ExcelPreview {
   templateUrl: './importar-exportar.component.html',
   styleUrls: ['./importar-exportar.component.css']
 })
-export class ImportarExportarComponent implements OnInit {
+export class ImportarExportarComponent implements OnInit, OnDestroy {
   public tarjetas: Tarjeta[] = [];
   public gastos: Gasto[] = [];
   public compraDolares: CompraDolar[] = [];
+  public ventaDolares: VentaDolar[] = [];
   
   archivoSeleccionado: File | null = null;
   mensaje: string = '';
@@ -41,30 +46,55 @@ export class ImportarExportarComponent implements OnInit {
   isDragOver: boolean = false;
   excelPreview: ExcelPreview | null = null;
   mostrarInfoMontos: boolean = false;
+  
+  private subscriptions = new Subscription();
 
   constructor(
     private tarjetaService: TarjetaService,
     private gastoService: GastoService,
     private compraDolarService: CompraDolarService,
+    private ventaDolarService: VentaDolarService,
     private importarExportarService: ImportarExportarService
   ) {}
 
   ngOnInit(): void {
+    this.verificarYCrearDatosMuestra();
     this.cargarDatos();
   }
 
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+  }
+
   cargarDatos(): void {
-    this.tarjetaService.getTarjetas$().subscribe(tarjetas => {
-      this.tarjetas = tarjetas;
-    });
+    // Limpiar suscripciones anteriores
+    this.subscriptions.unsubscribe();
+    this.subscriptions = new Subscription();
+    
+    // Crear nuevas suscripciones
+    this.subscriptions.add(
+      this.tarjetaService.getTarjetas$().subscribe(tarjetas => {
+        this.tarjetas = tarjetas;
+      })
+    );
 
-    this.gastoService.getGastos$().subscribe(gastos => {
-      this.gastos = gastos;
-    });
+    this.subscriptions.add(
+      this.gastoService.getGastos$().subscribe(gastos => {
+        this.gastos = gastos;
+      })
+    );
 
-    this.compraDolarService.getCompras$().subscribe(compraDolares => {
-      this.compraDolares = compraDolares;
-    });
+    this.subscriptions.add(
+      this.compraDolarService.getCompras$().subscribe(compraDolares => {
+        this.compraDolares = compraDolares;
+      })
+    );
+
+    this.subscriptions.add(
+      this.ventaDolarService.getVentas$().subscribe(ventaDolares => {
+        this.ventaDolares = ventaDolares;
+      })
+    );
   }
 
   get totalGastos(): number {
@@ -77,8 +107,14 @@ export class ImportarExportarComponent implements OnInit {
 
   exportar(): void {
     const nombreArchivo = `gestor-tc-exportacion_${new Date().toISOString().split('T')[0]}`;
-    this.importarExportarService.exportarAExcel(this.tarjetas, this.gastos, this.compraDolares, nombreArchivo);
+    this.importarExportarService.exportarAExcel(this.tarjetas, this.gastos, this.compraDolares, nombreArchivo, this.ventaDolares);
     this.setMensaje('Datos exportados correctamente', false);
+  }
+
+  exportarXML(): void {
+    const nombreArchivo = `gestor-tc-exportacion_${new Date().toISOString().split('T')[0]}`;
+    this.importarExportarService.exportarAXML(this.tarjetas, this.gastos, this.compraDolares, this.ventaDolares, nombreArchivo);
+    this.setMensaje('XML exportado correctamente', false);
   }
 
   onFileSelected(event: any): void {
@@ -119,12 +155,30 @@ export class ImportarExportarComponent implements OnInit {
     this.limpiarMensaje();
     
     try {
-      const { tarjetas, gastos, compraDolares } = await this.importarExportarService.importarDesdeExcel(file);
+      let tarjetas: Tarjeta[] = [];
+      let gastos: Gasto[] = [];
+      let compraDolares: CompraDolar[] = [];
+      let ventaDolares: VentaDolar[] = [];
+
+      if (file.name.endsWith('.xml')) {
+        const xmlData = await this.importarExportarService.importarDesdeXML(file);
+        tarjetas = xmlData.tarjetas;
+        gastos = xmlData.gastos;
+        compraDolares = xmlData.compraDolares;
+        ventaDolares = xmlData.ventaDolares;
+      } else {
+        const excelData = await this.importarExportarService.importarDesdeExcel(file);
+        tarjetas = excelData.tarjetas;
+        gastos = excelData.gastos;
+        compraDolares = excelData.compraDolares;
+        ventaDolares = excelData.ventaDolares || [];
+      }
       
       this.excelPreview = {
         tarjetas: tarjetas.length,
         gastos: gastos.length,
         compraDolares: compraDolares.length,
+        ventaDolares: ventaDolares.length,
         totalGastos: gastos.reduce((total, gasto) => total + gasto.monto, 0),
         gastosCompartidos: gastos.filter(g => g.compartidoCon && g.compartidoCon.trim() !== '').length,
         cuotasPendientes: gastos.filter(g => (g.cantidadCuotas || 1) > 1 && this.esCuotaPendiente(g)).length,
@@ -190,22 +244,28 @@ export class ImportarExportarComponent implements OnInit {
     this.importando = true;
     this.limpiarMensaje();
     
-    this.importarExportarService.importarDesdeExcel(this.archivoSeleccionado)
-      .then(({ tarjetas, gastos, compraDolares }) => {
+    const importPromise = this.archivoSeleccionado.name.endsWith('.xml')
+      ? this.importarExportarService.importarDesdeXML(this.archivoSeleccionado)
+      : this.importarExportarService.importarDesdeExcel(this.archivoSeleccionado);
+
+    (importPromise as Promise<{ tarjetas: Tarjeta[]; gastos: Gasto[]; compraDolares: CompraDolar[]; ventaDolares?: VentaDolar[] }>)
+      .then(({ tarjetas, gastos, compraDolares, ventaDolares }: { tarjetas: Tarjeta[]; gastos: Gasto[]; compraDolares: CompraDolar[]; ventaDolares?: VentaDolar[] }) => {
         console.log('DEBUG - Datos importados:', { tarjetas, gastos, compraDolares });
         
         // Reemplazar completamente los datos existentes
         this.tarjetaService.reemplazarTarjetas(tarjetas).subscribe(() => {
           this.gastoService.reemplazarGastos(gastos).subscribe(() => {
             this.compraDolarService.reemplazarCompras(compraDolares).subscribe(() => {
-              this.cargarDatos();
-              this.limpiarSeleccion();
-              this.setMensaje(`Importación exitosa: ${tarjetas.length} tarjetas, ${gastos.length} gastos y ${compraDolares.length} compras de dólares importados`, false);
+              this.ventaDolarService.reemplazarVentas(ventaDolares || []).subscribe(() => {
+                this.cargarDatos();
+                this.limpiarSeleccion();
+                this.setMensaje(`Importación exitosa: ${tarjetas.length} tarjetas, ${gastos.length} gastos, ${compraDolares.length} compras y ${(ventaDolares || []).length} ventas de dólares`, false);
+              });
             });
           });
         });
       })
-      .catch(error => {
+      .catch((error: unknown) => {
         console.error('Error en importación:', error);
         this.setMensaje('Error al importar los datos. Verifica el formato del archivo.', true);
       })
@@ -244,5 +304,84 @@ export class ImportarExportarComponent implements OnInit {
 
   toggleInfoMontos(): void {
     this.mostrarInfoMontos = !this.mostrarInfoMontos;
+  }
+
+  private verificarYCrearDatosMuestra(): void {
+    // Verificar si hay datos en localStorage
+    const tieneTarjetas = localStorage.getItem('gestor_tc_tarjetas');
+    const tieneGastos = localStorage.getItem('gestor_tc_gastos');
+    const tieneCompras = localStorage.getItem('compras_dolar');
+    const tieneVentas = localStorage.getItem('ventas_dolar');
+    
+    if (!tieneTarjetas || !tieneGastos || !tieneCompras || !tieneVentas) {
+      console.log('Creando datos de muestra...');
+      
+      // Crear datos de muestra para tarjetas
+      if (!tieneTarjetas) {
+        const tarjetasMuestra = [
+          {
+            id: '1',
+            nombre: 'Visa Principal',
+            banco: 'Banco Nacional',
+            ultimosDigitos: '1234',
+            limiteCredito: 50000,
+            fechaVencimiento: '12/25',
+            color: '#1976d2'
+          }
+        ];
+        localStorage.setItem('gestor_tc_tarjetas', JSON.stringify(tarjetasMuestra));
+      }
+      
+      // Crear datos de muestra para gastos
+      if (!tieneGastos) {
+        const gastosMuestra = [
+          {
+            id: '1',
+            descripcion: 'Compra de prueba',
+            monto: 1000,
+            fecha: new Date().toISOString(),
+            tarjetaId: '1',
+            categoria: 'Otros',
+            cuotas: 1,
+            esCompartido: false
+          }
+        ];
+        localStorage.setItem('gestor_tc_gastos', JSON.stringify(gastosMuestra));
+      }
+      
+      // Crear datos de muestra para compras de dólares
+      if (!tieneCompras) {
+        const comprasMuestra = [
+          {
+            id: '1',
+            fecha: new Date().toISOString(),
+            dolares: 100,
+            precioCompra: 1000,
+            precioCompraTotal: 100000,
+            disponibles: 100
+          }
+        ];
+        localStorage.setItem('compras_dolar', JSON.stringify(comprasMuestra));
+      }
+      
+      // Crear datos de muestra para ventas de dólares
+      if (!tieneVentas) {
+        const ventasMuestra = [
+          {
+            id: '1',
+            fecha: new Date().toISOString(),
+            dolares: 50,
+            precioVenta: 1050,
+            precioVentaTotal: 52500,
+            precioCompraPromedio: 1000,
+            ganancia: 2500,
+            porcentajeGanancia: 5
+          }
+        ];
+        localStorage.setItem('ventas_dolar', JSON.stringify(ventasMuestra));
+      }
+      
+      console.log('Datos de muestra creados.');
+    }
   }
 }

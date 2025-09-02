@@ -59,6 +59,13 @@
             <div class="stat-label">Compra Dólares</div>
           </div>
         </div>
+        <div class="stat-item">
+          <div class="stat-icon">💸</div>
+          <div class="stat-info">
+            <div class="stat-value">{{ ventaDolares.length }}</div>
+            <div class="stat-label">Venta Dólares</div>
+          </div>
+        </div>
       </div>
       
       <!-- Información detallada de montos -->
@@ -99,6 +106,13 @@
               <div class="info-description">Operaciones de compra de dólares registradas</div>
             </div>
           </div>
+          <div class="info-item">
+            <div class="info-icon">💸</div>
+            <div class="info-content">
+              <div class="info-title">Venta Dólares</div>
+              <div class="info-description">Operaciones de venta de dólares registradas</div>
+            </div>
+          </div>
         </div>
       </div>
       
@@ -123,10 +137,16 @@
         </div>
       </div>
       
-      <button class="btn btn-primary export-btn" (click)="exportar()" [disabled]="tarjetas.length === 0 && gastos.length === 0">
-        <span class="btn-icon">📊</span>
-        <span class="btn-text">Exportar a Excel</span>
-      </button>
+      <div class="export-actions">
+        <button class="btn btn-primary export-btn" (click)="exportar()" [disabled]="tarjetas.length === 0 && gastos.length === 0">
+          <span class="btn-icon">📊</span>
+          <span class="btn-text">Exportar a Excel</span>
+        </button>
+        <button class="btn btn-outline export-btn" (click)="exportarXML()" [disabled]="tarjetas.length === 0 && gastos.length === 0 && compraDolares.length === 0 && ventaDolares.length === 0">
+          <span class="btn-icon">🗂️</span>
+          <span class="btn-text">Exportar a XML</span>
+        </button>
+      </div>
     </div>
   </section>
 
@@ -145,7 +165,7 @@
       <div class="file-upload-area" [class.has-file]="archivoSeleccionado" [class.dragover]="isDragOver">
         <div class="upload-icon">📁</div>
         <div class="upload-text">
-          <span *ngIf="!archivoSeleccionado">Arrastra un archivo Excel aquí o haz clic para seleccionar</span>
+          <span *ngIf="!archivoSeleccionado">Arrastra un archivo Excel/XML aquí o haz clic para seleccionar</span>
           <span *ngIf="archivoSeleccionado" class="file-name">{{ archivoSeleccionado.name }}</span>
         </div>
         <input 
@@ -154,7 +174,7 @@
           (dragover)="onDragOver($event)"
           (dragleave)="onDragLeave($event)"
           (drop)="onDrop($event)"
-          accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,.xml,application/xml,text/xml"
           class="file-input"
           id="fileInput"
         />
@@ -212,6 +232,13 @@
             <div class="preview-stat-label">Compra Dólares</div>
           </div>
         </div>
+        <div class="preview-stat">
+          <div class="preview-stat-icon">💸</div>
+          <div class="preview-stat-content">
+            <div class="preview-stat-value">{{ excelPreview.ventaDolares }}</div>
+            <div class="preview-stat-label">Venta Dólares</div>
+          </div>
+        </div>
         </div>
         
         <!-- Información detallada en vista previa -->
@@ -249,7 +276,14 @@
               <div class="preview-info-icon">💵</div>
               <div class="preview-info-content">
                 <div class="preview-info-title">Compras de dólares</div>
-                <div class="preview-info-description">Operaciones de dólares en el archivo</div>
+                <div class="preview-info-description">Operaciones de compra de dólares en el archivo</div>
+              </div>
+            </div>
+            <div class="preview-info-item">
+              <div class="preview-info-icon">💸</div>
+              <div class="preview-info-content">
+                <div class="preview-info-title">Ventas de dólares</div>
+                <div class="preview-info-description">Operaciones de venta de dólares en el archivo</div>
               </div>
             </div>
           </div>
