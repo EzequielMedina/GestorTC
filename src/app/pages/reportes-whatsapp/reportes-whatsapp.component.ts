@@ -183,7 +183,8 @@ export class ReportesWhatsappComponent implements OnInit {
       mensaje += `• ${tarjeta.nombreTarjeta}: $${tarjeta.totalTarjeta.toLocaleString('es-AR', { minimumFractionDigits: 2 })}\n`;
     });
     
-    mensaje += `\n📎 *Adjunto el reporte detallado en PDF*`;
+    mensaje += `\n📎 *IMPORTANTE: Descarga automática del PDF iniciada*\n`;
+    mensaje += `📋 *Por favor, adjunta manualmente el archivo PDF descargado a este chat*`;
     
     return mensaje;
   }
@@ -364,7 +365,8 @@ export class ReportesWhatsappComponent implements OnInit {
       mensaje += `   📊 Tu parte (${gasto.porcentajeCompartido}%): $${montoCompartido.toLocaleString('es-AR', { minimumFractionDigits: 2 })}\n\n`;
     });
     
-    mensaje += `📎 *Archivo PDF adjunto con el detalle completo*`;
+    mensaje += `📎 *IMPORTANTE: Descarga automática del PDF iniciada*\n`;
+    mensaje += `📋 *Por favor, adjunta manualmente el archivo PDF descargado a este chat*`;
     
     return mensaje;
   }
