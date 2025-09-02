@@ -311,8 +311,9 @@ export class ReportesWhatsappComponent implements OnInit {
           // Crear mensaje específico para gastos compartidos
           const mensaje = this.crearMensajeGastosCompartidos();
           const numeroWhatsapp = this.reporteForm.get('numeroWhatsapp')?.value;
+          const numeroLimpio = numeroWhatsapp.replace(/[^\d]/g, '');
           const mensajeCodificado = encodeURIComponent(mensaje);
-          const urlWhatsapp = `https://web.whatsapp.com/send?phone=${numeroWhatsapp}&text=${mensajeCodificado}`;
+          const urlWhatsapp = `https://wa.me/${numeroLimpio}?text=${mensajeCodificado}`;
           
           // Descargar el PDF automáticamente
           const url = window.URL.createObjectURL(pdfBlob);
@@ -324,7 +325,7 @@ export class ReportesWhatsappComponent implements OnInit {
           document.body.removeChild(link);
           window.URL.revokeObjectURL(url);
           
-          // Abrir WhatsApp Web
+          // Abrir WhatsApp nativo
           window.open(urlWhatsapp, '_blank');
           
           this.mostrarMensaje('PDF de gastos compartidos descargado y WhatsApp abierto', 'success');
