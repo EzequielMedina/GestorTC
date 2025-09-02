@@ -190,6 +190,99 @@
   margin-top: 2px;
 }
 
+/* Estilos para gastos compartidos */
+.gastos-compartidos-section {
+  margin-top: 24px;
+}
+
+.gastos-compartidos-section h4 {
+  margin-bottom: 16px;
+  color: #333;
+  font-weight: 500;
+}
+
+.gastos-compartidos-table {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.table-header,
+.table-row,
+.table-footer {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1.5fr 1fr 1fr;
+  gap: 12px;
+  padding: 12px;
+  align-items: center;
+}
+
+.table-header {
+  background-color: #f5f5f5;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.table-row {
+  border-bottom: 1px solid #f0f0f0;
+  transition: background-color 0.2s;
+}
+
+.table-row:hover {
+  background-color: #fafafa;
+}
+
+.table-row:last-of-type {
+  border-bottom: none;
+}
+
+.table-footer {
+  background-color: #f9f9f9;
+  border-top: 2px solid #e0e0e0;
+  font-weight: 600;
+  color: #333;
+}
+
+.col-descripcion {
+  text-align: left;
+}
+
+.col-monto,
+.col-porcentaje,
+.col-total {
+  text-align: right;
+}
+
+.col-cuota,
+.col-compartido {
+  text-align: center;
+}
+
+.col-total {
+  color: #4CAF50;
+  font-weight: 500;
+}
+
+.table-footer .col-total {
+  color: #2E7D32;
+  font-size: 1.1em;
+}
+
+@media (max-width: 768px) {
+  .gastos-compartidos-table {
+    font-size: 0.9em;
+  }
+  
+  .table-header,
+  .table-row,
+  .table-footer {
+    grid-template-columns: 1.5fr 0.8fr 0.8fr 1fr 0.8fr 1fr;
+    gap: 8px;
+    padding: 8px;
+  }
+}
+
 .note span {
   line-height: 1.4;
   color: #333;

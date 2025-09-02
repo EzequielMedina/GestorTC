@@ -26,6 +26,7 @@ export interface ReporteData {
     monto: number;
     compartidoCon: string;
     porcentajeCompartido: number;
+    cuotaInfo?: string;
   }>;
 }
 
@@ -77,15 +78,111 @@ export class ReportePdfService {
           año,
           totalGastos,
           gastosPorTarjeta,
-          gastosCompartidos: gastosCompartidos.map(g => ({
-            descripcion: g.descripcion,
-            monto: g.monto,
-            compartidoCon: g.compartidoCon!,
-            porcentajeCompartido: g.porcentajeCompartido || 0
-          }))
+          gastosCompartidos: gastosCompartidos.map(g => {
+            let cuotaInfo: string | undefined;
+            if (g.cantidadCuotas && g.cantidadCuotas > 1) {
+              const cuotaActual = this.calcularCuotaActual(g, año, mes);
+              cuotaInfo = `Cuota ${cuotaActual}/${g.cantidadCuotas}`;
+            }
+            return {
+              descripcion: g.descripcion,
+              monto: g.montoPorCuota || g.monto,
+              compartidoCon: g.compartidoCon!,
+              porcentajeCompartido: g.porcentajeCompartido || 0,
+              cuotaInfo
+            };
+          })
         };
       })
     );
+  }
+
+  /**
+   * Genera un PDF únicamente con los gastos compartidos del mes
+   */
+  async generarPDFGastosCompartidos(datosReporte: ReporteData): Promise<Blob> {
+    const pdf = new jsPDF();
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    let yPosition = 20;
+
+    // Configurar fuentes
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(18);
+    
+    // Título
+    const titulo = `Gastos Compartidos - ${datosReporte.mes} ${datosReporte.año}`;
+    const tituloWidth = pdf.getTextWidth(titulo);
+    pdf.text(titulo, (pageWidth - tituloWidth) / 2, yPosition);
+    yPosition += 15;
+
+    // Línea separadora
+    pdf.setLineWidth(0.5);
+    pdf.line(20, yPosition, pageWidth - 20, yPosition);
+    yPosition += 15;
+
+    if (datosReporte.gastosCompartidos.length === 0) {
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(12);
+      pdf.text('No hay gastos compartidos en este mes.', 20, yPosition);
+    } else {
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(10);
+
+      let totalGastosCompartidos = 0;
+
+      for (const gasto of datosReporte.gastosCompartidos) {
+        if (yPosition > pageHeight - 40) {
+          pdf.addPage();
+          yPosition = 20;
+        }
+
+        const montoCompartido = (gasto.monto * gasto.porcentajeCompartido) / 100;
+        totalGastosCompartidos += montoCompartido;
+        
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(`• ${gasto.descripcion}`, 20, yPosition);
+        yPosition += 8;
+        
+        pdf.setFont('helvetica', 'normal');
+        pdf.text(`Monto total: $${gasto.monto.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`, 25, yPosition);
+        yPosition += 6;
+        
+        if (gasto.cuotaInfo) {
+          pdf.text(`${gasto.cuotaInfo}`, 25, yPosition);
+          yPosition += 6;
+        }
+        
+        pdf.text(`Compartido con: ${gasto.compartidoCon} (${gasto.porcentajeCompartido}%)`, 25, yPosition);
+        yPosition += 6;
+        
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(`Mi parte: $${montoCompartido.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`, 25, yPosition);
+        yPosition += 12;
+      }
+
+      // Total de gastos compartidos
+      if (yPosition > pageHeight - 30) {
+        pdf.addPage();
+        yPosition = 20;
+      }
+      
+      pdf.setLineWidth(0.3);
+      pdf.line(20, yPosition, pageWidth - 20, yPosition);
+      yPosition += 10;
+      
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(14);
+      pdf.text(`Total a pagar: $${totalGastosCompartidos.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`, 20, yPosition);
+    }
+
+    // Pie de página
+    const fechaGeneracion = new Date().toLocaleDateString('es-AR');
+    pdf.setFont('helvetica', 'italic');
+    pdf.setFontSize(8);
+    pdf.text(`Generado el ${fechaGeneracion} - Gestor TC`, 20, pageHeight - 10);
+
+    return pdf.output('blob');
   }
 
   /**
@@ -177,20 +274,36 @@ export class ReportePdfService {
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(10);
 
+      let totalGastosCompartidos = 0;
+
       for (const gasto of datosReporte.gastosCompartidos) {
-        if (yPosition > pageHeight - 20) {
+        if (yPosition > pageHeight - 30) {
           pdf.addPage();
           yPosition = 20;
         }
 
         const montoCompartido = (gasto.monto * gasto.porcentajeCompartido) / 100;
+        totalGastosCompartidos += montoCompartido;
+        
         pdf.text(`• ${gasto.descripcion}`, 25, yPosition);
         yPosition += 6;
+        pdf.text(`  Monto: $${gasto.monto.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`, 30, yPosition);
+        yPosition += 6;
+        if (gasto.cuotaInfo) {
+          pdf.text(`  ${gasto.cuotaInfo}`, 30, yPosition);
+          yPosition += 6;
+        }
         pdf.text(`  Compartido con: ${gasto.compartidoCon} (${gasto.porcentajeCompartido}%)`, 30, yPosition);
         yPosition += 6;
-        pdf.text(`  Monto compartido: $${montoCompartido.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`, 30, yPosition);
+        pdf.text(`  Total a pagar: $${montoCompartido.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`, 30, yPosition);
         yPosition += 10;
       }
+
+      // Total de gastos compartidos
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(12);
+      pdf.text(`Total gastos compartidos: $${totalGastosCompartidos.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`, 20, yPosition);
+      yPosition += 15;
     }
 
     // Pie de página
@@ -249,6 +362,25 @@ export class ReportePdfService {
 
   private obtenerFechaOriginal(gastos: Gasto[], descripcion: string): string {
     const gasto = gastos.find(g => g.descripcion === descripcion);
-    return gasto ? gasto.fecha : '';
+    return gasto?.fecha || '';
+  }
+
+  /**
+   * Calcula en qué número de cuota está el mes seleccionado
+   */
+  private calcularCuotaActual(gasto: Gasto, año: number, mes: number): number {
+    if (!gasto.cantidadCuotas || gasto.cantidadCuotas <= 1) {
+      return 1;
+    }
+
+    // Si no hay primerMesCuota, usar el mes de la fecha del gasto
+    const primerMes = gasto.primerMesCuota || gasto.fecha;
+    const [añoPrimero, mesPrimero] = primerMes.split('-').map(Number);
+    
+    // Calcular la diferencia en meses
+    const mesesDiferencia = (año - añoPrimero) * 12 + (mes - mesPrimero) + 1;
+    
+    // Asegurar que esté dentro del rango de cuotas
+    return Math.max(1, Math.min(mesesDiferencia, gasto.cantidadCuotas));
   }
 }

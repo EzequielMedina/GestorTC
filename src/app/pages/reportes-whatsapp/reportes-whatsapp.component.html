@@ -64,9 +64,19 @@
                 [disabled]="!puedeGenerar"
                 (click)="generarReporte()">
           <mat-icon>picture_as_pdf</mat-icon>
-          <span *ngIf="!generandoPdf">Generar Reporte</span>
+          <span *ngIf="!generandoPdf">Generar Reporte Completo</span>
           <span *ngIf="generandoPdf">Generando...</span>
           <mat-spinner *ngIf="generandoPdf" diameter="20" class="inline-spinner"></mat-spinner>
+        </button>
+        
+        <button mat-raised-button 
+                color="accent" 
+                [disabled]="!puedeGenerar || !tieneGastosCompartidos"
+                (click)="generarReporteGastosCompartidos()">
+          <mat-icon>group</mat-icon>
+          <span *ngIf="!generandoPdfCompartidos">Solo Gastos Compartidos</span>
+          <span *ngIf="generandoPdfCompartidos">Generando...</span>
+          <mat-spinner *ngIf="generandoPdfCompartidos" diameter="20" class="inline-spinner"></mat-spinner>
         </button>
       </mat-card-actions>
     </mat-card>
@@ -94,6 +104,11 @@
             <span class="label">👥 Gastos compartidos:</span>
             <span class="value">{{ datosReporte.gastosCompartidos.length }}</span>
           </div>
+          
+          <div class="summary-item" *ngIf="datosReporte.gastosCompartidos.length > 0">
+            <span class="label">💸 Total gastos compartidos:</span>
+            <span class="value">${{ calcularTotalGastosCompartidos().toLocaleString('es-AR', { minimumFractionDigits: 2 }) }}</span>
+          </div>
         </div>
 
         <!-- Resumen por tarjeta -->
@@ -107,15 +122,46 @@
             <div class="gastos-count">{{ tarjeta.gastos.length }} movimiento(s)</div>
           </div>
         </div>
+
+        <!-- Gastos Compartidos Detallados -->
+        <div class="gastos-compartidos-section" *ngIf="datosReporte.gastosCompartidos.length > 0">
+          <h4>👥 Gastos Compartidos</h4>
+          <div class="gastos-compartidos-table">
+            <div class="table-header">
+              <span class="col-descripcion">Descripción</span>
+              <span class="col-monto">Monto</span>
+              <span class="col-cuota">Cuota</span>
+              <span class="col-compartido">Compartido con</span>
+              <span class="col-porcentaje">% Compartido</span>
+              <span class="col-total">Total a pagar</span>
+            </div>
+            <div class="table-row" *ngFor="let gasto of datosReporte.gastosCompartidos">
+              <span class="col-descripcion">{{ gasto.descripcion }}</span>
+              <span class="col-monto">${{ gasto.monto.toLocaleString('es-AR', { minimumFractionDigits: 2 }) }}</span>
+              <span class="col-cuota">{{ gasto.cuotaInfo || 'Pago único' }}</span>
+              <span class="col-compartido">{{ gasto.compartidoCon }}</span>
+              <span class="col-porcentaje">{{ gasto.porcentajeCompartido }}%</span>
+              <span class="col-total">${{ (gasto.monto * gasto.porcentajeCompartido / 100).toLocaleString('es-AR', { minimumFractionDigits: 2 }) }}</span>
+            </div>
+            <div class="table-footer">
+              <span class="col-descripcion"><strong>TOTAL GASTOS COMPARTIDOS</strong></span>
+              <span class="col-monto"></span>
+              <span class="col-cuota"></span>
+              <span class="col-compartido"></span>
+              <span class="col-porcentaje"></span>
+              <span class="col-total"><strong>${{ calcularTotalGastosCompartidos().toLocaleString('es-AR', { minimumFractionDigits: 2 }) }}</strong></span>
+            </div>
+          </div>
+        </div>
       </mat-card-content>
 
       <mat-card-actions class="card-actions">
-        <button mat-stroked-button 
+        <button mat-raised-button 
                 color="accent"
                 [disabled]="!pdfBlob"
                 (click)="descargarPdf()">
           <mat-icon>download</mat-icon>
-          Descargar PDF
+          Descargar PDF Completo
         </button>
         
         <button mat-raised-button 
@@ -123,7 +169,17 @@
                 [disabled]="!puedeEnviar"
                 (click)="enviarPorWhatsapp()">
           <mat-icon>send</mat-icon>
-          <span *ngIf="!enviandoWhatsapp">Enviar por WhatsApp</span>
+          <span *ngIf="!enviandoWhatsapp">Enviar Completo por WhatsApp</span>
+          <span *ngIf="enviandoWhatsapp">Enviando...</span>
+          <mat-spinner *ngIf="enviandoWhatsapp" diameter="20" class="inline-spinner"></mat-spinner>
+        </button>
+        
+        <button mat-raised-button 
+                color="warn"
+                [disabled]="!tieneGastosCompartidos || !reporteForm.valid"
+                (click)="enviarGastosCompartidosPorWhatsapp()">
+          <mat-icon>group</mat-icon>
+          <span *ngIf="!enviandoWhatsapp">Enviar Solo Gastos Compartidos</span>
           <span *ngIf="enviandoWhatsapp">Enviando...</span>
           <mat-spinner *ngIf="enviandoWhatsapp" diameter="20" class="inline-spinner"></mat-spinner>
         </button>

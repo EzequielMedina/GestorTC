@@ -33,6 +33,7 @@ import { ReportePdfService, ReporteData } from '../../services/reporte-pdf.servi
 export class ReportesWhatsappComponent implements OnInit {
   reporteForm: FormGroup;
   generandoPdf = false;
+  generandoPdfCompartidos = false;
   enviandoWhatsapp = false;
   
   meses = [
@@ -198,6 +199,19 @@ export class ReportesWhatsappComponent implements OnInit {
     this.snackBar.open(mensaje, 'Cerrar', config);
   }
 
+  /**
+   * Calcula el total de gastos compartidos
+   */
+  calcularTotalGastosCompartidos(): number {
+    if (!this.datosReporte?.gastosCompartidos) {
+      return 0;
+    }
+    
+    return this.datosReporte.gastosCompartidos.reduce((total, gasto) => {
+      return total + (gasto.monto * gasto.porcentajeCompartido / 100);
+    }, 0);
+  }
+
   get mesSeleccionado(): string {
     const mesValor = this.reporteForm.get('mes')?.value;
     const mes = this.meses.find(m => m.valor === mesValor);
@@ -218,5 +232,139 @@ export class ReportesWhatsappComponent implements OnInit {
            numeroWhatsappControl !== null && 
            numeroWhatsappControl.valid === true && 
            !this.enviandoWhatsapp;
+  }
+
+  get tieneGastosCompartidos(): boolean {
+    return !!(this.datosReporte?.gastosCompartidos && this.datosReporte.gastosCompartidos.length > 0);
+  }
+
+  async generarReporteGastosCompartidos(): Promise<void> {
+    if (!this.puedeGenerar) {
+      return;
+    }
+
+    try {
+      this.generandoPdfCompartidos = true;
+      const año = this.reporteForm.get('anio')?.value;
+      const mes = this.reporteForm.get('mes')?.value;
+
+      // Obtener datos del reporte
+      this.reportePdfService.generarDatosReporte$(año, mes).subscribe(async (datos) => {
+        try {
+          if (datos.gastosCompartidos.length === 0) {
+            this.mostrarMensaje('No hay gastos compartidos en el mes seleccionado', 'warning');
+            return;
+          }
+
+          // Generar PDF solo de gastos compartidos
+          this.pdfBlob = await this.reportePdfService.generarPDFGastosCompartidos(datos);
+          
+          // Descargar automáticamente
+          this.descargarPdfCompartidos();
+          
+          this.mostrarMensaje('Reporte de gastos compartidos generado exitosamente', 'success');
+        } catch (error) {
+          console.error('Error al generar PDF de gastos compartidos:', error);
+          this.mostrarMensaje('Error al generar el reporte de gastos compartidos', 'error');
+        } finally {
+          this.generandoPdfCompartidos = false;
+        }
+      });
+    } catch (error) {
+      console.error('Error al obtener datos para reporte de gastos compartidos:', error);
+      this.mostrarMensaje('Error al obtener los datos del reporte', 'error');
+      this.generandoPdfCompartidos = false;
+    }
+  }
+
+  private descargarPdfCompartidos(): void {
+    if (!this.pdfBlob) {
+      return;
+    }
+
+    const url = window.URL.createObjectURL(this.pdfBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `gastos-compartidos-${this.mesSeleccionado}-${this.anioSeleccionado}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  }
+
+  async enviarGastosCompartidosPorWhatsapp(): Promise<void> {
+    if (!this.reporteForm.valid || !this.tieneGastosCompartidos) {
+      return;
+    }
+
+    try {
+      this.enviandoWhatsapp = true;
+      
+      // Generar el PDF de gastos compartidos
+      const año = this.reporteForm.get('anio')?.value;
+      const mes = this.reporteForm.get('mes')?.value;
+      
+      this.reportePdfService.generarDatosReporte$(año, mes).subscribe(async (datos) => {
+        try {
+          const pdfBlob = await this.reportePdfService.generarPDFGastosCompartidos(datos);
+          
+          // Crear mensaje específico para gastos compartidos
+          const mensaje = this.crearMensajeGastosCompartidos();
+          const numeroWhatsapp = this.reporteForm.get('numeroWhatsapp')?.value;
+          const mensajeCodificado = encodeURIComponent(mensaje);
+          const urlWhatsapp = `https://web.whatsapp.com/send?phone=${numeroWhatsapp}&text=${mensajeCodificado}`;
+          
+          // Descargar el PDF automáticamente
+          const url = window.URL.createObjectURL(pdfBlob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `gastos-compartidos-${this.mesSeleccionado}-${this.anioSeleccionado}.pdf`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+          
+          // Abrir WhatsApp Web
+          window.open(urlWhatsapp, '_blank');
+          
+          this.mostrarMensaje('PDF de gastos compartidos descargado y WhatsApp abierto', 'success');
+        } catch (error) {
+          console.error('Error al generar PDF de gastos compartidos:', error);
+          this.mostrarMensaje('Error al generar el PDF de gastos compartidos', 'error');
+        } finally {
+          this.enviandoWhatsapp = false;
+        }
+      });
+    } catch (error) {
+      console.error('Error al enviar gastos compartidos por WhatsApp:', error);
+      this.mostrarMensaje('Error al procesar el envío', 'error');
+      this.enviandoWhatsapp = false;
+    }
+  }
+
+  private crearMensajeGastosCompartidos(): string {
+    if (!this.datosReporte) return '';
+    
+    const totalCompartidos = this.calcularTotalGastosCompartidos();
+    
+    let mensaje = `🧾 *Reporte de Gastos Compartidos*\n`;
+    mensaje += `📅 Período: ${this.mesSeleccionado} ${this.anioSeleccionado}\n\n`;
+    mensaje += `💸 *Total gastos compartidos: $${totalCompartidos.toLocaleString('es-AR', { minimumFractionDigits: 2 })}*\n\n`;
+    mensaje += `📋 *Detalle de gastos compartidos:*\n`;
+    
+    this.datosReporte.gastosCompartidos.forEach((gasto, index) => {
+      const montoCompartido = (gasto.monto * gasto.porcentajeCompartido / 100);
+      mensaje += `${index + 1}. ${gasto.descripcion}\n`;
+      mensaje += `   💰 Total: $${gasto.monto.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`;
+      if (gasto.cuotaInfo) {
+        mensaje += ` (${gasto.cuotaInfo})`;
+      }
+      mensaje += `\n   👥 Compartido con: ${gasto.compartidoCon}\n`;
+      mensaje += `   📊 Tu parte (${gasto.porcentajeCompartido}%): $${montoCompartido.toLocaleString('es-AR', { minimumFractionDigits: 2 })}\n\n`;
+    });
+    
+    mensaje += `📎 *Archivo PDF adjunto con el detalle completo*`;
+    
+    return mensaje;
   }
 }
