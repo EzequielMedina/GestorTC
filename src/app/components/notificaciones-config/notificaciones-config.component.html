@@ -1,0 +1,362 @@
+<div class="notificaciones-config">
+  <!-- Loading state -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Cargando configuración...</div>
+  </div>
+
+  <!-- Configuración principal -->
+  <div *ngIf="!loading && configuracion" class="config-container">
+    
+    <!-- Header -->
+    <div class="config-header">
+      <h3 class="config-title">
+        <span class="title-icon">🔔</span>
+        Configuración de Notificaciones
+      </h3>
+      <p class="config-subtitle">
+        Configura cuándo y cómo recibir notificaciones sobre tus tarjetas de crédito
+      </p>
+    </div>
+
+    <!-- Configuración de tipos de notificación -->
+    <section class="config-section">
+      <h4 class="section-title">
+        <span class="section-icon">📋</span>
+        Tipos de Notificaciones
+      </h4>
+      
+      <div class="tipos-grid">
+        <div 
+          *ngFor="let tipo of tiposNotificacion" 
+          class="tipo-item"
+          [class.tipo-habilitado]="esTipoHabilitado(tipo.valor)"
+        >
+          <label class="tipo-label">
+            <input 
+              type="checkbox" 
+              [checked]="esTipoHabilitado(tipo.valor)"
+              (change)="toggleTipoNotificacion(tipo.valor)"
+              class="tipo-checkbox"
+            />
+            <span class="tipo-texto">{{ tipo.etiqueta }}</span>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- Configuración de canales -->
+    <section class="config-section">
+      <h4 class="section-title">
+        <span class="section-icon">📡</span>
+        Canales de Notificación
+      </h4>
+      
+      <div class="canales-grid">
+        <!-- Notificaciones Push -->
+        <div class="canal-item">
+          <div class="canal-header">
+            <label class="canal-label">
+              <input 
+                type="checkbox" 
+                [checked]="estadoPush.isSubscribed"
+                [disabled]="!estadoPush.isSupported || gestionandoPush"
+                (change)="gestionarSuscripcionPush()"
+                class="canal-checkbox"
+              />
+              <span class="canal-texto">
+                <span class="canal-icon">🔔</span>
+                Notificaciones Push
+              </span>
+            </label>
+            
+            <div class="canal-status">
+              <span 
+                class="status-badge"
+                [class.status-success]="estadoPush.isSupported"
+                [class.status-error]="!estadoPush.isSupported"
+              >
+                {{ estadoPush.isSupported ? '✅ Soportado' : '❌ No soportado' }}
+              </span>
+              
+              <span 
+                *ngIf="estadoPush.isSupported"
+                class="status-badge"
+                [class.status-success]="estadoPush.permission === 'granted'"
+                [class.status-warning]="estadoPush.permission === 'default'"
+                [class.status-error]="estadoPush.permission === 'denied'"
+              >
+                {{ estadoPush.permission === 'granted' ? '🔓 Permitido' : 
+                   estadoPush.permission === 'denied' ? '🔒 Denegado' : '❓ Pendiente' }}
+              </span>
+              
+              <span 
+                *ngIf="estadoPush.isSupported"
+                class="status-badge"
+                [class.status-success]="estadoPush.isServiceWorkerRegistered"
+                [class.status-error]="!estadoPush.isServiceWorkerRegistered"
+              >
+                {{ estadoPush.isServiceWorkerRegistered ? '⚙️ SW Activo' : '❌ SW Inactivo' }}
+              </span>
+            </div>
+          </div>
+          
+          <div class="canal-description">
+            Recibe notificaciones directamente en tu navegador
+          </div>
+          
+          <div class="canal-actions">
+            <button 
+              type="button" 
+              class="btn btn-secondary btn-sm"
+              (click)="solicitarPermisosPush()"
+              [disabled]="estadoPush.permission === 'granted' || !estadoPush.isSupported"
+            >
+              Solicitar Permisos
+            </button>
+            
+            <button 
+              type="button" 
+              class="btn btn-accent btn-sm"
+              (click)="probarPushNotification()"
+              [disabled]="!estadoPush.isSubscribed || probandoNotificacion"
+            >
+              <span *ngIf="probandoNotificacion" class="btn-spinner"></span>
+              {{ probandoNotificacion ? 'Enviando...' : 'Probar Push' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Notificaciones por Email -->
+        <div class="canal-item">
+          <div class="canal-header">
+            <label class="canal-label">
+              <input 
+                type="checkbox" 
+                [(ngModel)]="configuracion.canales.email"
+                class="canal-checkbox"
+              />
+              <span class="canal-texto">
+                <span class="canal-icon">📧</span>
+                Notificaciones por Email
+              </span>
+            </label>
+            
+            <div class="canal-status">
+              <span class="status-badge status-info">
+                Simulado
+              </span>
+            </div>
+          </div>
+          
+          <div class="canal-description">
+            Recibe notificaciones por correo electrónico (actualmente simulado)
+          </div>
+          
+          <div *ngIf="configuracion.canales.email" class="canal-config">
+            <div class="form-group">
+              <label for="emailDestino" class="form-label">Email de destino:</label>
+              <input 
+                type="email" 
+                id="emailDestino"
+                [(ngModel)]="configuracion.emailDestino"
+                class="form-input"
+                placeholder="tu-email@ejemplo.com"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Configuración de timing -->
+    <section class="config-section">
+      <h4 class="section-title">
+        <span class="section-icon">⏰</span>
+        Configuración de Tiempo
+      </h4>
+      
+      <div class="timing-grid">
+        <div class="timing-item">
+          <label for="diasAnticipacion" class="form-label">Días de anticipación:</label>
+          <select 
+            id="diasAnticipacion"
+            [(ngModel)]="configuracion.tiempos.diasAnticipacion"
+            class="form-select"
+          >
+            <option *ngFor="let opcion of opcionesDiasAnticipacion" [value]="opcion.valor">
+              {{ opcion.etiqueta }}
+            </option>
+          </select>
+          <div class="form-help">
+            Cuántos días antes del vencimiento enviar la notificación
+          </div>
+        </div>
+        
+        <div class="timing-item">
+          <label for="horaNotificacion" class="form-label">Hora de notificación:</label>
+          <select 
+            id="horaNotificacion"
+            [(ngModel)]="configuracion.tiempos.horaNotificacion"
+            class="form-select"
+          >
+            <option *ngFor="let opcion of opcionesHorario" [value]="opcion.valor">
+              {{ opcion.etiqueta }}
+            </option>
+          </select>
+          <div class="form-help">
+            Hora preferida para recibir las notificaciones
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sección de testing -->
+    <section class="config-section testing-section">
+      <h4 class="section-title">
+        <span class="section-icon">🧪</span>
+        Pruebas y Testing
+      </h4>
+      
+      <div class="testing-grid">
+        <div class="test-item">
+          <h5 class="test-title">Probar Notificaciones</h5>
+          <p class="test-description">
+            Envía notificaciones de prueba para verificar la configuración
+          </p>
+          
+          <div class="test-form">
+            <div class="form-group">
+              <label for="tarjetaTest" class="form-label">Tarjeta para prueba:</label>
+              <select 
+                id="tarjetaTest"
+                [(ngModel)]="tarjetaSeleccionadaTest"
+                class="form-select"
+                [disabled]="tarjetas.length === 0"
+              >
+                <option value="" disabled>Selecciona una tarjeta</option>
+                <option *ngFor="let tarjeta of tarjetas" [value]="tarjeta.id">
+                  {{ tarjeta.nombre }} - {{ tarjeta.banco }}
+                </option>
+              </select>
+            </div>
+            
+            <div class="test-buttons">
+              <button 
+                type="button"
+                class="btn btn-secondary"
+                (click)="probarNotificacion()"
+                [disabled]="!tarjetaSeleccionadaTest || probandoNotificacion"
+              >
+                <span *ngIf="probandoNotificacion" class="btn-spinner"></span>
+                {{ probandoNotificacion ? 'Enviando...' : 'Probar Todas' }}
+              </button>
+              
+              <button 
+                type="button"
+                class="btn btn-accent"
+                (click)="probarPushNotification()"
+                [disabled]="!estadoPush.isSubscribed || probandoNotificacion"
+              >
+                Probar Solo Push
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="test-item">
+          <h5 class="test-title">Verificación Manual</h5>
+          <p class="test-description">
+            Ejecuta manualmente la verificación de vencimientos
+          </p>
+          
+          <button 
+            type="button"
+            class="btn btn-outline"
+            (click)="verificarVencimientosManual()"
+          >
+            Verificar Ahora
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Estado del servicio -->
+    <section class="config-section status-section" *ngIf="estadoServicio">
+      <h4 class="section-title">
+        <span class="section-icon">📊</span>
+        Estado del Servicio
+      </h4>
+      
+      <div class="status-grid">
+        <div class="status-item">
+          <div class="status-label">Estado:</div>
+          <div class="status-value">
+            <span 
+              class="status-indicator"
+              [class.status-active]="!estadoServicio.verificacionActiva"
+              [class.status-busy]="estadoServicio.verificacionActiva"
+            ></span>
+            {{ estadoServicio.verificacionActiva ? 'Verificando...' : 'Activo' }}
+          </div>
+        </div>
+        
+        <div class="status-item">
+          <div class="status-label">Última verificación:</div>
+          <div class="status-value">{{ formatearFecha(estadoServicio.ultimaVerificacion) }}</div>
+        </div>
+        
+        <div class="status-item">
+          <div class="status-label">Próxima verificación:</div>
+          <div class="status-value">{{ formatearFecha(estadoServicio.proximaVerificacion) }}</div>
+        </div>
+      </div>
+      
+      <div class="status-actions">
+        <button 
+          type="button"
+          class="btn btn-outline btn-sm"
+          (click)="cargarEstadoServicio()"
+        >
+          Actualizar Estado
+        </button>
+        
+        <button 
+          type="button"
+          class="btn btn-outline btn-sm"
+          (click)="reiniciarServicio()"
+        >
+          Reiniciar Servicio
+        </button>
+      </div>
+    </section>
+
+    <!-- Acciones principales -->
+    <div class="config-actions">
+      <button 
+        type="button"
+        class="btn btn-outline"
+        (click)="restaurarConfiguracion()"
+        [disabled]="!hayCambiosPendientes() || guardando"
+      >
+        Cancelar
+      </button>
+      
+      <button 
+        type="button"
+        class="btn btn-primary"
+        (click)="guardarConfiguracion()"
+        [disabled]="!hayCambiosPendientes() || guardando"
+      >
+        <span *ngIf="guardando" class="btn-spinner"></span>
+        {{ guardando ? 'Guardando...' : 'Guardar Configuración' }}
+      </button>
+    </div>
+
+    <!-- Indicador de cambios pendientes -->
+    <div *ngIf="hayCambiosPendientes()" class="changes-indicator">
+      <span class="changes-icon">⚠️</span>
+      Tienes cambios sin guardar
+    </div>
+  </div>
+</div>

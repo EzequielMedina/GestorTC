@@ -1,0 +1,408 @@
+.preferencias-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 100vh;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.header h2 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.subtitle {
+  margin: 10px 0 0 0;
+  color: #7f8c8d;
+  font-size: 1.1rem;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.loading-container p {
+  margin-top: 20px;
+  color: #7f8c8d;
+  font-size: 1.1rem;
+}
+
+.content {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.tab-content {
+  padding: 30px;
+}
+
+.config-card {
+  margin-bottom: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.config-card mat-card-header {
+  margin-bottom: 20px;
+}
+
+.config-card mat-card-title {
+  color: #2c3e50;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.config-card mat-card-subtitle {
+  color: #7f8c8d;
+  font-size: 1rem;
+  margin-top: 5px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.toggle-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.toggle-field mat-slide-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.toggle-field mat-slide-toggle mat-icon {
+  color: #3498db;
+}
+
+.field-description {
+  margin: 0;
+  color: #7f8c8d;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Sección de tarjetas */
+.tarjetas-section {
+  margin-top: 30px;
+}
+
+.tarjetas-section h4 {
+  color: #2c3e50;
+  margin-bottom: 15px;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.tarjetas-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.tarjetas-actions button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tarjetas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.tarjeta-item {
+  padding: 15px;
+  border: 2px solid #ecf0f1;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  background: #fafafa;
+}
+
+.tarjeta-item:hover {
+  border-color: #3498db;
+  background: #f8f9fa;
+}
+
+.tarjeta-item.selected {
+  border-color: #3498db;
+  background: #e3f2fd;
+}
+
+.tarjeta-item mat-slide-toggle {
+  width: 100%;
+}
+
+.tarjeta-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-left: 10px;
+}
+
+.tarjeta-nombre {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 1rem;
+}
+
+.tarjeta-banco {
+  color: #7f8c8d;
+  font-size: 0.9rem;
+}
+
+.tarjeta-limite {
+  color: #27ae60;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.selection-summary {
+  display: flex;
+  justify-content: center;
+  margin-top: 15px;
+}
+
+/* Sección de estadísticas */
+.stats-section {
+  margin-bottom: 30px;
+}
+
+.stats-section h4 {
+  color: #2c3e50;
+  margin-bottom: 15px;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  text-align: center;
+}
+
+.stat-item mat-icon {
+  color: #3498db;
+  font-size: 2rem;
+  width: 2rem;
+  height: 2rem;
+  margin-bottom: 10px;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  color: #7f8c8d;
+  font-size: 0.9rem;
+}
+
+/* Acciones de gestión */
+.management-actions h4 {
+  color: #2c3e50;
+  margin-bottom: 15px;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.actions-grid button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  font-size: 1rem;
+}
+
+.import-section {
+  position: relative;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .preferencias-container {
+    padding: 10px;
+  }
+  
+  .header {
+    padding: 15px;
+  }
+  
+  .header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .tab-content {
+    padding: 20px;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .tarjetas-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .tarjetas-actions {
+    flex-direction: column;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .actions-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .preferencias-container {
+    padding: 5px;
+  }
+  
+  .tab-content {
+    padding: 15px;
+  }
+  
+  .header h2 {
+    font-size: 1.3rem;
+  }
+  
+  .subtitle {
+    font-size: 1rem;
+  }
+}
+
+/* Animaciones */
+.tarjeta-item {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stat-item {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Estados de hover mejorados */
+.actions-grid button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.tarjetas-actions button:hover {
+  transform: translateY(-1px);
+  transition: all 0.3s ease;
+}
+
+/* Mejoras de accesibilidad */
+.toggle-field mat-slide-toggle:focus {
+  outline: 2px solid #3498db;
+  outline-offset: 2px;
+}
+
+button:focus {
+  outline: 2px solid #3498db;
+  outline-offset: 2px;
+}
+
+/* Estilos para mat-tab-group */
+::ng-deep .mat-tab-group {
+  background: transparent;
+}
+
+::ng-deep .mat-tab-header {
+  border-bottom: 1px solid #e0e0e0;
+}
+
+::ng-deep .mat-tab-label {
+  font-weight: 500;
+  font-size: 1rem;
+}
+
+::ng-deep .mat-tab-label-active {
+  color: #3498db;
+  font-weight: 600;
+}
+
+::ng-deep .mat-ink-bar {
+  background-color: #3498db;
+  height: 3px;
+}

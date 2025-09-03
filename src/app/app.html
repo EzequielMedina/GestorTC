@@ -35,6 +35,18 @@
           <mat-icon>chat</mat-icon>
           <span>Reportes WhatsApp</span>
         </a>
+        <a mat-list-item class="nav-item" routerLink="/notificaciones" routerLinkActive="active" (click)="drawer.close()">
+          <mat-icon>notifications</mat-icon>
+          <span>Notificaciones</span>
+        </a>
+        <a mat-list-item class="nav-item" routerLink="/preferencias" routerLinkActive="active" (click)="drawer.close()">
+          <mat-icon>settings</mat-icon>
+          <span>Preferencias</span>
+        </a>
+        <a mat-list-item class="nav-item" routerLink="/test-notificaciones" routerLinkActive="active" (click)="drawer.close()">
+          <mat-icon>bug_report</mat-icon>
+          <span>Test Notificaciones</span>
+        </a>
         <!-- <a mat-list-item class="nav-item" routerLink="/analisis" routerLinkActive="active" (click)="drawer.close()">
           <mat-icon>analytics</mat-icon>
           <span>Análisis</span>
@@ -59,6 +71,9 @@
           <a mat-button routerLink="/gestion-dolares" routerLinkActive="active">Gestión Dólares</a>
           <a mat-button routerLink="/importar-exportar" routerLinkActive="active">Importar/Exportar</a>
           <a mat-button routerLink="/reportes-whatsapp" routerLinkActive="active">Reportes WhatsApp</a>
+          <a mat-button routerLink="/notificaciones" routerLinkActive="active">Notificaciones</a>
+          <a mat-button routerLink="/preferencias" routerLinkActive="active">Preferencias</a>
+          <a mat-button routerLink="/test-notificaciones" routerLinkActive="active">Test Notificaciones</a>
           <!-- <a mat-button routerLink="/analisis" routerLinkActive="active">Análisis</a> -->
 
         </nav>

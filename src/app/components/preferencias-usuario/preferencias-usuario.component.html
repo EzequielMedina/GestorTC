@@ -1,0 +1,312 @@
+<div class="preferencias-container">
+  <div class="header">
+    <h2>⚙️ Preferencias de Usuario</h2>
+    <p class="subtitle">Configura tus preferencias personales para las notificaciones</p>
+  </div>
+
+  <div *ngIf="loading" class="loading-container">
+    <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
+    <p>Cargando configuración...</p>
+  </div>
+
+  <div *ngIf="!loading" class="content">
+    <mat-tab-group>
+      <!-- Tab: Tiempos y Frecuencias -->
+      <mat-tab label="⏰ Tiempos">
+        <div class="tab-content">
+          <mat-card class="config-card">
+            <mat-card-header>
+              <mat-card-title>Configuración de Tiempos</mat-card-title>
+              <mat-card-subtitle>Define cuándo y con qué frecuencia recibir notificaciones</mat-card-subtitle>
+            </mat-card-header>
+            
+            <mat-card-content>
+              <div class="form-grid">
+                <!-- Días de anticipación -->
+                <mat-form-field appearance="outline">
+                  <mat-label>Días de anticipación</mat-label>
+                  <mat-select 
+                    [value]="configuracion.tiempos.diasAnticipacion"
+                    (selectionChange)="actualizarSeccion('tiempos', 'diasAnticipacion', $event.value)">
+                    <mat-option *ngFor="let opcion of opcionesAnticipacion" [value]="opcion.valor">
+                      {{ opcion.etiqueta }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-hint>Cuántos días antes del vencimiento enviar la notificación</mat-hint>
+                </mat-form-field>
+
+                <!-- Hora de notificación -->
+                <mat-form-field appearance="outline">
+                  <mat-label>Hora de notificación</mat-label>
+                  <mat-select 
+                    [value]="configuracion.tiempos.horaNotificacion"
+                    (selectionChange)="actualizarSeccion('tiempos', 'horaNotificacion', $event.value)">
+                    <mat-option *ngFor="let hora of opcionesHora" [value]="hora">
+                      {{ hora }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-hint>Hora del día para enviar las notificaciones</mat-hint>
+                </mat-form-field>
+
+                <!-- Recordatorios -->
+                <div class="toggle-field">
+                  <mat-slide-toggle 
+                    [checked]="configuracion.tiempos.recordatorios"
+                    (change)="actualizarSeccion('tiempos', 'recordatorios', $event.checked)">
+                    <mat-icon>repeat</mat-icon>
+                    Enviar recordatorios
+                  </mat-slide-toggle>
+                  <p class="field-description">Enviar notificaciones adicionales si no se ha pagado</p>
+                </div>
+
+                <!-- Frecuencia de recordatorios -->
+                <mat-form-field 
+                  appearance="outline" 
+                  [class.disabled]="!configuracion.tiempos.recordatorios">
+                  <mat-label>Frecuencia de recordatorios</mat-label>
+                  <mat-select 
+                    [value]="configuracion.tiempos.frecuenciaRecordatorios"
+                    [disabled]="!configuracion.tiempos.recordatorios"
+                    (selectionChange)="actualizarSeccion('tiempos', 'frecuenciaRecordatorios', $event.value)">
+                    <mat-option *ngFor="let opcion of opcionesFrecuencia" [value]="opcion.valor">
+                      {{ opcion.etiqueta }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-hint>Con qué frecuencia enviar recordatorios</mat-hint>
+                </mat-form-field>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </mat-tab>
+
+      <!-- Tab: Filtros -->
+      <mat-tab label="🔍 Filtros">
+        <div class="tab-content">
+          <mat-card class="config-card">
+            <mat-card-header>
+              <mat-card-title>Filtros de Notificación</mat-card-title>
+              <mat-card-subtitle>Define qué tarjetas y montos incluir en las notificaciones</mat-card-subtitle>
+            </mat-card-header>
+            
+            <mat-card-content>
+              <div class="form-grid">
+                <!-- Monto mínimo -->
+                <mat-form-field appearance="outline">
+                  <mat-label>Monto mínimo</mat-label>
+                  <input 
+                    matInput 
+                    type="number" 
+                    min="0" 
+                    step="100"
+                    [value]="configuracion.filtros.montoMinimo"
+                    (input)="actualizarSeccion('filtros', 'montoMinimo', +$any($event.target).value)">
+                  <span matPrefix>$&nbsp;</span>
+                  <mat-hint>Solo notificar si el monto adeudado supera este valor</mat-hint>
+                </mat-form-field>
+
+                <!-- Solo tarjetas activas -->
+                <div class="toggle-field">
+                  <mat-slide-toggle 
+                    [checked]="configuracion.filtros.soloTarjetasActivas"
+                    (change)="actualizarSeccion('filtros', 'soloTarjetasActivas', $event.checked)">
+                    <mat-icon>credit_card</mat-icon>
+                    Solo tarjetas activas
+                  </mat-slide-toggle>
+                  <p class="field-description">Incluir únicamente tarjetas marcadas como activas</p>
+                </div>
+              </div>
+
+              <!-- Selección de tarjetas -->
+              <div class="tarjetas-section">
+                <h4>Tarjetas a Monitorear</h4>
+                <div class="tarjetas-actions">
+                  <button 
+                    mat-stroked-button 
+                    color="primary" 
+                    (click)="seleccionarTodasLasTarjetas()">
+                    <mat-icon>select_all</mat-icon>
+                    Seleccionar Todas
+                  </button>
+                  <button 
+                    mat-stroked-button 
+                    color="warn" 
+                    (click)="deseleccionarTodasLasTarjetas()">
+                    <mat-icon>deselect</mat-icon>
+                    Deseleccionar Todas
+                  </button>
+                </div>
+
+                <div class="tarjetas-grid">
+                  <div 
+                    *ngFor="let tarjeta of tarjetas" 
+                    class="tarjeta-item"
+                    [class.selected]="isTarjetaSeleccionada(tarjeta.id)">
+                    <mat-slide-toggle 
+                      [checked]="isTarjetaSeleccionada(tarjeta.id)"
+                      (change)="onTarjetaSeleccionChange(tarjeta.id, $event.checked)">
+                      <div class="tarjeta-info">
+                        <span class="tarjeta-nombre">{{ tarjeta.nombre }}</span>
+                        <span class="tarjeta-banco">{{ tarjeta.banco }}</span>
+                        <span class="tarjeta-limite">Límite: ${{ tarjeta.limite | number:'1.0-0' }}</span>
+                      </div>
+                    </mat-slide-toggle>
+                  </div>
+                </div>
+
+                <div class="selection-summary">
+                  <mat-chip-set>
+                    <mat-chip color="primary" selected>
+                      {{ configuracion.filtros.tarjetasSeleccionadas.length }} de {{ tarjetas.length }} tarjetas seleccionadas
+                    </mat-chip>
+                  </mat-chip-set>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </mat-tab>
+
+      <!-- Tab: Preferencias -->
+      <mat-tab label="🎨 Preferencias">
+        <div class="tab-content">
+          <mat-card class="config-card">
+            <mat-card-header>
+              <mat-card-title>Preferencias de Visualización</mat-card-title>
+              <mat-card-subtitle>Personaliza cómo se muestran las notificaciones</mat-card-subtitle>
+            </mat-card-header>
+            
+            <mat-card-content>
+              <div class="form-grid">
+                <!-- Incluir detalles de gastos -->
+                <div class="toggle-field">
+                  <mat-slide-toggle 
+                    [checked]="configuracion.preferencias.incluirDetallesGastos"
+                    (change)="actualizarSeccion('preferencias', 'incluirDetallesGastos', $event.checked)">
+                    <mat-icon>receipt</mat-icon>
+                    Incluir detalles de gastos
+                  </mat-slide-toggle>
+                  <p class="field-description">Mostrar información detallada de los gastos en las notificaciones</p>
+                </div>
+
+                <!-- Incluir recomendaciones -->
+                <div class="toggle-field">
+                  <mat-slide-toggle 
+                    [checked]="configuracion.preferencias.incluirRecomendaciones"
+                    (change)="actualizarSeccion('preferencias', 'incluirRecomendaciones', $event.checked)">
+                    <mat-icon>lightbulb</mat-icon>
+                    Incluir recomendaciones
+                  </mat-slide-toggle>
+                  <p class="field-description">Agregar sugerencias y consejos financieros en las notificaciones</p>
+                </div>
+
+                <!-- Formato de moneda -->
+                <mat-form-field appearance="outline">
+                  <mat-label>Formato de moneda</mat-label>
+                  <mat-select 
+                    [value]="configuracion.preferencias.formatoMoneda"
+                    (selectionChange)="actualizarSeccion('preferencias', 'formatoMoneda', $event.value)">
+                    <mat-option *ngFor="let opcion of opcionesMoneda" [value]="opcion.valor">
+                      {{ opcion.etiqueta }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-hint>Moneda para mostrar los montos</mat-hint>
+                </mat-form-field>
+
+                <!-- Idioma -->
+                <mat-form-field appearance="outline">
+                  <mat-label>Idioma</mat-label>
+                  <mat-select 
+                    [value]="configuracion.preferencias.idioma"
+                    (selectionChange)="actualizarSeccion('preferencias', 'idioma', $event.value)">
+                    <mat-option *ngFor="let opcion of opcionesIdioma" [value]="opcion.valor">
+                      {{ opcion.etiqueta }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-hint>Idioma para las notificaciones</mat-hint>
+                </mat-form-field>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </mat-tab>
+
+      <!-- Tab: Gestión -->
+      <mat-tab label="💾 Gestión">
+        <div class="tab-content">
+          <mat-card class="config-card">
+            <mat-card-header>
+              <mat-card-title>Gestión de Configuración</mat-card-title>
+              <mat-card-subtitle>Exportar, importar y resetear configuración</mat-card-subtitle>
+            </mat-card-header>
+            
+            <mat-card-content>
+              <!-- Estadísticas -->
+              <div class="stats-section">
+                <h4>Estadísticas de Configuración</h4>
+                <div class="stats-grid">
+                  <div class="stat-item">
+                    <mat-icon>notifications</mat-icon>
+                    <span class="stat-value">{{ getEstadisticas().canalesHabilitados }}</span>
+                    <span class="stat-label">Canales habilitados</span>
+                  </div>
+                  <div class="stat-item">
+                    <mat-icon>credit_card</mat-icon>
+                    <span class="stat-value">{{ getEstadisticas().tarjetasMonitoreadas }}</span>
+                    <span class="stat-label">Tarjetas monitoreadas</span>
+                  </div>
+                  <div class="stat-item">
+                    <mat-icon>schedule</mat-icon>
+                    <span class="stat-value">
+                      {{ getEstadisticas().ultimaModificacion ? 
+                         (getEstadisticas().ultimaModificacion | date:'short') : 'N/A' }}
+                    </span>
+                    <span class="stat-label">Última modificación</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Acciones de gestión -->
+              <div class="management-actions">
+                <h4>Acciones</h4>
+                <div class="actions-grid">
+                  <button 
+                    mat-raised-button 
+                    color="primary" 
+                    (click)="exportarConfiguracion()">
+                    <mat-icon>download</mat-icon>
+                    Exportar Configuración
+                  </button>
+
+                  <div class="import-section">
+                    <input 
+                      #fileInput 
+                      type="file" 
+                      accept=".json" 
+                      (change)="importarConfiguracion($event)"
+                      style="display: none;">
+                    <button 
+                      mat-raised-button 
+                      color="accent" 
+                      (click)="fileInput.click()">
+                      <mat-icon>upload</mat-icon>
+                      Importar Configuración
+                    </button>
+                  </div>
+
+                  <button 
+                    mat-raised-button 
+                    color="warn" 
+                    (click)="resetearConfiguracion()">
+                    <mat-icon>restore</mat-icon>
+                    Resetear a Valores por Defecto
+                  </button>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+</div>

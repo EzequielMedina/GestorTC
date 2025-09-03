@@ -1,0 +1,340 @@
+<div class="test-container">
+  <div class="header">
+    <h2>🧪 Testing y Preview de Notificaciones</h2>
+    <p class="subtitle">Prueba y visualiza cómo se verán las notificaciones antes de enviarlas</p>
+  </div>
+
+  <div *ngIf="loading" class="loading-container">
+    <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
+    <p>Procesando...</p>
+  </div>
+
+  <div *ngIf="!loading" class="content">
+    <mat-tab-group>
+      <!-- Tab: Configuración de Prueba -->
+      <mat-tab label="⚙️ Configuración">
+        <div class="tab-content">
+          <mat-card class="config-card">
+            <mat-card-header>
+              <mat-card-title>Configuración de Prueba</mat-card-title>
+              <mat-card-subtitle>Define los parámetros para generar notificaciones de prueba</mat-card-subtitle>
+            </mat-card-header>
+            
+            <mat-card-content>
+              <div class="form-grid">
+                <!-- Selección de tarjeta -->
+                <mat-form-field appearance="outline">
+                  <mat-label>Tarjeta de prueba</mat-label>
+                  <mat-select [(value)]="testConfig.tarjetaSeleccionada">
+                    <mat-option *ngFor="let tarjeta of tarjetas" [value]="tarjeta.id">
+                      {{ tarjeta.nombre }} - {{ tarjeta.banco }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-hint>Selecciona la tarjeta para simular la notificación</mat-hint>
+                </mat-form-field>
+
+                <!-- Días de anticipación -->
+                <mat-form-field appearance="outline">
+                  <mat-label>Días de anticipación</mat-label>
+                  <input 
+                    matInput 
+                    type="number" 
+                    [(ngModel)]="testConfig.diasAnticipacion"
+                    min="-30" 
+                    max="30">
+                  <mat-hint>Días antes (-) o después (+) del vencimiento</mat-hint>
+                </mat-form-field>
+
+                <!-- Monto de ejemplo -->
+                <mat-form-field appearance="outline">
+                  <mat-label>Monto de ejemplo</mat-label>
+                  <input 
+                    matInput 
+                    type="number" 
+                    [(ngModel)]="testConfig.montoEjemplo"
+                    min="0" 
+                    step="1000">
+                  <span matPrefix>$&nbsp;</span>
+                  <mat-hint>Monto adeudado para la simulación</mat-hint>
+                </mat-form-field>
+
+                <!-- Nivel de urgencia -->
+                <mat-form-field appearance="outline">
+                  <mat-label>Nivel de urgencia</mat-label>
+                  <mat-select [(value)]="testConfig.urgencia">
+                    <mat-option 
+                      *ngFor="let opcion of opcionesUrgencia" 
+                      [value]="opcion.valor"
+                      [style.color]="opcion.color">
+                      {{ opcion.etiqueta }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-hint>Afecta el tono y diseño de la notificación</mat-hint>
+                </mat-form-field>
+
+                <!-- Tipo de notificación -->
+                <mat-form-field appearance="outline">
+                  <mat-label>Tipo de notificación</mat-label>
+                  <mat-select [(value)]="testConfig.tipoNotificacion">
+                    <mat-option 
+                      *ngFor="let opcion of opcionesTipoNotificacion" 
+                      [value]="opcion.valor">
+                      <mat-icon>{{ opcion.icono }}</mat-icon>
+                      {{ opcion.etiqueta }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-hint>Qué tipo de notificación generar</mat-hint>
+                </mat-form-field>
+
+                <!-- Email de destino -->
+                <mat-form-field appearance="outline">
+                  <mat-label>Email de destino</mat-label>
+                  <input 
+                    matInput 
+                    type="email" 
+                    [(ngModel)]="testConfig.emailDestino"
+                    placeholder="ejemplo@correo.com">
+                  <mat-icon matSuffix>email</mat-icon>
+                  <mat-hint>Email donde se enviará la notificación de prueba</mat-hint>
+                  <mat-error *ngIf="testConfig.emailDestino && !validarEmail(testConfig.emailDestino)">
+                    Email inválido
+                  </mat-error>
+                </mat-form-field>
+
+                <!-- Incluir detalles -->
+                <div class="toggle-field">
+                  <mat-slide-toggle [(ngModel)]="testConfig.incluirDetalles">
+                    <mat-icon>info</mat-icon>
+                    Incluir detalles adicionales
+                  </mat-slide-toggle>
+                  <p class="field-description">Agregar información de gastos y uso de la tarjeta</p>
+                </div>
+
+                <!-- Usar servicio real -->
+                <div class="toggle-field">
+                  <mat-slide-toggle [(ngModel)]="testConfig.usarServicioReal">
+                    <mat-icon>cloud_upload</mat-icon>
+                    Usar servicio real de email
+                  </mat-slide-toggle>
+                  <p class="field-description">Enviar emails reales en lugar de simular el envío</p>
+                </div>
+              </div>
+
+              <div class="actions">
+                <button 
+                  mat-raised-button 
+                  color="primary" 
+                  (click)="generarPreview()"
+                  [disabled]="!testConfig.tarjetaSeleccionada">
+                  <mat-icon>preview</mat-icon>
+                  Generar Preview
+                </button>
+                
+                <button 
+                  mat-raised-button 
+                  color="accent" 
+                  (click)="enviarNotificacionPrueba()"
+                  [disabled]="!previewData.email && !previewData.push">
+                  <mat-icon>send</mat-icon>
+                  Enviar Prueba
+                </button>
+
+                <button 
+                  mat-raised-button 
+                  color="warn" 
+                  (click)="enviarEmailAhora()"
+                  [disabled]="!previewData.email || !testConfig.emailDestino || !validarEmail(testConfig.emailDestino)">
+                  <mat-icon>email</mat-icon>
+                  Enviar Email Ahora
+                </button>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </mat-tab>
+
+      <!-- Tab: Tests Predefinidos -->
+      <mat-tab label="🎯 Tests Predefinidos">
+        <div class="tab-content">
+          <mat-card class="tests-card">
+            <mat-card-header>
+              <mat-card-title>Escenarios de Prueba</mat-card-title>
+              <mat-card-subtitle>Ejecuta tests predefinidos para diferentes situaciones</mat-card-subtitle>
+            </mat-card-header>
+            
+            <mat-card-content>
+              <div class="tests-grid">
+                <div 
+                  *ngFor="let test of testsPredefinidos" 
+                  class="test-item"
+                  [class.email]="test.tipo === 'email'"
+                  [class.push]="test.tipo === 'push'">
+                  <div class="test-header">
+                    <div class="test-icon">
+                      <mat-icon>{{ test.tipo === 'email' ? 'email' : 'notifications' }}</mat-icon>
+                    </div>
+                    <div class="test-info">
+                      <h4>{{ test.titulo }}</h4>
+                      <p>{{ test.descripcion }}</p>
+                    </div>
+                    <div class="test-urgencia">
+                      <mat-chip 
+                        [style.background-color]="getUrgenciaColor(test.urgencia)"
+                        [style.color]="'white'">
+                        {{ test.urgencia.toUpperCase() }}
+                      </mat-chip>
+                    </div>
+                  </div>
+                  
+                  <div class="test-details">
+                    <div class="detail-item">
+                      <span class="label">Anticipación:</span>
+                      <span class="value">{{ test.diasAnticipacion }} días</span>
+                    </div>
+                    <div class="detail-item">
+                      <span class="label">Monto:</span>
+                      <span class="value">${{ test.montoEjemplo | number:'1.0-0' }}</span>
+                    </div>
+                    <div class="detail-item">
+                      <span class="label">Tipo:</span>
+                      <span class="value">{{ test.tipo === 'email' ? 'Email' : 'Push' }}</span>
+                    </div>
+                  </div>
+                  
+                  <div class="test-actions">
+                    <button 
+                      mat-raised-button 
+                      color="primary" 
+                      (click)="ejecutarTestPredefinido(test)"
+                      [disabled]="!testConfig.tarjetaSeleccionada">
+                      <mat-icon>play_arrow</mat-icon>
+                      Ejecutar Test
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </mat-tab>
+
+      <!-- Tab: Preview Email -->
+      <mat-tab label="📧 Preview Email" [disabled]="!previewData.email">
+        <div class="tab-content">
+          <mat-card class="preview-card">
+            <mat-card-header>
+              <mat-card-title>Preview de Email</mat-card-title>
+              <mat-card-subtitle>Vista previa del email que se enviará</mat-card-subtitle>
+            </mat-card-header>
+            
+            <mat-card-content *ngIf="previewData.email">
+              <!-- Información del email -->
+              <div class="email-info">
+                <div class="info-item">
+                  <strong>Asunto:</strong> {{ previewData.email.asunto }}
+                </div>
+                <div class="info-item">
+                  <strong>Para:</strong> usuario@ejemplo.com (ejemplo)
+                </div>
+              </div>
+              
+              <mat-divider></mat-divider>
+              
+              <!-- Tabs para HTML y texto -->
+              <mat-tab-group>
+                <mat-tab label="Vista HTML">
+                  <div class="email-preview">
+                    <div 
+                      class="email-html" 
+                      [innerHTML]="previewData.email.html">
+                    </div>
+                  </div>
+                </mat-tab>
+                
+                <mat-tab label="Texto Plano">
+                  <div class="email-preview">
+                    <pre class="email-text">{{ previewData.email.texto }}</pre>
+                  </div>
+                </mat-tab>
+              </mat-tab-group>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </mat-tab>
+
+      <!-- Tab: Preview Push -->
+      <mat-tab label="🔔 Preview Push" [disabled]="!previewData.push">
+        <div class="tab-content">
+          <mat-card class="preview-card">
+            <mat-card-header>
+              <mat-card-title>Preview de Notificación Push</mat-card-title>
+              <mat-card-subtitle>Vista previa de la notificación push</mat-card-subtitle>
+            </mat-card-header>
+            
+            <mat-card-content *ngIf="previewData.push">
+              <!-- Simulación de notificación -->
+              <div class="push-simulation">
+                <div class="notification-mockup">
+                  <div class="notification-header">
+                    <img [src]="previewData.push.icon" alt="Icono" class="notification-icon">
+                    <div class="notification-app">
+                      <span class="app-name">Gestor TC</span>
+                      <span class="notification-time">ahora</span>
+                    </div>
+                    <img [src]="previewData.push.badge" alt="Badge" class="notification-badge">
+                  </div>
+                  
+                  <div class="notification-content">
+                    <h4 class="notification-title">{{ previewData.push.title }}</h4>
+                    <p class="notification-body">{{ previewData.push.body }}</p>
+                    
+                    <div *ngIf="previewData.push.image" class="notification-image">
+                      <img [src]="previewData.push.image" alt="Imagen de notificación">
+                    </div>
+                  </div>
+                  
+                  <div *ngIf="previewData.push.actions?.length" class="notification-actions">
+                    <button 
+                      *ngFor="let action of previewData.push.actions" 
+                      class="notification-action">
+                      {{ action.title }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <mat-divider></mat-divider>
+              
+              <!-- Detalles técnicos -->
+              <div class="push-details">
+                <h4>Detalles Técnicos</h4>
+                <div class="details-grid">
+                  <div class="detail-item">
+                    <span class="label">Título:</span>
+                    <span class="value">{{ previewData.push.title }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="label">Cuerpo:</span>
+                    <span class="value">{{ previewData.push.body }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="label">Icono:</span>
+                    <span class="value">{{ previewData.push.icon }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="label">Badge:</span>
+                    <span class="value">{{ previewData.push.badge }}</span>
+                  </div>
+                  <div *ngIf="previewData.push.actions?.length" class="detail-item full-width">
+                    <span class="label">Acciones:</span>
+                    <span class="value" *ngIf="previewData.push.actions && previewData.push.actions.length > 0">{{ previewData.push.actions.length }} acciones disponibles</span>
+                  </div>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+</div>

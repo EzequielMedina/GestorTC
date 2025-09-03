@@ -55,6 +55,21 @@ export const routes: Routes = [
     title: 'Reportes WhatsApp - Gestor de Tarjetas de Crédito'
   },
   {
+    path: 'notificaciones',
+    loadComponent: () => import('./components/notificaciones-config/notificaciones-config.component').then(m => m.NotificacionesConfigComponent),
+    title: 'Configuración de Notificaciones - Gestor de Tarjetas de Crédito'
+  },
+  {
+    path: 'preferencias',
+    loadComponent: () => import('./components/preferencias-usuario/preferencias-usuario.component').then(m => m.PreferenciasUsuarioComponent),
+    title: 'Preferencias de Usuario - Gestor de Tarjetas de Crédito'
+  },
+  {
+    path: 'test-notificaciones',
+    loadComponent: () => import('./components/test-notificaciones/test-notificaciones.component').then(m => m.TestNotificacionesComponent),
+    title: 'Testing de Notificaciones - Gestor de Tarjetas de Crédito'
+  },
+  {
     path: '**',
     redirectTo: 'tarjetas'
   }

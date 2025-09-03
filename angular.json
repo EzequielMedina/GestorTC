@@ -22,6 +22,11 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "sw.js",
+                "input": "src",
+                "output": "/"
               }
             ],
             "styles": [
@@ -80,6 +85,11 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "sw.js",
+                "input": "src",
+                "output": "/"
               }
             ],
             "styles": [
