@@ -9,7 +9,8 @@ export class EmailVencimientoTemplate {
    * Genera el HTML del email de vencimiento
    */
   static generarHTML(datos: DatosVencimientoTarjeta): string {
-    const fechaFormateada = this.formatearFecha(datos.fechaVencimiento);
+    const fechaVencimientoFormateada = this.formatearFecha(datos.fechaVencimiento);
+    const fechaCierreFormateada = datos.fechaCierre ? this.formatearFecha(datos.fechaCierre) : null;
     const montoFormateado = this.formatearMonto(datos.montoAdeudado);
     const porcentajeFormateado = datos.porcentajeUso.toFixed(1);
     const saldoFormateado = datos.saldoDisponible ? this.formatearMonto(datos.saldoDisponible) : 'No disponible';
@@ -59,9 +60,17 @@ export class EmailVencimientoTemplate {
                 </div>
                 
                 <div class="detalles-grid">
+                    ${fechaCierreFormateada ? `
                     <div class="detalle-item">
+                        <span class="label">Fecha de Cierre:</span>
+                        <span class="valor fecha">${fechaCierreFormateada}</span>
+                        <small class="descripcion">Último día para compras</small>
+                    </div>` : ''}
+                    
+                    <div class="detalle-item destacado">
                         <span class="label">Fecha de Vencimiento:</span>
-                        <span class="valor fecha">${fechaFormateada}</span>
+                        <span class="valor fecha">${fechaVencimientoFormateada}</span>
+                        <small class="descripcion">Día de pago</small>
                     </div>
                     
                     <div class="detalle-item destacado">
@@ -119,7 +128,8 @@ export class EmailVencimientoTemplate {
    * Genera el texto plano del email (fallback)
    */
   static generarTextoPlano(datos: DatosVencimientoTarjeta): string {
-    const fechaFormateada = this.formatearFecha(datos.fechaVencimiento);
+    const fechaVencimientoFormateada = this.formatearFecha(datos.fechaVencimiento);
+    const fechaCierreFormateada = datos.fechaCierre ? this.formatearFecha(datos.fechaCierre) : null;
     const montoFormateado = this.formatearMonto(datos.montoAdeudado);
     const urgencia = this.determinarUrgencia(datos.diasHastaVencimiento);
     
@@ -129,7 +139,7 @@ export class EmailVencimientoTemplate {
 ${this.obtenerTextoUrgencia(urgencia).toUpperCase()}
 
 Tarjeta: ${datos.nombreTarjeta}
-Fecha de Vencimiento: ${fechaFormateada}
+${fechaCierreFormateada ? `Fecha de Cierre: ${fechaCierreFormateada} (último día para compras)\n` : ''}Fecha de Vencimiento: ${fechaVencimientoFormateada} (día de pago)
 Monto a Pagar: ${montoFormateado}
 Días Restantes: ${datos.diasHastaVencimiento === 0 ? 'HOY' : `${datos.diasHastaVencimiento} días`}
 
@@ -307,6 +317,14 @@ Enviado el ${this.formatearFechaCompleta(new Date())}
         
         .valor.fecha {
             color: #7c3aed;
+        }
+        
+        .descripcion {
+            display: block;
+            font-size: 0.8em;
+            color: #7f8c8d;
+            margin-top: 2px;
+            font-style: italic;
         }
         
         .barra-progreso {

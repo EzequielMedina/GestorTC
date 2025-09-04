@@ -13,6 +13,7 @@ import { CalculoVencimientoService } from './services/calculo-vencimiento.servic
 import { PushNotificationService } from './services/push-notification.service';
 import { ConfiguracionUsuarioService } from './services/configuracion-usuario.service';
 import { EmailService } from './services/email.service';
+import { ServiceWorkerService } from './services/service-worker.service';
 
 // Registrar los datos de localización en español
 registerLocaleData(localeEs);
@@ -42,6 +43,7 @@ export const appConfig: ApplicationConfig = {
     { provide: LOCALE_ID, useValue: 'es' },
     { provide: MAT_DATE_LOCALE, useValue: 'es' },
     { provide: MAT_DATE_FORMATS, useValue: MY_FORMATS },
+    ServiceWorkerService,
     NotificacionService,
     VencimientoService,
     CalculoVencimientoService,

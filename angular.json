@@ -27,6 +27,21 @@
                 "glob": "sw.js",
                 "input": "src",
                 "output": "/"
+              },
+              {
+                "glob": "manifest.json",
+                "input": "src",
+                "output": "/"
+              },
+              {
+                "glob": "**/*",
+                "input": "src/assets",
+                "output": "/assets"
+              },
+              {
+                "glob": "**/*",
+                "input": "src/debug",
+                "output": "/debug"
               }
             ],
             "styles": [

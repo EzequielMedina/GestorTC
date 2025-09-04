@@ -2,14 +2,67 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <title>GestorTc</title>
+  <title>Gestor de Tarjetas de Crédito</title>
   <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  
+  <!-- PWA Configuration -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1976d2">
+  <meta name="background-color" content="#ffffff">
+  <meta name="display" content="standalone">
+  <meta name="orientation" content="portrait-primary">
+  
+  <!-- App Description -->
+  <meta name="description" content="Aplicación para gestionar tarjetas de crédito, gastos y notificaciones de vencimiento">
+  <meta name="keywords" content="tarjetas de crédito, finanzas, gastos, notificaciones, vencimientos">
+  <meta name="author" content="Gestor TC">
+  
+  <!-- iOS PWA Support -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Gestor TC">
+  <link rel="apple-touch-icon" href="/assets/icons/icon-192x192.svg">
+  <link rel="apple-touch-icon" sizes="152x152" href="/assets/icons/icon-152x152.svg">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/icon-192x192.svg">
+  
+  <!-- Windows PWA Support -->
+  <meta name="msapplication-TileImage" content="/assets/icons/icon-144x144.svg">
+  <meta name="msapplication-TileColor" content="#1976d2">
+  <meta name="msapplication-config" content="/browserconfig.xml">
+  
+  <!-- Icons -->
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="icon" type="image/svg+xml" sizes="32x32" href="/assets/icons/icon-32x32.svg">
+  <link rel="icon" type="image/svg+xml" sizes="16x16" href="/assets/icons/icon-16x16.svg">
+  
+  <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  
+  <!-- Security Headers -->
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta http-equiv="X-XSS-Protection" content="1; mode=block">
 </head>
 <body>
-  <app-root></app-root>
+  <app-root>
+    <!-- Loading fallback -->
+    <div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: Roboto, sans-serif;">
+      <div style="text-align: center;">
+        <div style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #1976d2; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
+        <p style="color: #666; margin: 0;">Cargando Gestor TC...</p>
+      </div>
+    </div>
+    <style>
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+  </app-root>
+  
+  <!-- Script de verificación de errores en desarrollo -->
+  <script src="debug/verificar-errores-consola.js"></script>
 </body>
 </html>

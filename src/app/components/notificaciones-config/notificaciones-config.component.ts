@@ -22,6 +22,7 @@ import {
   ResultadoNotificacion 
 } from '../../models/notificacion.model';
 import { TarjetaService } from '../../services/tarjeta';
+import { CalculoVencimientoService } from '../../services/calculo-vencimiento.service';
 import { Tarjeta } from '../../models/tarjeta.model';
 
 @Component({
@@ -104,6 +105,7 @@ export class NotificacionesConfigComponent implements OnInit, OnDestroy {
     private notificacionService: NotificacionService,
     private vencimientoService: VencimientoService,
     private tarjetaService: TarjetaService,
+    private calculoVencimientoService: CalculoVencimientoService,
     private pushNotificationService: PushNotificationService,
     private configuracionUsuarioService: ConfiguracionUsuarioService,
     private snackBar: MatSnackBar
@@ -245,7 +247,24 @@ export class NotificacionesConfigComponent implements OnInit, OnDestroy {
     
     try {
         if (this.configuracion) {
+          // Guardar en ConfiguracionUsuarioService (localStorage: gestor-tc-config-usuario)
           this.configuracionUsuarioService.guardarConfiguracion(this.configuracion);
+          
+          // SINCRONIZAR: También guardar en NotificacionService (localStorage: gestor-tc-config-notificaciones)
+          const configNotificacion = {
+          id: Date.now().toString(),
+          emailHabilitado: this.configuracion.canales.email,
+          pushHabilitado: this.configuracion.canales.push,
+          diasAnticipacion: this.configuracion.tiempos.diasAnticipacion,
+          horaNotificacion: this.configuracion.tiempos.horaNotificacion,
+          tiposHabilitados: [TipoNotificacion.VENCIMIENTO_TARJETA],
+          emailDestino: this.configuracion.emailDestino
+        };
+          
+          this.notificacionService.guardarConfiguracion(configNotificacion).subscribe({
+            next: () => console.log('✅ Configuración sincronizada con NotificacionService'),
+            error: (error) => console.error('❌ Error sincronizando con NotificacionService:', error)
+          });
         }
       this.configuracionOriginal = { ...this.configuracion };
       this.snackBar.open('✅ Configuración guardada correctamente', 'Cerrar', { duration: 3000 });
@@ -309,6 +328,12 @@ export class NotificacionesConfigComponent implements OnInit, OnDestroy {
       return;
     }
     
+    // Verificar que el email esté configurado si está habilitado
+    if (this.configuracion?.canales.email && !this.configuracion.emailDestino) {
+      alert('❌ Por favor configura un email de destino antes de probar');
+      return;
+    }
+    
     this.probandoNotificacion = true;
     
     try {
@@ -319,36 +344,55 @@ export class NotificacionesConfigComponent implements OnInit, OnDestroy {
         return;
       }
       
-      // Crear datos de prueba
-      const datosVencimiento: DatosVencimientoTarjeta = {
-        tarjetaId: tarjeta.id,
-        nombreTarjeta: tarjeta.nombre,
-        banco: tarjeta.banco || 'Banco de Prueba',
-        diaVencimiento: tarjeta.diaVencimiento || 15,
-        montoAPagar: 15000.50,
-        montoAdeudado: 15000.50,
-        ultimosDigitos: tarjeta.ultimosDigitos || '1234',
-        fechaVencimiento: new Date(),
-        diasHastaVencimiento: 5,
-        porcentajeUso: 75,
-        saldoDisponible: tarjeta.limite - 15000.50,
-        gastosRecientes: 3,
-        cuotasPendientes: 2,
-        montoProximoMes: 9000.30
-      };
-      
-      const resultado: ResultadoNotificacion = await this.notificacionService.enviarNotificacionVencimiento(datosVencimiento);
-      
-      if (resultado.exito) {
-        alert(`✅ Notificación de prueba enviada correctamente\n\nTipo: ${resultado.tipoEnvio}\nFecha: ${new Date(resultado.fechaEnvio).toLocaleString()}`);
-      } else {
-        alert(`❌ Error al enviar notificación de prueba\n\nError: ${resultado.error || resultado.mensaje}`);
-      }
+      // Obtener datos reales de vencimiento de la tarjeta
+      this.calculoVencimientoService.getDatosVencimientoTarjeta$(this.tarjetaSeleccionadaTest)
+        .subscribe(async (datosVencimiento) => {
+          if (!datosVencimiento) {
+            alert('❌ No se pudieron obtener los datos de vencimiento de la tarjeta');
+            this.probandoNotificacion = false;
+            return;
+          }
+          
+          try {
+            // Actualizar la configuración del servicio de notificación para incluir email
+            if (this.configuracion) {
+              const configNotificacion = {
+               id: Date.now().toString(),
+               emailHabilitado: this.configuracion.canales.email,
+               pushHabilitado: this.configuracion.canales.push,
+               diasAnticipacion: this.configuracion.tiempos.diasAnticipacion,
+               horaNotificacion: this.configuracion.tiempos.horaNotificacion,
+               tiposHabilitados: [TipoNotificacion.VENCIMIENTO_TARJETA],
+               emailDestino: this.configuracion.emailDestino
+             };
+              this.notificacionService.guardarConfiguracion(configNotificacion).subscribe();
+            }
+            
+            const resultado: ResultadoNotificacion = await this.notificacionService.enviarNotificacionVencimiento(datosVencimiento);
+            
+            if (resultado.exito) {
+              const tipoEnvio = resultado.tipoEnvio === 'ambos' ? 'Email y Push' : 
+                              resultado.tipoEnvio === 'email' ? 'Email' : 'Push';
+              const emailInfo = this.configuracion?.canales.email ? `\nEmail: ${this.configuracion.emailDestino}` : '';
+              alert(`✅ Notificación enviada correctamente con datos reales\n\n` +
+                    `Tarjeta: ${datosVencimiento.nombreTarjeta}\n` +
+                    `Monto a pagar: $${datosVencimiento.montoAPagar.toLocaleString('es-AR', { minimumFractionDigits: 2 })}\n` +
+                    `Tipo de envío: ${tipoEnvio}${emailInfo}\n` +
+                    `Fecha: ${new Date(resultado.fechaEnvio).toLocaleString()}`);
+            } else {
+              alert(`❌ Error al enviar notificación\n\nError: ${resultado.error || resultado.mensaje}`);
+            }
+          } catch (error) {
+            console.error('Error al enviar notificación:', error);
+            alert('❌ Error al enviar la notificación');
+          } finally {
+            this.probandoNotificacion = false;
+          }
+        });
       
     } catch (error) {
-      console.error('Error al probar notificación:', error);
-      alert('❌ Error al probar la notificación');
-    } finally {
+      console.error('Error al obtener datos de vencimiento:', error);
+      alert('❌ Error al obtener los datos de la tarjeta');
       this.probandoNotificacion = false;
     }
   }
@@ -440,7 +484,25 @@ export class NotificacionesConfigComponent implements OnInit, OnDestroy {
     // Guardar automáticamente los cambios
     try {
       if (this.configuracion) {
+        // Guardar en ConfiguracionUsuarioService
         this.configuracionUsuarioService.guardarConfiguracion(this.configuracion);
+        
+        // SINCRONIZAR: También guardar en NotificacionService
+        const configNotificacion = {
+          id: Date.now().toString(),
+          emailHabilitado: this.configuracion.canales.email,
+          pushHabilitado: this.configuracion.canales.push,
+          diasAnticipacion: this.configuracion.tiempos.diasAnticipacion,
+          horaNotificacion: this.configuracion.tiempos.horaNotificacion,
+          tiposHabilitados: [TipoNotificacion.VENCIMIENTO_TARJETA],
+          emailDestino: this.configuracion.emailDestino
+        };
+        
+        this.notificacionService.guardarConfiguracion(configNotificacion).subscribe({
+          next: () => console.log('✅ Configuración sincronizada automáticamente'),
+          error: (error) => console.error('❌ Error en sincronización automática:', error)
+        });
+        
         console.log('Configuración actualizada automáticamente');
       }
     } catch (error) {

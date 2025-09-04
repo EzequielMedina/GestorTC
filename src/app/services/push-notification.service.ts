@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, from } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
+import { ServiceWorkerService } from './service-worker.service';
 
 export interface PushSubscriptionInfo {
   endpoint: string;
@@ -47,7 +48,7 @@ export class PushNotificationService {
 
   public status$ = this.statusSubject.asObservable();
 
-  constructor() {
+  constructor(private serviceWorkerService: ServiceWorkerService) {
     this.inicializar();
   }
 
@@ -59,7 +60,7 @@ export class PushNotificationService {
       const isSupported = this.verificarSoporte();
       
       if (isSupported) {
-        await this.registrarServiceWorker();
+        await this.obtenerServiceWorkerRegistration();
         await this.verificarSuscripcionExistente();
       }
       
@@ -80,25 +81,18 @@ export class PushNotificationService {
   }
 
   /**
-   * Registra el Service Worker
+   * Obtiene el registro del Service Worker
    */
-  private async registrarServiceWorker(): Promise<void> {
+  private async obtenerServiceWorkerRegistration(): Promise<void> {
     try {
-      const registration = await navigator.serviceWorker.register('/sw.js', {
-        scope: '/'
-      });
-      
-      this.serviceWorkerRegistration = registration;
-      
-      console.log('Service Worker registrado:', registration.scope);
-      
-      // Escuchar actualizaciones del Service Worker
-      registration.addEventListener('updatefound', () => {
-        console.log('Nueva versión del Service Worker disponible');
-      });
-      
+      this.serviceWorkerRegistration = await this.serviceWorkerService.getRegistration();
+      if (this.serviceWorkerRegistration) {
+        console.log('Push Notifications: Service Worker listo');
+      } else {
+        throw new Error('Service Worker no está disponible');
+      }
     } catch (error) {
-      console.error('Error registrando Service Worker:', error);
+      console.error('Error obteniendo Service Worker registration:', error);
       throw error;
     }
   }
@@ -213,9 +207,10 @@ export class PushNotificationService {
         return false;
       }
 
+      // Si no está suscrito, intentar mostrar notificación local
       if (!status.isSubscribed) {
-        console.warn('Usuario no suscrito a push notifications');
-        return false;
+        console.warn('Usuario no suscrito a push notifications, usando notificación local');
+        return await this.mostrarNotificacionVencimientoLocal(datos);
       }
 
       // Generar notificación usando el template
@@ -233,6 +228,95 @@ export class PushNotificationService {
       
     } catch (error) {
       console.error('Error enviando notificación de vencimiento:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Muestra una notificación de vencimiento local (fallback)
+   */
+  private async mostrarNotificacionVencimientoLocal(datos: any): Promise<boolean> {
+    try {
+      if (Notification.permission !== 'granted') {
+        const permission = await this.solicitarPermisos();
+        if (permission !== 'granted') {
+          console.warn('Permisos de notificación denegados');
+          return false;
+        }
+      }
+
+      const notification = new Notification(`Vencimiento de ${datos.nombreTarjeta}`, {
+        body: `Tu tarjeta vence el ${datos.fechaVencimiento}. ${datos.diasRestantes} días restantes.`,
+        icon: '/assets/icons/icon-192x192.png',
+        badge: '/assets/icons/badge-72x72.png',
+        tag: `vencimiento-${datos.numeroTarjeta}`,
+        requireInteraction: true
+      });
+
+      notification.onclick = () => {
+        window.focus();
+        notification.close();
+      };
+
+      return true;
+    } catch (error) {
+      console.error('Error mostrando notificación local:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Programa una notificación para envío posterior (Background Sync)
+   */
+  public async programarNotificacionVencimiento(datos: any, fechaEnvio: Date): Promise<boolean> {
+    try {
+      if (!this.serviceWorkerRegistration) {
+        console.warn('Service Worker no disponible para programar notificación');
+        return false;
+      }
+
+      // Enviar datos al Service Worker para programar la notificación
+      const message = {
+        type: 'SCHEDULE_NOTIFICATION',
+        payload: {
+          datos,
+          fechaEnvio: fechaEnvio.getTime(),
+          id: `vencimiento-${datos.numeroTarjeta}-${Date.now()}`
+        }
+      };
+
+      this.serviceWorkerRegistration.active?.postMessage(message);
+      
+      console.log('Notificación programada para:', fechaEnvio, datos.nombreTarjeta);
+      return true;
+      
+    } catch (error) {
+      console.error('Error programando notificación:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Cancela una notificación programada
+   */
+  public async cancelarNotificacionProgramada(numeroTarjeta: string): Promise<boolean> {
+    try {
+      if (!this.serviceWorkerRegistration) {
+        return false;
+      }
+
+      const message = {
+        type: 'CANCEL_NOTIFICATION',
+        payload: {
+          tag: `vencimiento-${numeroTarjeta}`
+        }
+      };
+
+      this.serviceWorkerRegistration.active?.postMessage(message);
+      return true;
+      
+    } catch (error) {
+      console.error('Error cancelando notificación programada:', error);
       return false;
     }
   }
@@ -314,6 +398,20 @@ export class PushNotificationService {
    */
   public getStatus(): Observable<PushNotificationStatus> {
     return this.status$;
+  }
+
+  /**
+   * Verifica si las notificaciones push están soportadas
+   */
+  public esSoportado(): boolean {
+    return this.statusSubject.value.isSupported;
+  }
+
+  /**
+   * Verifica si el usuario está suscrito a notificaciones push
+   */
+  public estaUsuarioSuscrito(): boolean {
+    return this.statusSubject.value.isSubscribed;
   }
 
   /**

@@ -5,6 +5,8 @@ import { TarjetaService } from './tarjeta';
 import { ResumenService } from './resumen.service';
 import { NotificacionService } from './notificacion.service';
 import { CalculoVencimientoService } from './calculo-vencimiento.service';
+import { BackgroundSyncService } from './background-sync.service';
+import { PushNotificationService } from './push-notification.service';
 import { Tarjeta } from '../models/tarjeta.model';
 import { DatosVencimientoTarjeta, ResultadoNotificacion } from '../models/notificacion.model';
 
@@ -22,10 +24,14 @@ export class VencimientoService {
     private tarjetaService: TarjetaService,
     private resumenService: ResumenService,
     private notificacionService: NotificacionService,
-    private calculoVencimientoService: CalculoVencimientoService
+    private calculoVencimientoService: CalculoVencimientoService,
+    private backgroundSyncService: BackgroundSyncService,
+    private pushNotificationService: PushNotificationService
   ) {
     this.cargarUltimaVerificacion();
     this.iniciarVerificacionPeriodica();
+    this.configurarBackgroundSync();
+    this.configurarPushNotifications();
   }
 
   /**
@@ -118,10 +124,60 @@ export class VencimientoService {
       for (const tarjeta of tarjetasQueVencen) {
         try {
           const datosVencimiento = await this.obtenerDatosVencimiento(tarjeta);
-          const resultado = await this.notificacionService.enviarNotificacionVencimiento(datosVencimiento);
-          resultados.push(resultado);
           
-          console.log(`📧 Notificación enviada para ${tarjeta.nombre}:`, resultado.exito ? '✅' : '❌');
+          // Enviar notificación tradicional
+          const resultadoTradicional = await this.notificacionService.enviarNotificacionVencimiento(datosVencimiento);
+          
+          // Enviar notificación push a través del Service Worker
+          let resultadoPush: ResultadoNotificacion;
+          try {
+            await this.pushNotificationService.enviarNotificacionVencimiento(datosVencimiento);
+            resultadoPush = {
+              exito: true,
+              mensaje: `Notificación push enviada para ${tarjeta.nombre}`,
+              tipoEnvio: 'push',
+              fechaEnvio: new Date().toISOString()
+            };
+            console.log(`🔔 Notificación push enviada para ${tarjeta.nombre}: ✅`);
+          } catch (pushError) {
+            console.warn(`⚠️ Error en notificación push para ${tarjeta.nombre}:`, pushError);
+            resultadoPush = {
+              exito: false,
+              mensaje: `Error en notificación push para ${tarjeta.nombre}`,
+              tipoEnvio: 'push',
+              fechaEnvio: new Date().toISOString(),
+              error: pushError?.toString()
+            };
+          }
+          
+          // Programar notificación para cuando la app esté cerrada
+          try {
+            const fechaVencimiento = this.calcularFechaVencimiento(tarjeta.diaVencimiento);
+            const tiempoHastaVencimiento = fechaVencimiento.getTime() - Date.now();
+            
+            if (tiempoHastaVencimiento > 0) {
+              await this.pushNotificationService.programarNotificacionVencimiento(
+                datosVencimiento,
+                fechaVencimiento
+              );
+              console.log(`⏰ Notificación programada para ${tarjeta.nombre}`);
+            }
+          } catch (scheduleError) {
+            console.warn(`⚠️ Error programando notificación para ${tarjeta.nombre}:`, scheduleError);
+          }
+          
+          // Combinar resultados
+          const resultadoCombinado: ResultadoNotificacion = {
+            exito: resultadoTradicional.exito || resultadoPush.exito,
+            mensaje: `${resultadoTradicional.mensaje} | ${resultadoPush.mensaje}`,
+            tipoEnvio: 'ambos',
+            fechaEnvio: new Date().toISOString(),
+            error: resultadoTradicional.error || resultadoPush.error
+          };
+          
+          resultados.push(resultadoCombinado);
+          
+          console.log(`📧 Notificación completa para ${tarjeta.nombre}:`, resultadoCombinado.exito ? '✅' : '❌');
         } catch (error) {
           console.error(`Error al procesar tarjeta ${tarjeta.nombre}:`, error);
           resultados.push({
@@ -277,16 +333,51 @@ export class VencimientoService {
    */
   private debeVerificarHoy(): boolean {
     const ultimaVerificacion = this.ultimaVerificacionSubject.value;
+    const configuracion = this.notificacionService.obtenerConfiguracion();
+    const ahora = new Date();
     
-    if (!ultimaVerificacion) {
-      return true; // Primera vez
+    // Verificar si ya se envió hoy a la hora configurada
+    if (this.yaSeEnvioHoy()) {
+      return false;
     }
     
-    const hoy = new Date();
+    if (!ultimaVerificacion) {
+      // Primera vez - verificar si es la hora correcta
+      return this.esHoraCorrecta(ahora, configuracion.horaNotificacion);
+    }
+    
     const fechaUltimaVerificacion = new Date(ultimaVerificacion);
     
-    // Verificar si es un día diferente
-    return hoy.toDateString() !== fechaUltimaVerificacion.toDateString();
+    // Si es un día diferente, verificar si es la hora correcta
+    if (ahora.toDateString() !== fechaUltimaVerificacion.toDateString()) {
+      return this.esHoraCorrecta(ahora, configuracion.horaNotificacion);
+    }
+    
+    // Mismo día - verificar si es la hora correcta y no se ha enviado aún
+    return this.esHoraCorrecta(ahora, configuracion.horaNotificacion);
+  }
+
+  /**
+   * Verifica si la hora actual coincide con la hora configurada para notificaciones
+   */
+  private esHoraCorrecta(fechaActual: Date, horaConfiguracion: string): boolean {
+    try {
+      const [horaConfig, minutosConfig] = horaConfiguracion.split(':').map(Number);
+      const horaActual = fechaActual.getHours();
+      const minutosActuales = fechaActual.getMinutes();
+      
+      // Verificar si estamos en la hora exacta o dentro de los próximos 5 minutos
+      // para evitar perder la notificación si el sistema se ejecuta con pequeños retrasos
+      const horaCoincide = horaActual === horaConfig;
+      const minutosEnRango = minutosActuales >= minutosConfig && minutosActuales < (minutosConfig + 5);
+      
+      console.log(`🕐 Verificando hora: ${horaActual}:${minutosActuales.toString().padStart(2, '0')} vs configurada: ${horaConfiguracion}`);
+      
+      return horaCoincide && minutosEnRango;
+    } catch (error) {
+      console.error('Error al verificar hora de notificación:', error);
+      return false;
+    }
   }
 
   /**
@@ -296,6 +387,37 @@ export class VencimientoService {
     const ahora = new Date();
     this.ultimaVerificacionSubject.next(ahora);
     localStorage.setItem(this.STORAGE_KEY_ULTIMA_VERIFICACION, ahora.toISOString());
+    
+    console.log(`✅ Última verificación actualizada: ${ahora.toLocaleString('es-AR')}`);
+  }
+
+  /**
+   * Verifica si ya se envió una notificación hoy a la hora configurada
+   */
+  private yaSeEnvioHoy(): boolean {
+    const ultimaVerificacion = this.ultimaVerificacionSubject.value;
+    const configuracion = this.notificacionService.obtenerConfiguracion();
+    
+    if (!ultimaVerificacion) {
+      return false;
+    }
+    
+    const ahora = new Date();
+    const fechaUltimaVerificacion = new Date(ultimaVerificacion);
+    
+    // Si es el mismo día
+    if (ahora.toDateString() === fechaUltimaVerificacion.toDateString()) {
+      const [horaConfig, minutosConfig] = configuracion.horaNotificacion.split(':').map(Number);
+      const horaUltimaVerificacion = fechaUltimaVerificacion.getHours();
+      const minutosUltimaVerificacion = fechaUltimaVerificacion.getMinutes();
+      
+      // Si la última verificación fue en la misma hora configurada
+      return horaUltimaVerificacion === horaConfig && 
+             minutosUltimaVerificacion >= minutosConfig && 
+             minutosUltimaVerificacion < (minutosConfig + 5);
+    }
+    
+    return false;
   }
 
   /**
@@ -336,11 +458,189 @@ export class VencimientoService {
   }
 
   /**
+   * Configura el Background Sync Service para verificaciones automáticas
+   */
+  private configurarBackgroundSync(): void {
+    // Iniciar verificación periódica usando Background Sync
+    this.backgroundSyncService.iniciarVerificacionPeriodica();
+    this.backgroundSyncService.programarVerificacionVencimientos();
+
+    console.log('🔄 Background Sync configurado para verificación de vencimientos');
+  }
+
+  /**
+   * Configura las notificaciones push para vencimientos
+   */
+  private async configurarPushNotifications(): Promise<void> {
+    try {
+      // Solicitar permisos si no están concedidos
+      const permisosConcedidos = await this.pushNotificationService.solicitarPermisos();
+      
+      if (permisosConcedidos === 'granted') {
+        console.log('✅ Permisos de notificación concedidos');
+        
+        // Intentar suscribir al usuario
+        const suscripcionExitosa = await this.pushNotificationService.suscribir();
+        
+        if (suscripcionExitosa) {
+          console.log('🔔 Usuario suscrito a notificaciones push');
+        } else {
+          console.log('⚠️ No se pudo suscribir al usuario a notificaciones push');
+        }
+      } else {
+        console.log('⚠️ Permisos de notificación no concedidos');
+      }
+    } catch (error) {
+      console.error('❌ Error configurando push notifications:', error);
+    }
+  }
+
+  /**
+   * Ejecutor para el Background Sync Service
+   */
+  private async ejecutarVerificacionBackground(): Promise<void> {
+    try {
+      if (!this.debeVerificarHoy()) {
+        console.log('⏭️ No es necesario verificar vencimientos ahora');
+        return;
+      }
+
+      console.log('🔍 Ejecutando verificación de vencimientos en background');
+      
+      const resultados = await this.verificarVencimientos().toPromise();
+      
+      if (resultados && resultados.length > 0) {
+        console.log(`✅ Verificación background completada: ${resultados.length} notificaciones procesadas`);
+      } else {
+        console.log('✅ Verificación background completada: No hay vencimientos');
+      }
+      
+    } catch (error) {
+      console.error('❌ Error en verificación background:', error);
+      throw error; // Re-lanzar para que el BackgroundSyncService maneje los reintentos
+    }
+  }
+
+  /**
    * Reinicia el servicio de verificación
    */
   reiniciarServicio(): void {
     localStorage.removeItem(this.STORAGE_KEY_ULTIMA_VERIFICACION);
     this.ultimaVerificacionSubject.next(null);
+    
+    // Reiniciar también el background sync
+    this.backgroundSyncService.reiniciar();
+    
     this.verificarSiEsNecesario();
+  }
+
+  /**
+   * Pausa las verificaciones automáticas
+   */
+  pausarVerificaciones(): void {
+    this.backgroundSyncService.pausarTarea('verificacion-vencimientos');
+    console.log('⏸️ Verificaciones automáticas pausadas');
+  }
+
+  /**
+   * Reanuda las verificaciones automáticas
+   */
+  reanudarVerificaciones(): void {
+    this.backgroundSyncService.reanudarTarea('verificacion-vencimientos');
+    console.log('▶️ Verificaciones automáticas reanudadas');
+  }
+
+  /**
+   * Obtiene el estado de la tarea de background sync
+   */
+  getEstadoBackgroundSync(): any {
+    return this.backgroundSyncService.obtenerEstadoTarea('verificacion-vencimientos');
+  }
+
+  /**
+   * Programa notificaciones para todas las tarjetas próximas a vencer
+   */
+  async programarNotificacionesVencimiento(): Promise<void> {
+    try {
+      const configuracion = this.notificacionService.obtenerConfiguracion();
+      const tarjetas = await this.tarjetaService.getTarjetas$().toPromise() || [];
+      
+      for (const tarjeta of tarjetas) {
+        const datosVencimiento = await this.obtenerDatosVencimiento(tarjeta);
+        const fechaVencimiento = this.calcularFechaVencimiento(tarjeta.diaVencimiento);
+        const tiempoHastaVencimiento = fechaVencimiento.getTime() - Date.now();
+        
+        // Programar notificación con anticipación
+        const tiempoConAnticipacion = tiempoHastaVencimiento - (configuracion.diasAnticipacion * 24 * 60 * 60 * 1000);
+        
+        if (tiempoConAnticipacion > 0) {
+          const fechaNotificacion = new Date(Date.now() + tiempoConAnticipacion);
+          await this.pushNotificationService.programarNotificacionVencimiento(
+            datosVencimiento,
+            fechaNotificacion
+          );
+          console.log(`⏰ Notificación programada para ${tarjeta.nombre} en ${Math.round(tiempoConAnticipacion / (24 * 60 * 60 * 1000))} días`);
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error programando notificaciones:', error);
+    }
+  }
+
+  /**
+   * Cancela todas las notificaciones programadas
+   */
+  async cancelarTodasLasNotificacionesProgramadas(): Promise<void> {
+    try {
+      const tarjetas = await this.tarjetaService.getTarjetas$().toPromise() || [];
+      
+      for (const tarjeta of tarjetas) {
+        await this.pushNotificationService.cancelarNotificacionProgramada(tarjeta.id);
+      }
+      
+      console.log('🚫 Todas las notificaciones programadas han sido canceladas');
+    } catch (error) {
+      console.error('❌ Error cancelando notificaciones:', error);
+    }
+  }
+
+  /**
+   * Envía una notificación de prueba
+   */
+  async enviarNotificacionPrueba(): Promise<void> {
+    try {
+      await this.pushNotificationService.enviarNotificacionPrueba();
+      console.log('🧪 Notificación de prueba enviada');
+    } catch (error) {
+      console.error('❌ Error enviando notificación de prueba:', error);
+    }
+  }
+
+  /**
+   * Obtiene el estado completo del servicio incluyendo push notifications
+   */
+  getEstadoCompletoServicio(): {
+    verificacionActiva: boolean;
+    ultimaVerificacion: Date | null;
+    proximaVerificacion: Date | null;
+    configuracion: any;
+    backgroundSync: any;
+    pushNotifications: {
+      soportado: boolean;
+      permisos: string;
+      suscrito: boolean;
+    };
+  } {
+    const estadoBasico = this.getEstadoServicio();
+    
+    return {
+      ...estadoBasico,
+      backgroundSync: this.getEstadoBackgroundSync(),
+      pushNotifications: {
+        soportado: this.pushNotificationService.esSoportado(),
+        permisos: Notification.permission,
+        suscrito: this.pushNotificationService.estaUsuarioSuscrito()
+      }
+    };
   }
 }

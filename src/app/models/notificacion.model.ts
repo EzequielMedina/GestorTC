@@ -41,13 +41,15 @@ export interface DatosVencimientoTarjeta {
   tarjetaId: string;
   nombreTarjeta: string;
   banco: string;
-  diaVencimiento: number;
+  diaVencimiento: number; // Día de pago (vencimiento)
+  diaCierre?: number; // Día hasta el cual se puede comprar
   diasHastaVencimiento: number;
   montoAPagar: number;
   montoAdeudado: number;
   porcentajeUso: number;
   ultimosDigitos?: string;
-  fechaVencimiento: Date;
+  fechaVencimiento: Date; // Fecha de pago
+  fechaCierre?: Date; // Fecha de cierre del período
   cuotasPendientes?: number;
   montoProximoMes?: number;
   gastosRecientes?: number;

@@ -81,6 +81,7 @@ export class CalculoVencimientoService {
           nombreTarjeta: tarjeta.nombre,
           banco: tarjeta.banco || 'No especificado',
           diaVencimiento: tarjeta.diaVencimiento!,
+          diaCierre: tarjeta.diaCierre,
           montoAPagar: montoMesActual,
           montoAdeudado: montoMesActual,
           montoProximoMes,
@@ -88,6 +89,7 @@ export class CalculoVencimientoService {
           saldoDisponible,
           diasHastaVencimiento,
           fechaVencimiento: this.getFechaVencimiento(tarjeta),
+          fechaCierre: this.getFechaCierre(tarjeta),
           ultimosDigitos: tarjeta.ultimosDigitos,
           gastosRecientes: gastosRecientes.length,
           cuotasPendientes: cuotasPendientes.length
@@ -285,6 +287,25 @@ export class CalculoVencimientoService {
     }
     
     return fechaVencimiento;
+  }
+
+  /**
+   * Obtiene la fecha de cierre de la tarjeta para el mes actual
+   */
+  private getFechaCierre(tarjeta: Tarjeta): Date {
+    const fechaActual = new Date();
+    const año = fechaActual.getFullYear();
+    const mes = fechaActual.getMonth();
+    
+    // Crear fecha de cierre para el mes actual
+    const fechaCierre = new Date(año, mes, tarjeta.diaCierre);
+    
+    // Si ya pasó el cierre de este mes, usar el del próximo mes
+    if (fechaCierre < fechaActual) {
+      fechaCierre.setMonth(mes + 1);
+    }
+    
+    return fechaCierre;
   }
 
   /**
