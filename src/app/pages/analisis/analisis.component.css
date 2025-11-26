@@ -1,16 +1,5 @@
 :host {
-  --bg: var(--color1);
-  --surface: var(--color2);
-  --primary: var(--color3);
-  --danger: #dc2626;
-  --success: #16a34a;
-  --warning: #ca8a04;
-  --secondary: #6b7280;
-  --border: var(--color5);
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.08);
-  --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
-  --radius: 12px;
-  --radius-sm: 8px;
+  /* Heredar variables globales estandarizadas */
 }
 
 .page {
@@ -27,16 +16,19 @@
 }
 
 .header h2 {
-  margin: 0 0 8px 0;
-  font-size: 28px;
-  font-weight: 700;
-  color: #333;
+  margin: 0 0 var(--spacing-sm) 0;
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .subtitle {
-  margin: 0 0 20px 0;
-  color: #666;
-  font-size: 16px;
+  margin: 0 0 var(--spacing-lg) 0;
+  color: var(--text-secondary);
+  font-size: var(--font-size-base);
 }
 
 .content-container {
@@ -121,9 +113,9 @@
 }
 
 .range-title {
-  font-size: 12px;
-  color: #555;
-  font-weight: 600;
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-semibold);
 }
 
 .apply-button {
@@ -208,8 +200,8 @@
 
   .range > span {
     grid-column: 1 / -1;
-    font-size: 12px;
-    color: #666;
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
     margin-bottom: -4px; /* reduce espacio vertical */
   }
 
@@ -251,9 +243,9 @@
 }
 
 .no-data p {
-  margin-bottom: 1.5rem;
-  color: #666;
-  font-size: 1.1rem;
+  margin-bottom: var(--spacing-lg);
+  color: var(--text-secondary);
+  font-size: var(--font-size-lg);
 }
 
 .add-expense-button {

@@ -10,8 +10,10 @@ import { Observable } from 'rxjs';
   template: `
     <div class="page">
       <div class="header">
-      <h2>Resumen</h2>
-
+        <div class="header-content">
+          <h2>📊 Resumen</h2>
+          <p class="subtitle">Vista general de tus gastos y tarjetas</p>
+        </div>
         <!-- Navegación mensual -->
         <div class="month-nav">
           <button class="btn-nav" (click)="prevMonth()" aria-label="Mes anterior">
@@ -347,43 +349,83 @@ import { Observable } from 'rxjs';
     }
 
     .header {
-      margin-bottom: 24px;
+      margin-bottom: var(--spacing-xl);
+      padding: var(--spacing-xl);
+      background: var(--primary-gradient);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--spacing-lg);
+    }
+
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
+      pointer-events: none;
+    }
+
+    .header-content {
+      flex: 1;
+      text-align: left;
+      position: relative;
+      z-index: 1;
     }
 
     .header h2 {
-      margin: 0 0 16px 0;
-      font-size: 28px;
-      font-weight: 700;
-      color: #333;
-      text-align: center;
+      margin: 0 0 var(--spacing-sm) 0;
+      font-size: var(--font-size-4xl);
+      font-weight: var(--font-weight-bold);
+      color: var(--text-inverse);
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .subtitle {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.95);
+      font-size: var(--font-size-lg);
+      font-weight: var(--font-weight-medium);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
 
     .month-nav {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 16px;
-      margin-bottom: 8px;
+      gap: var(--spacing-md);
+      position: relative;
+      z-index: 1;
     }
 
     .btn-nav {
       width: 48px;
       height: 48px;
-      border: 2px solid var(--border);
+      border: 2px solid rgba(255, 255, 255, 0.3);
       border-radius: 50%;
-      background: var(--surface);
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      color: var(--text-inverse);
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.2s ease;
-      box-shadow: var(--shadow-sm);
+      transition: all var(--transition-base);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
 
     .btn-nav:hover {
-      background: var(--primary);
-      color: white;
-      transform: scale(1.05);
+      background: rgba(255, 255, 255, 0.3);
+      border-color: rgba(255, 255, 255, 0.5);
+      transform: scale(1.1);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
     }
 
     .btn-nav:active {
@@ -396,11 +438,17 @@ import { Observable } from 'rxjs';
     }
 
     .month-label {
-      font-size: 20px;
-      font-weight: 700;
-      color: #333;
-      min-width: 120px;
+      font-size: var(--font-size-xl);
+      font-weight: var(--font-weight-bold);
+      color: var(--text-inverse);
+      min-width: 200px;
       text-align: center;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      padding: var(--spacing-sm) var(--spacing-md);
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
     .stats-grid {

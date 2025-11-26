@@ -1,21 +1,9 @@
 :host {
-  --bg: var(--color1);
-  --surface: var(--color2);
-  --primary: var(--color3);
-  --border: var(--color5);
-  --pos: #1b5e20;
-  --neg: #b71c1c;
-  --highlight: #1976d2;
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.08);
-  --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
-  --shadow-lg: 0 8px 16px rgba(0,0,0,0.15);
-  --radius: 12px;
-  --radius-sm: 8px;
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 32px;
+  /* Variables específicas del componente */
+  --pos: var(--success);
+  --neg: var(--danger);
+  --highlight: var(--info);
+  /* El resto de variables se heredan de :root */
 }
 
 /* Layout principal */
@@ -32,21 +20,51 @@
 
 /* Header */
 .header {
-  margin-bottom: 24px;
-  text-align: center;
+  margin-bottom: var(--spacing-xl);
+  padding: var(--spacing-xl);
+  background: var(--primary-gradient);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
+  pointer-events: none;
 }
 
 .header h2 {
-  margin: 0 0 8px 0;
-  font-size: 28px;
-  font-weight: 700;
-  color: #333;
+  margin: 0 0 var(--spacing-sm) 0;
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-inverse);
+  text-align: center;
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
 }
 
+
 .subtitle {
-  margin: 0 0 20px 0;
-  color: #666;
-  font-size: 16px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.95);
+  font-size: var(--font-size-lg);
+  text-align: center;
+  position: relative;
+  z-index: 1;
+  font-weight: var(--font-weight-medium);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 /* Material Design Cards - Sobrescribir estilos por defecto */
@@ -73,9 +91,9 @@ mat-card-header {
 
 mat-card-title {
   margin: 0 !important;
-  font-size: 20px !important;
-  font-weight: 600 !important;
-  color: #333 !important;
+  font-size: var(--font-size-xl) !important;
+  font-weight: var(--font-weight-semibold) !important;
+  color: var(--text-primary) !important;
 }
 
 .header-actions {
@@ -93,22 +111,22 @@ mat-card-title {
 
 .section-header h3 {
   margin: 0;
-  font-size: 20px;
-  font-weight: 600;
-  color: #333;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
 }
 
 .section-header button {
-  font-size: 14px;
+  font-size: var(--font-size-sm);
 }
 
 .card h3 {
-  margin: 0 0 16px 0;
-  font-size: 20px;
-  font-weight: 600;
-  color: #333;
+  margin: 0 0 var(--spacing-md) 0;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
   border-bottom: 2px solid var(--primary);
-  padding-bottom: 8px;
+  padding-bottom: var(--spacing-sm);
 }
 
 .card-content {
@@ -124,27 +142,66 @@ mat-card-title {
 
 /* Card de información del dólar */
 .dolar-info-card {
-  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%) !important;
-  color: white !important;
+  background: var(--primary-gradient) !important;
+  color: var(--text-inverse) !important;
+  position: relative;
+  overflow: hidden;
+  border: none !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.dolar-info-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.dolar-info-card mat-card-header {
+  position: relative;
+  z-index: 1;
+  padding: var(--spacing-lg) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .dolar-info-card mat-card-title {
   display: flex !important;
   align-items: center !important;
   gap: var(--spacing-sm) !important;
-  color: white !important;
-  font-weight: 600 !important;
-  font-size: 1.2rem !important;
+  color: var(--text-inverse) !important;
+  font-weight: var(--font-weight-bold) !important;
+  font-size: var(--font-size-2xl) !important;
+  margin: 0 !important;
 }
 
-.dolar-info-card mat-card-title mat-icon {
-  font-size: 1.4rem;
-  width: 1.4rem;
-  height: 1.4rem;
+.dolar-info-card mat-card-title::before {
+  content: '💵';
+  font-size: var(--font-size-2xl);
+  margin-right: var(--spacing-xs);
+}
+
+.header-actions {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+.header-actions button {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: var(--text-inverse) !important;
+  transition: all var(--transition-base);
+}
+
+.header-actions button:hover {
+  background: rgba(255, 255, 255, 0.3) !important;
+  transform: scale(1.1);
 }
 
 .refresh-button {
-  color: white;
+  color: var(--text-inverse) !important;
 }
 
 .refresh-button mat-icon.spinning {
@@ -156,40 +213,65 @@ mat-card-title {
   100% { transform: rotate(360deg); }
 }
 
+.dolar-info-card mat-card-content {
+  position: relative;
+  z-index: 1;
+  padding: var(--spacing-xl) !important;
+}
+
 .dolar-info {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-lg);
 }
 
 .precio-item {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-md);
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all var(--transition-base);
+  backdrop-filter: blur(10px);
 }
 
 .precio-item:hover {
-  transform: scale(1.02);
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-/* Corrección de reglas mal cerradas y propiedades sueltas */
 .precio-item .label {
-  font-size: 0.9rem;
+  font-size: var(--font-size-sm);
   opacity: 0.9;
-  margin-bottom: 8px;
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-/* Removidas propiedades sueltas que rompían el CSS:
-   gap: var(--spacing-md);
-   margin-top: var(--spacing-md);
-   font-size: 1.5rem;
-   font-weight: 600;
-*/
+.precio-item .precio {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-inverse);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.precio-item .precio.compra {
+  color: rgba(255, 255, 255, 1);
+}
+
+.precio-item .precio.venta {
+  color: rgba(255, 255, 255, 1);
+}
 
 .precio-item .fecha {
-  font-size: 0.85rem;
-  padding: var(--spacing-md);
+  font-size: var(--font-size-xs);
+  opacity: 0.8;
+  margin-top: var(--spacing-xs);
+  font-weight: var(--font-weight-normal);
 }
 
 /* Unificar border-radius tokens */
@@ -268,9 +350,9 @@ mat-card-title {
   flex-direction: column;
   gap: var(--spacing-lg);
   padding: var(--spacing-lg);
-  background: #fafafa;
+  background: var(--bg);
   border-radius: var(--radius);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-light);
 }
 
 /* Formularios responsive */
@@ -298,12 +380,12 @@ mat-card-title {
 
 /* Vista previa */
 .preview-card {
-  background: #e3f2fd;
-  border: 1px solid #2196f3;
+  background: rgba(13, 115, 119, 0.05);
+  border: 1px solid var(--primary);
   border-radius: var(--radius-sm);
-  padding: 12px;
+  padding: var(--spacing-md);
   margin-top: var(--spacing-md);
-  background: rgba(0,0,0,0.02);
+  border-left: 4px solid var(--primary);
 }
 
 .preview-card h4 {
@@ -360,10 +442,10 @@ mat-card-title {
 .compras-table th,
 .ventas-table th,
 .transacciones-table th {
-  background: #f5f5f5;
-  font-weight: 600;
-  color: #333;
-  border-bottom: 2px solid var(--border);
+  background: var(--bg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  border-bottom: 2px solid var(--border-light);
   padding: var(--spacing-md);
   text-align: left;
 }
@@ -379,7 +461,7 @@ mat-card-title {
 .compras-table tr:hover,
 .ventas-table tr:hover,
 .transacciones-table tr:hover {
-  background: #fafafa;
+  background: var(--bg);
 }
 
 /* Responsive tables para móviles */
@@ -447,23 +529,23 @@ mat-card-title {
 }
 
 .disponibles {
-  color: #2196f3 !important;
-  font-weight: 600;
+  color: var(--info-blue) !important;
+  font-weight: var(--font-weight-semibold);
 }
 
 .inversion {
-  color: #ff9800 !important;
-  font-weight: 600;
+  color: var(--warning-yellow) !important;
+  font-weight: var(--font-weight-semibold);
 }
 
 .recuperado {
-  color: #9c27b0 !important;
-  font-weight: 600;
+  color: var(--secondary) !important;
+  font-weight: var(--font-weight-semibold);
 }
 
 .actual {
-  color: #607d8b !important;
-  font-weight: 600;
+  color: var(--text-secondary) !important;
+  font-weight: var(--font-weight-semibold);
 }
 
 /* Badges de tipo */
@@ -479,15 +561,15 @@ mat-card-title {
 }
 
 .tipo-compra {
-  background: #e8f5e8;
-  color: #2e7d32;
-  border: 1px solid #4caf50;
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success-green);
+  border: 1px solid var(--success);
 }
 
 .tipo-venta {
-  background: #fff3e0;
-  color: #e65100;
-  border: 1px solid #ff9800;
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--warning-yellow);
+  border: 1px solid var(--warning);
 }
 
 .tipo-badge mat-icon {
@@ -561,9 +643,9 @@ mat-card-title {
   justify-content: space-between;
   align-items: center;
   padding: var(--spacing-md);
-  background: #fafafa;
+  background: var(--bg);
   border-radius: var(--radius);
-  border-left: 4px solid var(--primary-color);
+  border-left: 4px solid var(--primary);
 }
 
 .resumen-item .label {
