@@ -15,6 +15,7 @@ import { Subscription, combineLatest } from 'rxjs';
 import { CompraDolar, ResumenCompraDolar, DolarAPI } from '../../models/compra-dolar.model';
 import { CompraDolarService } from '../../services/compra-dolar.service';
 import { DolarService } from '../../services/dolar.service';
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-compra-dolares',
@@ -75,6 +76,7 @@ export class CompraDolaresComponent implements OnInit, OnDestroy {
   private compraDolarService = inject(CompraDolarService);
   private dolarService = inject(DolarService);
   private snackBar = inject(MatSnackBar);
+  private notificationService = inject(NotificationService);
 
   constructor() {
     this.compraForm = this.fb.group({
@@ -146,64 +148,77 @@ export class CompraDolaresComponent implements OnInit, OnDestroy {
       const compraExistente = this.compraDolarService.obtenerCompraPorMesAnio(formValue.mes, formValue.anio);
       
       if (compraExistente) {
-        const confirmar = confirm(
-          `Ya existe una compra para ${this.obtenerNombreMes(formValue.mes)} ${formValue.anio}. ¿Desea actualizarla?`
-        );
-        if (!confirmar) {
-          return;
-        }
-      }
-
-      this.guardandoCompra = true;
-      
-      this.subscriptions.add(
-        this.compraDolarService.guardarCompra(formValue).subscribe({
-          next: (compra) => {
-            this.guardandoCompra = false;
-            this.compraForm.reset({
-              mes: new Date().getMonth() + 1,
-              anio: new Date().getFullYear(),
-              dolares: null,
-              precioCompra: null
-            });
-            this.mostrarExito(
-              compraExistente ? 'Compra actualizada exitosamente' : 'Compra registrada exitosamente'
-            );
-            // Actualizar precios API después de guardar
-            this.actualizarPreciosAPI();
-          },
-          error: (error) => {
-            console.error('Error al guardar compra:', error);
-            this.guardandoCompra = false;
-            this.mostrarError('Error al guardar la compra');
+        this.notificationService.confirm(
+          'Compra existente',
+          `Ya existe una compra para ${this.obtenerNombreMes(formValue.mes)} ${formValue.anio}. ¿Desea actualizarla?`,
+          'Actualizar',
+          'Cancelar'
+        ).subscribe(confirmed => {
+          if (confirmed) {
+            this.guardarCompraFormulario(formValue, compraExistente);
           }
-        })
-      );
+        });
+      } else {
+        this.guardarCompraFormulario(formValue, null);
+      }
     } else {
       this.marcarCamposComoTocados();
     }
   }
 
+  private guardarCompraFormulario(formValue: any, compraExistente: CompraDolar | null): void {
+    this.guardandoCompra = true;
+    
+    this.subscriptions.add(
+      this.compraDolarService.guardarCompra(formValue).subscribe({
+        next: (compra) => {
+          this.guardandoCompra = false;
+          this.compraForm.reset({
+            mes: new Date().getMonth() + 1,
+            anio: new Date().getFullYear(),
+            dolares: null,
+            precioCompra: null
+          });
+          this.mostrarExito(
+            compraExistente ? 'Compra actualizada exitosamente' : 'Compra registrada exitosamente'
+          );
+          // Actualizar precios API después de guardar
+          this.actualizarPreciosAPI();
+        },
+        error: (error) => {
+          console.error('Error al guardar compra:', error);
+          this.guardandoCompra = false;
+          this.mostrarError('Error al guardar la compra');
+        }
+      })
+    );
+  }
+
   eliminarCompra(compra: CompraDolar): void {
     if (!compra.id) return;
     
-    const confirmar = confirm(
-      `¿Está seguro de que desea eliminar la compra de ${this.obtenerNombreMes(compra.mes)} ${compra.anio}?`
-    );
+    const compraId = compra.id; // Guardar el ID para evitar problemas de tipo
     
-    if (confirmar) {
-      this.subscriptions.add(
-        this.compraDolarService.eliminarCompra(compra.id).subscribe({
-          next: () => {
-            this.mostrarExito('Compra eliminada exitosamente');
-          },
-          error: (error) => {
-            console.error('Error al eliminar compra:', error);
-            this.mostrarError('Error al eliminar la compra');
-          }
-        })
-      );
-    }
+    this.notificationService.confirm(
+      'Confirmar eliminación',
+      `¿Está seguro de que desea eliminar la compra de ${this.obtenerNombreMes(compra.mes)} ${compra.anio}?`,
+      'Eliminar',
+      'Cancelar'
+    ).subscribe(confirmed => {
+      if (confirmed && compraId) {
+        this.subscriptions.add(
+          this.compraDolarService.eliminarCompra(compraId).subscribe({
+            next: () => {
+              this.mostrarExito('Compra eliminada exitosamente');
+            },
+            error: (error) => {
+              console.error('Error al eliminar compra:', error);
+              this.mostrarError('Error al eliminar la compra');
+            }
+          })
+        );
+      }
+    });
   }
 
   editarCompra(compra: CompraDolar): void {

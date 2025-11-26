@@ -10,6 +10,7 @@ import { Prestamo } from '../../models/prestamo.model';
 import { PrestamoService } from '../../services/prestamo.service';
 import { PrestamoFormComponent } from './prestamo-form.component';
 import { Router } from '@angular/router';
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-prestamo-list',
@@ -138,7 +139,8 @@ export class PrestamoListComponent implements OnInit {
   constructor(
     private prestamoService: PrestamoService,
     private dialog: MatDialog,
-    private router: Router
+    private router: Router,
+    private notificationService: NotificationService
   ) { }
 
   ngOnInit(): void {
@@ -168,9 +170,16 @@ export class PrestamoListComponent implements OnInit {
 
   eliminarPrestamo(prestamo: Prestamo, event: Event): void {
     event.stopPropagation();
-    if (confirm('¿Está seguro de eliminar este préstamo?')) {
-      this.prestamoService.eliminarPrestamo(prestamo.id);
-    }
+    this.notificationService.confirm(
+      'Confirmar eliminación',
+      '¿Está seguro de eliminar este préstamo?',
+      'Eliminar',
+      'Cancelar'
+    ).subscribe(confirmed => {
+      if (confirmed) {
+        this.prestamoService.eliminarPrestamo(prestamo.id);
+      }
+    });
   }
 
   getColorEstado(estado: string): string {

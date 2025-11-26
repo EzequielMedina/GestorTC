@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Tarjeta } from '../../models/tarjeta.model';
 import { TarjetaService } from '../../services/tarjeta';
 import { TarjetaDialogComponent } from '../../components/tarjeta-dialog/tarjeta-dialog';
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-tarjetas',
@@ -33,7 +34,8 @@ export class TarjetasComponent implements OnInit {
   };
 
   constructor(
-    private tarjetaService: TarjetaService
+    private tarjetaService: TarjetaService,
+    private notificationService: NotificationService
   ) {}
 
   ngOnInit(): void {
@@ -82,14 +84,14 @@ export class TarjetasComponent implements OnInit {
           if (tarjetaActualizada) {
             this.cargarTarjetas();
             this.cerrarModal();
-            alert('Tarjeta actualizada correctamente');
+            this.notificationService.success('Tarjeta actualizada correctamente');
           } else {
-            alert('No se pudo actualizar la tarjeta');
+            this.notificationService.error('No se pudo actualizar la tarjeta');
           }
         },
         error: (error) => {
           console.error('Error al actualizar tarjeta:', error);
-          alert('Error al actualizar la tarjeta');
+          this.notificationService.error('Error al actualizar la tarjeta');
         }
       });
     } else {
@@ -98,11 +100,11 @@ export class TarjetasComponent implements OnInit {
         next: () => {
           this.cargarTarjetas();
           this.cerrarModal();
-          alert('Tarjeta agregada correctamente');
+          this.notificationService.success('Tarjeta agregada correctamente');
         },
         error: (error) => {
           console.error('Error al agregar tarjeta:', error);
-          alert('Error al agregar la tarjeta');
+          this.notificationService.error('Error al agregar la tarjeta');
         }
       });
     }
@@ -123,17 +125,24 @@ export class TarjetasComponent implements OnInit {
   }
 
   eliminarTarjeta(tarjeta: Tarjeta): void {
-    if (confirm(`¿Estás seguro de que deseas eliminar la tarjeta ${tarjeta.nombre}?`)) {
-      this.tarjetaService.eliminarTarjeta(tarjeta.id).subscribe({
-        next: () => {
-          this.cargarTarjetas();
-          alert('Tarjeta eliminada correctamente');
-        },
-        error: (error) => {
-          console.error('Error al eliminar tarjeta:', error);
-          alert('Error al eliminar la tarjeta');
-        }
-      });
-    }
+    this.notificationService.confirm(
+      'Confirmar eliminación',
+      `¿Estás seguro de que deseas eliminar la tarjeta ${tarjeta.nombre}?`,
+      'Eliminar',
+      'Cancelar'
+    ).subscribe(confirmed => {
+      if (confirmed) {
+        this.tarjetaService.eliminarTarjeta(tarjeta.id).subscribe({
+          next: () => {
+            this.cargarTarjetas();
+            this.notificationService.success('Tarjeta eliminada correctamente');
+          },
+          error: (error) => {
+            console.error('Error al eliminar tarjeta:', error);
+            this.notificationService.error('Error al eliminar la tarjeta');
+          }
+        });
+      }
+    });
   }
 }

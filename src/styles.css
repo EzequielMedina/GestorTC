@@ -113,16 +113,104 @@ body {
   overflow: hidden;
 }
 
-/* Estilos para mensajes de error */
-.error-snackbar {
-  background-color: #f44336;
-  color: white;
+/* ============================================
+   ESTILOS PARA NOTIFICACIONES TOAST
+   ============================================ */
+
+/* Contenedor base de notificaciones */
+.mat-mdc-snack-bar-container {
+  border-radius: var(--radius-sm) !important;
+  box-shadow: var(--shadow-md) !important;
+  min-width: 300px !important;
+  max-width: 500px !important;
 }
 
-/* Estilos para mensajes de éxito */
+/* Notificación de éxito */
+.notification-success {
+  background-color: var(--success-green) !important;
+  color: white !important;
+}
+
+.notification-success .mat-mdc-snack-bar-label {
+  color: white !important;
+  font-weight: 500 !important;
+}
+
+.notification-success .mat-mdc-button {
+  color: white !important;
+}
+
+.notification-success .mat-mdc-button:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Notificación de error */
+.notification-error {
+  background-color: var(--danger-red) !important;
+  color: white !important;
+}
+
+.notification-error .mat-mdc-snack-bar-label {
+  color: white !important;
+  font-weight: 500 !important;
+}
+
+.notification-error .mat-mdc-button {
+  color: white !important;
+}
+
+.notification-error .mat-mdc-button:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Notificación de advertencia */
+.notification-warning {
+  background-color: var(--warning-yellow) !important;
+  color: white !important;
+}
+
+.notification-warning .mat-mdc-snack-bar-label {
+  color: white !important;
+  font-weight: 500 !important;
+}
+
+.notification-warning .mat-mdc-button {
+  color: white !important;
+}
+
+.notification-warning .mat-mdc-button:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Notificación informativa */
+.notification-info {
+  background-color: var(--primary) !important;
+  color: white !important;
+}
+
+.notification-info .mat-mdc-snack-bar-label {
+  color: white !important;
+  font-weight: 500 !important;
+}
+
+.notification-info .mat-mdc-button {
+  color: white !important;
+}
+
+.notification-info .mat-mdc-button:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Estilos para mensajes de error (compatibilidad) */
+.error-snackbar {
+  background-color: var(--danger-red) !important;
+  color: white !important;
+}
+
+/* Estilos para mensajes de éxito (compatibilidad) */
 .success-snackbar {
-  background-color: #4caf50;
-  color: white;
+  background-color: var(--success-green) !important;
+  color: white !important;
 }
 
 /* Estilos para el scrollbar personalizado */

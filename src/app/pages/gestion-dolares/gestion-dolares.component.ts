@@ -23,6 +23,7 @@ import { CompraDolarService } from '../../services/compra-dolar.service';
 import { VentaDolarService } from '../../services/venta-dolar.service';
 import { BalanceDolarService } from '../../services/balance-dolar.service';
 import { DolarService } from '../../services/dolar.service';
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-gestion-dolares',
@@ -100,6 +101,7 @@ export class GestionDolaresComponent implements OnInit, OnDestroy {
   private snackBar = inject(MatSnackBar);
   private dialog = inject(MatDialog);
   private cdr = inject(ChangeDetectorRef);
+  private notificationService = inject(NotificationService);
 
   constructor() {
     this.initializeForms();
@@ -331,33 +333,51 @@ export class GestionDolaresComponent implements OnInit, OnDestroy {
   }
 
   eliminarCompra(compra: CompraDolar): void {
-    if (compra.id && confirm('¿Está seguro de que desea eliminar esta compra?')) {
-      this.compraDolarService.eliminarCompra(compra.id).subscribe({
-        next: () => {
-          this.mostrarExito('Compra eliminada exitosamente');
-          this.cdr.markForCheck();
-        },
-        error: (error) => {
-          console.error('Error al eliminar compra:', error);
-          this.mostrarError('Error al eliminar la compra');
-        }
-      });
-    }
+    if (!compra.id) return;
+    
+    this.notificationService.confirm(
+      'Confirmar eliminación',
+      '¿Está seguro de que desea eliminar esta compra?',
+      'Eliminar',
+      'Cancelar'
+    ).subscribe(confirmed => {
+      if (confirmed) {
+        this.compraDolarService.eliminarCompra(compra.id!).subscribe({
+          next: () => {
+            this.mostrarExito('Compra eliminada exitosamente');
+            this.cdr.markForCheck();
+          },
+          error: (error) => {
+            console.error('Error al eliminar compra:', error);
+            this.mostrarError('Error al eliminar la compra');
+          }
+        });
+      }
+    });
   }
 
   eliminarVenta(venta: VentaDolar): void {
-    if (venta.id && confirm('¿Está seguro de que desea eliminar esta venta?')) {
-      this.ventaDolarService.eliminarVenta(venta.id).subscribe({
-        next: () => {
-          this.mostrarExito('Venta eliminada exitosamente');
-          this.cdr.markForCheck();
-        },
-        error: (error) => {
-          console.error('Error al eliminar venta:', error);
-          this.mostrarError('Error al eliminar la venta');
-        }
-      });
-    }
+    if (!venta.id) return;
+    
+    this.notificationService.confirm(
+      'Confirmar eliminación',
+      '¿Está seguro de que desea eliminar esta venta?',
+      'Eliminar',
+      'Cancelar'
+    ).subscribe(confirmed => {
+      if (confirmed) {
+        this.ventaDolarService.eliminarVenta(venta.id!).subscribe({
+          next: () => {
+            this.mostrarExito('Venta eliminada exitosamente');
+            this.cdr.markForCheck();
+          },
+          error: (error) => {
+            console.error('Error al eliminar venta:', error);
+            this.mostrarError('Error al eliminar la venta');
+          }
+        });
+      }
+    });
   }
 
   editarCompra(compra: CompraDolar): void {
