@@ -6,10 +6,10 @@ import { routes } from './app.routes';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE, provideNativeDateAdapter } from '@angular/material/core';
 import { registerLocaleData } from '@angular/common';
-import localeEs from '@angular/common/locales/es';
+import localeEsAr from '@angular/common/locales/es-AR';
 
-// Registrar los datos de localización en español
-registerLocaleData(localeEs);
+// Registrar los datos de localización en español de Argentina
+registerLocaleData(localeEsAr);
 
 // Formato de fecha personalizado para mostrar mes/año
 export const MY_FORMATS = {
@@ -33,8 +33,8 @@ export const appConfig: ApplicationConfig = {
     provideCharts(withDefaultRegisterables()),
     provideAnimationsAsync(),
     provideNativeDateAdapter(),
-    { provide: LOCALE_ID, useValue: 'es' },
-    { provide: MAT_DATE_LOCALE, useValue: 'es' },
+    { provide: LOCALE_ID, useValue: 'es-AR' },
+    { provide: MAT_DATE_LOCALE, useValue: 'es-AR' },
     { provide: MAT_DATE_FORMATS, useValue: MY_FORMATS }
   ]
 };

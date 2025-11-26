@@ -5,6 +5,7 @@ import { Gasto } from '../models/gasto.model';
 import { Tarjeta } from '../models/tarjeta.model';
 import { CompraDolar } from '../models/compra-dolar.model';
 import { VentaDolar } from '../models/venta-dolar.model';
+import { Prestamo, Entrega } from '../models/prestamo.model';
 
 /**
  * Servicio para manejar la importación y exportación de datos en formato Excel
@@ -19,8 +20,10 @@ export class ImportarExportarService {
   private readonly HOJA_CUOTAS_DETALLE = 'CuotasDetalle';
   private readonly HOJA_COMPRA_DOLARES = 'CompraDolares';
   private readonly HOJA_VENTA_DOLARES = 'VentaDolares';
+  private readonly HOJA_PRESTAMOS = 'Prestamos';
+  private readonly HOJA_ENTREGAS = 'Entregas';
 
-  constructor() {}
+  constructor() { }
 
   /**
    * Exporta los datos de tarjetas, gastos y compras de dólares a un archivo Excel
@@ -34,35 +37,48 @@ export class ImportarExportarService {
     gastos: Gasto[],
     compraDolares: CompraDolar[] = [],
     nombreArchivo: string = 'gestor-tc-exportacion',
-    ventaDolares: VentaDolar[] = []
+    ventaDolares: VentaDolar[] = [],
+    prestamos: Prestamo[] = []
   ): void {
     try {
       // Crear un nuevo libro de trabajo
       const wb = XLSX.utils.book_new();
-      
+
       // Convertir los datos a hojas de cálculo
       const wsTarjetas = XLSX.utils.json_to_sheet(this.prepararDatosParaExportar(tarjetas, 'tarjeta'));
       const wsGastos = XLSX.utils.json_to_sheet(this.prepararDatosParaExportar(gastos, 'gasto'));
       const wsResumenMensual = XLSX.utils.json_to_sheet(this.generarResumenMensual(tarjetas, gastos));
       const wsCuotasDetalle = XLSX.utils.json_to_sheet(this.generarCuotasDetalle(tarjetas, gastos));
       const wsCompraDolares = XLSX.utils.json_to_sheet(this.prepararDatosParaExportar(compraDolares, 'compraDolar'));
-      const wsVentaDolares = XLSX.utils.json_to_sheet(this.prepararDatosParaExportar(ventaDolares, 'ventaDolar'));
-      
+      const wsPrestamos = XLSX.utils.json_to_sheet(this.prepararDatosParaExportar(prestamos, 'prestamo'));
+
+      // Aplanar entregas para exportar
+      const todasLasEntregas: (Entrega & { prestamoId: string })[] = [];
+      prestamos.forEach(p => {
+        if (p.entregas) {
+          p.entregas.forEach(e => {
+            todasLasEntregas.push({ ...e, prestamoId: p.id });
+          });
+        }
+      });
+      const wsEntregas = XLSX.utils.json_to_sheet(this.prepararDatosParaExportar(todasLasEntregas, 'entrega'));
+
       // Añadir las hojas al libro de trabajo
       XLSX.utils.book_append_sheet(wb, wsTarjetas, this.HOJA_TARJETAS);
       XLSX.utils.book_append_sheet(wb, wsGastos, this.HOJA_GASTOS);
       XLSX.utils.book_append_sheet(wb, wsResumenMensual, this.HOJA_RESUMEN_MENSUAL);
       XLSX.utils.book_append_sheet(wb, wsCuotasDetalle, this.HOJA_CUOTAS_DETALLE);
       XLSX.utils.book_append_sheet(wb, wsCompraDolares, this.HOJA_COMPRA_DOLARES);
-      XLSX.utils.book_append_sheet(wb, wsVentaDolares, this.HOJA_VENTA_DOLARES);
-      
+      XLSX.utils.book_append_sheet(wb, wsPrestamos, this.HOJA_PRESTAMOS);
+      XLSX.utils.book_append_sheet(wb, wsEntregas, this.HOJA_ENTREGAS);
+
       // Generar el archivo Excel
       const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-      
+
       // Guardar el archivo
       const data = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       saveAs(data, `${nombreArchivo}_${new Date().toISOString().split('T')[0]}.xlsx`);
-      
+
       return;
     } catch (error) {
       console.error('Error al exportar a Excel:', error);
@@ -268,33 +284,35 @@ export class ImportarExportarService {
   /**
    * Importa datos desde un archivo Excel
    * @param file Archivo Excel a importar
-   * @returns Promesa con los datos importados { tarjetas: Tarjeta[], gastos: Gasto[], compraDolares: CompraDolar[] }
+   * @returns Promesa con los datos importados { tarjetas: Tarjeta[], gastos: Gasto[], compraDolares: CompraDolar[], ventaDolares: VentaDolar[], prestamos: Prestamo[] }
    */
-  async importarDesdeExcel(file: File): Promise<{ tarjetas: Tarjeta[]; gastos: Gasto[]; compraDolares: CompraDolar[]; ventaDolares: VentaDolar[] }> {
+  async importarDesdeExcel(file: File): Promise<{ tarjetas: Tarjeta[]; gastos: Gasto[]; compraDolares: CompraDolar[]; ventaDolares: VentaDolar[]; prestamos: Prestamo[] }> {
     return new Promise((resolve, reject) => {
       try {
         const fileReader = new FileReader();
-        
+
         fileReader.onload = (e: any) => {
           try {
             const arrayBuffer = e.target.result;
             const data = new Uint8Array(arrayBuffer);
             const workbook = XLSX.read(data, { type: 'array' });
-            
+
             console.log('DEBUG - Hojas disponibles en el Excel:', Object.keys(workbook.Sheets));
-            
+
             // Obtener las hojas
             const wsTarjetas = workbook.Sheets[this.HOJA_TARJETAS];
             const wsGastos = workbook.Sheets[this.HOJA_GASTOS];
             const wsCompraDolares = workbook.Sheets[this.HOJA_COMPRA_DOLARES];
             const wsVentaDolares = workbook.Sheets[this.HOJA_VENTA_DOLARES];
-            
+            const wsPrestamos = workbook.Sheets[this.HOJA_PRESTAMOS];
+            const wsEntregas = workbook.Sheets[this.HOJA_ENTREGAS];
+
             if (!wsTarjetas && !wsGastos && !wsCompraDolares && !wsVentaDolares) {
               throw new Error('El archivo no contiene las hojas de datos esperadas');
             }
-            
+
             // Convertir las hojas a objetos
-            const tarjetasRaw = wsTarjetas 
+            const tarjetasRaw = wsTarjetas
               ? XLSX.utils.sheet_to_json(wsTarjetas)
               : [];
             const gastosRaw = wsGastos
@@ -306,43 +324,65 @@ export class ImportarExportarService {
             const ventaDolaresRaw = wsVentaDolares
               ? XLSX.utils.sheet_to_json(wsVentaDolares)
               : [];
-              
+            const prestamosRaw = wsPrestamos
+              ? XLSX.utils.sheet_to_json(wsPrestamos)
+              : [];
+            const entregasRaw = wsEntregas
+              ? XLSX.utils.sheet_to_json(wsEntregas)
+              : [];
+
             console.log('DEBUG - Datos raw de tarjetas:', tarjetasRaw);
             console.log('DEBUG - Datos raw de gastos:', gastosRaw);
             console.log('DEBUG - Datos raw de compra dólares:', compraDolaresRaw);
             console.log('DEBUG - Datos raw de venta dólares:', ventaDolaresRaw);
-            
-            const tarjetas: Tarjeta[] = wsTarjetas 
+
+            const tarjetas: Tarjeta[] = wsTarjetas
               ? this.prepararDatosDesdeImportar(tarjetasRaw, 'tarjeta') as Tarjeta[]
               : [];
-              
+
             const gastos: Gasto[] = wsGastos
               ? this.prepararDatosDesdeImportar(gastosRaw, 'gasto') as Gasto[]
               : [];
-              
+
             const compraDolares: CompraDolar[] = wsCompraDolares
               ? this.prepararDatosDesdeImportar(compraDolaresRaw, 'compraDolar') as CompraDolar[]
               : [];
             const ventaDolares: VentaDolar[] = wsVentaDolares
               ? this.prepararDatosDesdeImportar(ventaDolaresRaw, 'ventaDolar') as VentaDolar[]
               : [];
-            
+
+            const prestamosSinEntregas: Prestamo[] = wsPrestamos
+              ? this.prepararDatosDesdeImportar(prestamosRaw, 'prestamo') as Prestamo[]
+              : [];
+
+            // Procesar entregas y asignarlas a los préstamos
+            const entregasConId: (Entrega & { prestamoId: string })[] = wsEntregas
+              ? this.prepararDatosDesdeImportar(entregasRaw, 'entrega') as (Entrega & { prestamoId: string })[]
+              : [];
+
+            const prestamos: Prestamo[] = prestamosSinEntregas.map(p => {
+              const entregasDelPrestamo = entregasConId
+                .filter(e => e.prestamoId === p.id)
+                .map(({ prestamoId, ...resto }) => resto as Entrega);
+              return { ...p, entregas: entregasDelPrestamo };
+            });
+
             console.log('DEBUG - Tarjetas procesadas:', tarjetas);
             console.log('DEBUG - Gastos procesados:', gastos);
             console.log('DEBUG - Compra dólares procesadas:', compraDolares);
-            
-            resolve({ tarjetas, gastos, compraDolares, ventaDolares });
+
+            resolve({ tarjetas, gastos, compraDolares, ventaDolares, prestamos });
           } catch (error) {
             console.error('Error al procesar el archivo Excel:', error);
             reject(new Error('Formato de archivo no válido'));
           }
         };
-        
+
         fileReader.onerror = (error) => {
           console.error('Error al leer el archivo:', error);
           reject(new Error('No se pudo leer el archivo'));
         };
-        
+
         fileReader.readAsArrayBuffer(file);
       } catch (error) {
         console.error('Error en importarDesdeExcel:', error);
@@ -354,7 +394,7 @@ export class ImportarExportarService {
   /**
    * Prepara los datos para exportar, asegurando que solo se incluyan las propiedades necesarias
    */
-  private prepararDatosParaExportar(datos: any[], tipo: 'tarjeta' | 'gasto' | 'compraDolar' | 'ventaDolar'): any[] {
+  private prepararDatosParaExportar(datos: any[], tipo: 'tarjeta' | 'gasto' | 'compraDolar' | 'ventaDolar' | 'prestamo' | 'entrega'): any[] {
     if (tipo === 'tarjeta') {
       return (datos as Tarjeta[]).map(t => ({
         'ID': t.id,
@@ -404,6 +444,25 @@ export class ImportarExportarService {
         'FechaCreacion': v.fechaCreacion ? new Date(v.fechaCreacion).toISOString() : '',
         'FechaActualizacion': v.fechaActualizacion ? new Date(v.fechaActualizacion).toISOString() : ''
       }));
+    } else if (tipo === 'prestamo') {
+      return (datos as Prestamo[]).map(p => ({
+        'ID': p.id,
+        'Prestamista': p.prestamista,
+        'Monto Prestado': p.montoPrestado,
+        'Moneda': p.moneda || 'ARS',
+        'Fecha Préstamo': p.fechaPrestamo,
+        'Estado': p.estado,
+        'Notas': p.notas || ''
+      }));
+    } else if (tipo === 'entrega') {
+      return (datos as (Entrega & { prestamoId: string })[]).map(e => ({
+        'ID': e.id,
+        'ID Préstamo': e.prestamoId,
+        'Fecha': e.fecha,
+        'Monto': e.monto,
+        'Tipo': e.tipo,
+        'Nota': e.nota || ''
+      }));
     }
     return [];
   }
@@ -411,7 +470,7 @@ export class ImportarExportarService {
   /**
    * Prepara los datos importados, convirtiéndolos al formato interno de la aplicación
    */
-  private prepararDatosDesdeImportar(datos: any[], tipo: 'tarjeta' | 'gasto' | 'compraDolar' | 'ventaDolar'): any[] {
+  private prepararDatosDesdeImportar(datos: any[], tipo: 'tarjeta' | 'gasto' | 'compraDolar' | 'ventaDolar' | 'prestamo' | 'entrega'): any[] {
     if (tipo === 'tarjeta') {
       return datos.map((item: any) => ({
         id: item['ID'] || item['id'] || '',
@@ -431,6 +490,7 @@ export class ImportarExportarService {
         const cantidadCuotas = cantidadCuotasRaw != null && cantidadCuotasRaw !== ''
           ? Math.max(1, Number(cantidadCuotasRaw))
           : undefined;
+
         let primerMesCuota: string | undefined = undefined;
         if (primerMesRaw && typeof primerMesRaw === 'string') {
           const s = primerMesRaw.trim();
@@ -440,22 +500,49 @@ export class ImportarExportarService {
             const [y, m] = key.split('-');
             if (y && m) primerMesCuota = `${y}-${m}-01`;
           }
+        } else if (primerMesRaw && typeof primerMesRaw === 'number') {
+          // Manejar fecha de Excel como número de serie
+          const excelDate = this.excelDateToJSDate(primerMesRaw);
+          if (excelDate) {
+            const year = excelDate.getFullYear();
+            const month = String(excelDate.getMonth() + 1).padStart(2, '0');
+            primerMesCuota = `${year}-${month}-01`;
+          }
         }
+
         const montoPorCuota = montoPorCuotaRaw != null && montoPorCuotaRaw !== ''
           ? Number(montoPorCuotaRaw)
           : undefined;
+
+        // Procesar la fecha del gasto
+        let fecha: string;
+        const fechaRaw = item['Fecha'] || item['fecha'];
+        if (fechaRaw) {
+          if (typeof fechaRaw === 'number') {
+            // Fecha de Excel como número de serie
+            const excelDate = this.excelDateToJSDate(fechaRaw);
+            fecha = excelDate ? excelDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+          } else if (typeof fechaRaw === 'string') {
+            // Fecha como string
+            fecha = fechaRaw.includes('T') ? fechaRaw.split('T')[0] : fechaRaw;
+          } else {
+            fecha = new Date().toISOString().split('T')[0];
+          }
+        } else {
+          fecha = new Date().toISOString().split('T')[0];
+        }
 
         return {
           id: item['ID'] || item['id'] || '',
           tarjetaId: item['ID Tarjeta'] || item['tarjetaId'] || '',
           descripcion: item['Descripción'] || item['descripcion'] || '',
           monto: Number(item['Monto'] || item['monto'] || 0),
-          fecha: item['Fecha'] || item['fecha'] || new Date().toISOString().split('T')[0],
+          fecha,
           compartidoCon: item['Compartido con'] || item['compartidoCon'] || undefined,
-          porcentajeCompartido: item['Porcentaje Compartido'] !== undefined 
-            ? Number(item['Porcentaje Compartido']) 
-            : item['porcentajeCompartido'] !== undefined 
-              ? Number(item['porcentajeCompartido']) 
+          porcentajeCompartido: item['Porcentaje Compartido'] !== undefined
+            ? Number(item['Porcentaje Compartido'])
+            : item['porcentajeCompartido'] !== undefined
+              ? Number(item['porcentajeCompartido'])
               : undefined,
           cantidadCuotas,
           primerMesCuota,
@@ -469,17 +556,17 @@ export class ImportarExportarService {
         if (typeof mes === 'string') {
           mes = this.convertirNombreMesANumero(mes);
         }
-        
+
         // Validar y convertir valores numéricos
         const dolaresRaw = item['Dólares'] || item['dolares'] || 0;
         const precioCompraRaw = item['PrecioCompra'] || item['precioCompra'] || 0;
         const precioCompraTotalRaw = item['PrecioCompraTotal'] || item['precioCompraTotal'];
         const anioRaw = item['Año'] || item['anio'] || new Date().getFullYear();
-        
+
         const dolares = isNaN(Number(dolaresRaw)) ? 0 : Number(dolaresRaw);
         const precioCompra = isNaN(Number(precioCompraRaw)) ? 0 : Number(precioCompraRaw);
         const anio = isNaN(Number(anioRaw)) ? new Date().getFullYear() : Number(anioRaw);
-        
+
         // Si existe PrecioCompraTotal en el Excel, usarlo; sino calcularlo
         let precioCompraTotal: number;
         if (precioCompraTotalRaw && !isNaN(Number(precioCompraTotalRaw))) {
@@ -487,7 +574,7 @@ export class ImportarExportarService {
         } else {
           precioCompraTotal = dolares * precioCompra;
         }
-        
+
         return {
           id: item['ID'] || item['id'] || this.generarId(),
           mes: Number(mes),
@@ -538,6 +625,26 @@ export class ImportarExportarService {
           fechaActualizacion: item['FechaActualizacion'] ? new Date(item['FechaActualizacion']) : new Date()
         } as unknown as VentaDolar;
       });
+    } else if (tipo === 'prestamo') {
+      return datos.map((item: any) => ({
+        id: item['ID'] || item['id'] || this.generarId(),
+        prestamista: item['Prestamista'] || item['prestamista'] || '',
+        montoPrestado: Number(item['Monto Prestado'] || item['montoPrestado'] || 0),
+        moneda: (item['Moneda'] || item['moneda'] || 'ARS') as 'ARS' | 'USD',
+        fechaPrestamo: item['Fecha Préstamo'] || item['fechaPrestamo'] || new Date().toISOString().split('T')[0],
+        estado: item['Estado'] || item['estado'] || 'ACTIVO',
+        notas: item['Notas'] || item['notas'] || undefined,
+        entregas: [] // Se llenará después
+      } as Prestamo));
+    } else if (tipo === 'entrega') {
+      return datos.map((item: any) => ({
+        id: item['ID'] || item['id'] || this.generarId(),
+        prestamoId: item['ID Préstamo'] || item['prestamoId'] || '',
+        fecha: item['Fecha'] || item['fecha'] || new Date().toISOString().split('T')[0],
+        monto: Number(item['Monto'] || item['monto'] || 0),
+        tipo: item['Tipo'] || item['tipo'] || 'PARCIAL',
+        nota: item['Nota'] || item['nota'] || undefined
+      }));
     }
     return [];
   }
@@ -571,11 +678,31 @@ export class ImportarExportarService {
     return Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
   }
 
+  /**
+   * Convierte un número de serie de Excel a fecha JavaScript
+   * Excel almacena fechas como números (días desde 1900-01-01)
+   */
+  private excelDateToJSDate(excelDate: number): Date | null {
+    if (!excelDate || isNaN(excelDate)) return null;
+
+    // Excel fecha base es 1900-01-01, pero tiene un bug con 1900 como año bisiesto
+    // Días antes de 1900-03-01 necesitan -1
+    const excelEpoch = new Date(1899, 11, 30); // 30 de diciembre de 1899
+    const msPerDay = 24 * 60 * 60 * 1000;
+    const date = new Date(excelEpoch.getTime() + excelDate * msPerDay);
+
+    return isNaN(date.getTime()) ? null : date;
+  }
+
   // ==========================
   // Resumen mensual (export)
   // ==========================
-  private monthKeyFromISO(isoDate: string): string {
-    return (isoDate || '').slice(0, 7);
+  private monthKeyFromISO(isoDate: any): string {
+    if (!isoDate) return '';
+    if (isoDate instanceof Date) {
+      return isoDate.toISOString().slice(0, 7);
+    }
+    return String(isoDate).slice(0, 7);
   }
 
   private addMonths(isoYYYYMMDD: string, months: number): string {
@@ -736,6 +863,24 @@ export class ImportarExportarService {
       'FechaActualizacion': '2024-01-01T00:00:00.000Z'
     }];
 
+    const prestamosTemplate = [{
+      'ID': '(generar automáticamente)',
+      'Prestamista': 'Nombre del prestamista',
+      'Monto Prestado': 10000,
+      'Fecha Préstamo': '2024-01-01',
+      'Estado': 'ACTIVO',
+      'Notas': 'Nota opcional'
+    }];
+
+    const entregasTemplate = [{
+      'ID': '(generar automáticamente)',
+      'ID Préstamo': '(ID del préstamo)',
+      'Fecha': '2024-02-01',
+      'Monto': 1000,
+      'Tipo': 'PARCIAL',
+      'Nota': 'Pago parcial'
+    }];
+
     // Crear el libro de trabajo
     const wb = XLSX.utils.book_new();
     const wsTarjetas = XLSX.utils.json_to_sheet(tarjetasTemplate);
@@ -744,7 +889,9 @@ export class ImportarExportarService {
     const wsCuotasDetalle = XLSX.utils.json_to_sheet(cuotasDetalleTemplate);
     const wsCompraDolares = XLSX.utils.json_to_sheet(compraDolaresTemplate);
     const wsVentaDolares = XLSX.utils.json_to_sheet(ventaDolaresTemplate);
-    
+    const wsPrestamos = XLSX.utils.json_to_sheet(prestamosTemplate);
+    const wsEntregas = XLSX.utils.json_to_sheet(entregasTemplate);
+
     // Añadir todas las hojas como en el export
     XLSX.utils.book_append_sheet(wb, wsTarjetas, this.HOJA_TARJETAS);
     XLSX.utils.book_append_sheet(wb, wsGastos, this.HOJA_GASTOS);
@@ -752,11 +899,13 @@ export class ImportarExportarService {
     XLSX.utils.book_append_sheet(wb, wsCuotasDetalle, this.HOJA_CUOTAS_DETALLE);
     XLSX.utils.book_append_sheet(wb, wsCompraDolares, this.HOJA_COMPRA_DOLARES);
     XLSX.utils.book_append_sheet(wb, wsVentaDolares, this.HOJA_VENTA_DOLARES);
-    
+    XLSX.utils.book_append_sheet(wb, wsPrestamos, this.HOJA_PRESTAMOS);
+    XLSX.utils.book_append_sheet(wb, wsEntregas, this.HOJA_ENTREGAS);
+
     // Generar el archivo
     const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     const data = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    
+
     // Guardar el archivo
     saveAs(data, `plantilla_gestor_tc_${new Date().toISOString().split('T')[0]}.xlsx`);
   }

@@ -1,7 +1,4 @@
 import { Routes } from '@angular/router';
-import { TarjetasComponent } from './pages/tarjetas/tarjetas.component';
-import { GastosComponent } from './pages/gastos/gastos';
-import { ReportesWhatsappComponent } from './pages/reportes-whatsapp/reportes-whatsapp.component';
 
 export const routes: Routes = [
   {
@@ -24,21 +21,31 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/resumen/resumen').then(m => m.ResumenComponent),
     title: 'Resumen - Gestor de Tarjetas de Crédito'
   },
-    {
+  {
     path: 'gestion-dolares',
     loadComponent: () => import('./pages/gestion-dolares/gestion-dolares.component').then(m => m.GestionDolaresComponent),
     title: 'Gestión Dólares - Gestor de Tarjetas de Crédito'
+  },
+  {
+    path: 'prestamos',
+    loadComponent: () => import('./components/prestamos/prestamo-list.component').then(m => m.PrestamoListComponent),
+    title: 'Préstamos - Gestor de Tarjetas de Crédito'
+  },
+  {
+    path: 'prestamos/:id',
+    loadComponent: () => import('./components/prestamos/prestamo-detail.component').then(m => m.PrestamoDetailComponent),
+    title: 'Detalle de Préstamo - Gestor de Tarjetas de Crédito'
+  },
+  {
+    path: 'prestamos/:id/analisis',
+    loadComponent: () => import('./components/prestamos/prestamo-analysis.component').then(m => m.PrestamoAnalysisComponent),
+    title: 'Análisis de Préstamo - Gestor de Tarjetas de Crédito'
   },
   {
     path: 'importar-exportar',
     loadComponent: () => import('./pages/importar-exportar/importar-exportar').then(m => m.ImportarExportarComponent),
     title: 'Importar/Exportar - Gestor de Tarjetas de Crédito'
   },
-  // {
-  //   path: 'analisis',
-  //   loadComponent: () => import('./pages/analisis/analisis.component').then(m => m.AnalisisComponent),
-  //   title: 'Análisis - Gestor de Tarjetas de Crédito'
-  // },
   {
     path: 'graficos',
     loadComponent: () => import('./pages/graficos/graficos.component').then(m => m.GraficosComponent),
