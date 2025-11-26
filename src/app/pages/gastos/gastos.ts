@@ -6,6 +6,7 @@ import { Gasto } from '../../models/gasto.model';
 import { TarjetaService } from '../../services/tarjeta';
 import { GastoService } from '../../services/gasto';
 import { GastoDialogComponent } from '../../components/gasto-dialog/gasto-dialog';
+import { NotificationService } from '../../services/notification.service';
 
 interface GastosPorTarjeta {
   nombreTarjeta: string;
@@ -57,7 +58,8 @@ export class GastosComponent implements OnInit {
 
   constructor(
     private gastoService: GastoService,
-    private tarjetaService: TarjetaService
+    private tarjetaService: TarjetaService,
+    private notificationService: NotificationService
   ) {}
 
   ngOnInit(): void {
@@ -203,18 +205,25 @@ export class GastosComponent implements OnInit {
   }
 
   eliminarGasto(gasto: Gasto): void {
-    if (confirm(`¿Estás seguro de que deseas eliminar el gasto "${gasto.descripcion}"?`)) {
-      this.gastoService.eliminarGasto(gasto.id).subscribe({
-        next: () => {
-          this.cargarDatos();
-          alert('Gasto eliminado correctamente');
-        },
-        error: (error) => {
-          console.error('Error al eliminar gasto:', error);
-          alert('Error al eliminar el gasto');
-        }
-      });
-    }
+    this.notificationService.confirm(
+      'Confirmar eliminación',
+      `¿Estás seguro de que deseas eliminar el gasto "${gasto.descripcion}"?`,
+      'Eliminar',
+      'Cancelar'
+    ).subscribe(confirmed => {
+      if (confirmed) {
+        this.gastoService.eliminarGasto(gasto.id).subscribe({
+          next: () => {
+            this.cargarDatos();
+            this.notificationService.success('Gasto eliminado correctamente');
+          },
+          error: (error) => {
+            console.error('Error al eliminar gasto:', error);
+            this.notificationService.error('Error al eliminar el gasto');
+          }
+        });
+      }
+    });
   }
 
   onGuardarGasto(gasto: Gasto): void {
@@ -225,14 +234,14 @@ export class GastosComponent implements OnInit {
           if (gastoActualizado) {
             this.cargarDatos();
             this.cerrarModal();
-            alert('Gasto actualizado correctamente');
+            this.notificationService.success('Gasto actualizado correctamente');
           } else {
-            alert('No se pudo actualizar el gasto');
+            this.notificationService.error('No se pudo actualizar el gasto');
           }
         },
         error: (error) => {
           console.error('Error al actualizar gasto:', error);
-          alert('Error al actualizar el gasto');
+          this.notificationService.error('Error al actualizar el gasto');
         }
       });
     } else {
@@ -241,11 +250,11 @@ export class GastosComponent implements OnInit {
         next: () => {
           this.cargarDatos();
           this.cerrarModal();
-          alert('Gasto agregado correctamente');
+          this.notificationService.success('Gasto agregado correctamente');
         },
         error: (error) => {
           console.error('Error al agregar gasto:', error);
-          alert('Error al agregar el gasto');
+          this.notificationService.error('Error al agregar el gasto');
         }
       });
     }

@@ -11,6 +11,7 @@ import { Prestamo, Entrega } from '../../models/prestamo.model';
 import { PrestamoService } from '../../services/prestamo.service';
 import { EntregaFormComponent } from './entrega-form.component';
 import { PrestamoFormComponent } from './prestamo-form.component';
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-prestamo-detail',
@@ -201,7 +202,8 @@ export class PrestamoDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private prestamoService: PrestamoService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private notificationService: NotificationService
   ) { }
 
   ngOnInit(): void {
@@ -292,14 +294,21 @@ export class PrestamoDetailComponent implements OnInit {
   eliminarEntrega(entrega: Entrega): void {
     if (!this.prestamo) return;
 
-    if (confirm('¿Está seguro de eliminar esta entrega?')) {
-      this.prestamoService.eliminarEntrega(this.prestamo.id, entrega.id);
-      // Recargar
-      this.prestamoService.getPrestamoById(this.prestamo.id).subscribe(p => {
-        this.prestamo = p;
-        this.calcularTotalPagado();
-      });
-    }
+    this.notificationService.confirm(
+      'Confirmar eliminación',
+      '¿Está seguro de eliminar esta entrega?',
+      'Eliminar',
+      'Cancelar'
+    ).subscribe(confirmed => {
+      if (confirmed) {
+        this.prestamoService.eliminarEntrega(this.prestamo!.id, entrega.id);
+        // Recargar
+        this.prestamoService.getPrestamoById(this.prestamo!.id).subscribe(p => {
+          this.prestamo = p;
+          this.calcularTotalPagado();
+        });
+      }
+    });
   }
 
   getColorEstado(estado: string): string {
