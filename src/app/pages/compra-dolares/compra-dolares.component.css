@@ -1,22 +1,14 @@
 :host {
-  --bg: var(--color1);
-  --surface: var(--color2);
-  --primary: var(--color3);
-  --secondary: var(--color4);
-  --border: var(--color5);
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.08);
-  --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
-  --radius: 12px;
-  --radius-sm: 8px;
+  /* Heredar variables globales estandarizadas */
 }
 
 .compra-dolares-container {
-  padding: 20px;
+  padding: var(--spacing-lg);
   max-width: 1200px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--spacing-lg);
   background: var(--bg);
   min-height: 100vh;
 }
@@ -57,8 +49,8 @@
 }
 
 .dolar-precio .label {
-  font-weight: 500;
-  color: #666;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
 }
 
 .dolar-precio .compra {
@@ -75,14 +67,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: #999;
+  color: var(--text-muted);
 }
 
 .loading-dolar {
   display: flex;
   align-items: center;
-  gap: 10px;
-  color: #666;
+  gap: var(--spacing-sm);
+  color: var(--text-secondary);
 }
 
 .spinning {
@@ -142,8 +134,10 @@
 }
 
 .preview-compra h4 {
-  margin: 0 0 12px 0;
-  color: #333;
+  margin: 0 0 var(--spacing-sm) 0;
+  color: var(--text-primary);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
 }
 
 .preview-grid {
@@ -160,15 +154,15 @@
 }
 
 .preview-item.variacion {
-  border-top: 1px solid #ddd;
-  padding-top: 12px;
-  margin-top: 8px;
-  font-weight: 500;
+  border-top: 1px solid var(--border-light);
+  padding-top: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+  font-weight: var(--font-weight-medium);
 }
 
 .preview-item .label {
-  color: #666;
-  font-weight: 400;
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-normal);
 }
 
 .preview-item .value {
@@ -200,19 +194,22 @@
 }
 
 .resumen-item .label {
-  color: #666;
-  font-weight: 400;
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-normal);
 }
 
 .resumen-item .value {
-  font-weight: 500;
-  font-size: 1.1em;
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-lg);
 }
 
 .resumen-item .value.destacado {
-  color: var(--primary);
-  font-size: 1.2em;
-  font-weight: 600;
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
 }
 
 /* Diferencia colors */
@@ -225,7 +222,7 @@
 }
 
 .diferencia-neutral {
-  color: #666 !important;
+  color: var(--text-secondary) !important;
 }
 
 /* Table styles */
@@ -240,9 +237,9 @@
 }
 
 .compras-table th {
-  background: var(--surface);
-  font-weight: 500;
-  color: #333;
+  background: var(--bg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
 }
 
 .compras-table td,
@@ -263,16 +260,17 @@
 
 .no-data {
   text-align: center;
-  padding: 40px 20px;
-  color: #666;
+  padding: var(--spacing-2xl) var(--spacing-lg);
+  color: var(--text-secondary);
 }
 
 .no-data mat-icon {
-  font-size: 48px;
+  font-size: var(--font-size-4xl);
   width: 48px;
   height: 48px;
-  color: #ccc;
-  margin-bottom: 16px;
+  color: var(--text-muted);
+  margin-bottom: var(--spacing-md);
+  opacity: 0.5;
 }
 
 .no-data p {
@@ -383,13 +381,13 @@
 
 /* Custom snackbar styles */
 ::ng-deep .success-snackbar {
-  background: var(--primary) !important;
-  color: white !important;
+  background: var(--success-gradient) !important;
+  color: var(--text-inverse) !important;
 }
 
 ::ng-deep .error-snackbar {
-  background: var(--secondary) !important;
-  color: white !important;
+  background: var(--danger-gradient) !important;
+  color: var(--text-inverse) !important;
 }
 
 /* Hover effects */
@@ -415,7 +413,7 @@ button[mat-raised-button] {
 }
 
 button[mat-icon-button]:hover {
-  background: rgba(0,0,0,0.04);
+  background: var(--surface-hover);
 }
 
 /* Table row hover */

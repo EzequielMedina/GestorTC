@@ -94,41 +94,87 @@ import { NotificationService } from '../../services/notification.service';
   `,
   styles: [`
     .container {
-      padding: 20px;
+      padding: var(--spacing-lg);
+      max-width: 1200px;
+      margin: 0 auto;
+      background: var(--bg);
+      min-height: 100vh;
     }
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
+      margin-bottom: var(--spacing-lg);
+      padding: var(--spacing-lg);
+      background: var(--primary-gradient);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-md);
+    }
+    .header h1 {
+      margin: 0;
+      color: var(--text-inverse);
+      font-size: var(--font-size-2xl);
+      font-weight: var(--font-weight-bold);
     }
     .w-100 {
       width: 100%;
     }
+    mat-card {
+      background: var(--surface) !important;
+      border-radius: var(--radius) !important;
+      box-shadow: var(--shadow-sm) !important;
+      border: 1px solid var(--border-light) !important;
+    }
+    table {
+      width: 100%;
+    }
+    ::ng-deep .mat-mdc-table {
+      background: var(--surface) !important;
+    }
+    ::ng-deep .mat-mdc-header-row {
+      background: var(--bg) !important;
+    }
+    ::ng-deep .mat-mdc-header-cell {
+      color: var(--text-primary) !important;
+      font-weight: var(--font-weight-semibold) !important;
+      font-size: var(--font-size-sm) !important;
+      border-bottom: 2px solid var(--border-light) !important;
+    }
+    ::ng-deep .mat-mdc-row {
+      border-bottom: 1px solid var(--border-light) !important;
+    }
+    ::ng-deep .mat-mdc-cell {
+      color: var(--text-primary) !important;
+      font-size: var(--font-size-base) !important;
+    }
     .clickable-row {
       cursor: pointer;
+      transition: all var(--transition-base);
     }
     .clickable-row:hover {
-      background-color: #f5f5f5;
+      background: var(--bg) !important;
+      transform: translateX(4px);
     }
     .no-data {
-      padding: 20px;
+      padding: var(--spacing-2xl);
       text-align: center;
-      color: #666;
+      color: var(--text-secondary);
     }
     .currency-badge {
       display: inline-block;
-      padding: 2px 8px;
-      border-radius: 12px;
-      font-size: 11px;
-      font-weight: 600;
-      margin-right: 8px;
-      background-color: #e3f2fd;
-      color: #1976d2;
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border-radius: var(--radius-sm);
+      font-size: var(--font-size-xs);
+      font-weight: var(--font-weight-semibold);
+      margin-right: var(--spacing-sm);
+      background: rgba(13, 115, 119, 0.1);
+      color: var(--primary);
+      border: 1px solid var(--primary);
     }
     .currency-badge.usd {
-      background-color: #e8f5e9;
-      color: #388e3c;
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--success);
+      border-color: var(--success);
     }
   `]
 })

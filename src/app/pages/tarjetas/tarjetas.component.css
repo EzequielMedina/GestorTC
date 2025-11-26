@@ -1,14 +1,6 @@
 :host {
-  --bg: var(--color1);
-  --surface: var(--color2);
-  --primary: var(--color3);
-  --danger: #dc2626;
-  --secondary: #6b7280;
-  --border: var(--color5);
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.08);
-  --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
-  --radius: 12px;
-  --radius-sm: 8px;
+  /* Heredar variables globales estandarizadas - no redeclarar */
+  /* Las variables se heredan automáticamente de :root */
 }
 
 .page {
@@ -20,43 +12,78 @@
 }
 
 .header {
-  margin-bottom: 24px;
-  text-align: center;
+  margin-bottom: var(--spacing-xl);
+  padding: var(--spacing-xl);
+  background: var(--primary-gradient);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-lg);
+}
+
+.header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
+  pointer-events: none;
+}
+
+.header-content {
+  flex: 1;
+  text-align: left;
+  position: relative;
+  z-index: 1;
 }
 
 .header h2 {
-  margin: 0 0 8px 0;
-  font-size: 28px;
-  font-weight: 700;
-  color: #333;
+  margin: 0 0 var(--spacing-sm) 0;
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-inverse);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .subtitle {
-  margin: 0 0 20px 0;
-  color: #666;
-  font-size: 16px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.95);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .add-btn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 24px;
-  background: var(--primary);
-  color: white;
-  border: none;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  color: var(--text-inverse);
+  border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: var(--radius-sm);
-  font-size: 16px;
-  font-weight: 500;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-base);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  min-height: 44px;
+  position: relative;
+  z-index: 1;
 }
 
 .add-btn:hover {
-  background: #1d4ed8;
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
 }
 
 .btn-icon {
@@ -76,18 +103,18 @@
 }
 
 .card-title {
-  margin: 0 0 20px 0;
-  font-size: 20px;
-  font-weight: 600;
-  color: #333;
+  margin: 0 0 var(--spacing-lg) 0;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
   border-bottom: 2px solid var(--primary);
-  padding-bottom: 8px;
+  padding-bottom: var(--spacing-sm);
 }
 
 /* Loading state */
 .loading-state {
   text-align: center;
-  padding: 40px 20px;
+  padding: var(--spacing-2xl) var(--spacing-lg);
 }
 
 .loading-spinner {
@@ -97,12 +124,12 @@
   border-top: 4px solid var(--primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin: 0 auto 16px;
+  margin: 0 auto var(--spacing-md);
 }
 
 .loading-text {
-  color: #666;
-  font-size: 16px;
+  color: var(--text-secondary);
+  font-size: var(--font-size-base);
 }
 
 @keyframes spin {
@@ -113,25 +140,26 @@
 /* Empty state */
 .empty-state {
   text-align: center;
-  padding: 60px 20px;
-  color: #666;
+  padding: var(--spacing-2xl) var(--spacing-lg);
+  color: var(--text-secondary);
 }
 
 .empty-icon {
-  font-size: 64px;
-  margin-bottom: 16px;
+  font-size: var(--font-size-4xl);
+  margin-bottom: var(--spacing-md);
+  color: var(--text-muted);
 }
 
 .empty-text {
-  font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: #333;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--spacing-sm);
+  color: var(--text-primary);
 }
 
 .empty-subtext {
-  font-size: 16px;
-  color: #666;
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
 }
 
 /* Grid de tarjetas */
@@ -163,15 +191,22 @@
 }
 
 .tarjeta-icon {
-  font-size: 32px;
+  font-size: var(--font-size-2xl);
   width: 60px;
   height: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--primary);
-  color: white;
-  border-radius: 50%;
+  background: var(--primary-gradient);
+  color: var(--text-inverse);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-base);
+}
+
+.tarjeta-icon:hover {
+  transform: scale(1.1);
+  box-shadow: var(--shadow-md);
 }
 
 .tarjeta-actions {
@@ -218,15 +253,15 @@
 }
 
 .tarjeta-nombre {
-  font-size: 18px;
-  font-weight: 600;
-  color: #333;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
 }
 
 .tarjeta-banco {
-  font-size: 14px;
-  color: #666;
-  font-weight: 500;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-medium);
 }
 
 .tarjeta-details {
@@ -249,15 +284,15 @@
 }
 
 .detail-label {
-  font-size: 13px;
-  color: #666;
-  font-weight: 500;
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-medium);
 }
 
 .detail-value {
-  font-size: 14px;
-  color: #333;
-  font-weight: 600;
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  font-weight: var(--font-weight-semibold);
 }
 
 /* Responsive Design */

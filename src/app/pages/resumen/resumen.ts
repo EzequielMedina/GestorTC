@@ -1,7 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ResumenService, ResumenPersona, ResumenTarjeta } from '../../services/resumen.service';
-import { Observable } from 'rxjs';
+import { Observable, Subscription, combineLatest } from 'rxjs';
+import { TarjetaService } from '../../services/tarjeta';
+import { GastoService } from '../../services/gasto';
 
 @Component({
   selector: 'app-resumen',
@@ -10,8 +12,10 @@ import { Observable } from 'rxjs';
   template: `
     <div class="page">
       <div class="header">
-      <h2>Resumen</h2>
-
+        <div class="header-content">
+          <h2>📊 Resumen</h2>
+          <p class="subtitle">Vista general de tus gastos y tarjetas</p>
+        </div>
         <!-- Navegación mensual -->
         <div class="month-nav">
           <button class="btn-nav" (click)="prevMonth()" aria-label="Mes anterior">
@@ -347,43 +351,83 @@ import { Observable } from 'rxjs';
     }
 
     .header {
-      margin-bottom: 24px;
+      margin-bottom: var(--spacing-xl);
+      padding: var(--spacing-xl);
+      background: var(--primary-gradient);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--spacing-lg);
+    }
+
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
+      pointer-events: none;
+    }
+
+    .header-content {
+      flex: 1;
+      text-align: left;
+      position: relative;
+      z-index: 1;
     }
 
     .header h2 {
-      margin: 0 0 16px 0;
-      font-size: 28px;
-      font-weight: 700;
-      color: #333;
-      text-align: center;
+      margin: 0 0 var(--spacing-sm) 0;
+      font-size: var(--font-size-4xl);
+      font-weight: var(--font-weight-bold);
+      color: var(--text-inverse);
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .subtitle {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.95);
+      font-size: var(--font-size-lg);
+      font-weight: var(--font-weight-medium);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
 
     .month-nav {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 16px;
-      margin-bottom: 8px;
+      gap: var(--spacing-md);
+      position: relative;
+      z-index: 1;
     }
 
     .btn-nav {
       width: 48px;
       height: 48px;
-      border: 2px solid var(--border);
+      border: 2px solid rgba(255, 255, 255, 0.3);
       border-radius: 50%;
-      background: var(--surface);
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      color: var(--text-inverse);
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.2s ease;
-      box-shadow: var(--shadow-sm);
+      transition: all var(--transition-base);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
 
     .btn-nav:hover {
-      background: var(--primary);
-      color: white;
-      transform: scale(1.05);
+      background: rgba(255, 255, 255, 0.3);
+      border-color: rgba(255, 255, 255, 0.5);
+      transform: scale(1.1);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
     }
 
     .btn-nav:active {
@@ -396,11 +440,17 @@ import { Observable } from 'rxjs';
     }
 
     .month-label {
-      font-size: 20px;
-      font-weight: 700;
-      color: #333;
-      min-width: 120px;
+      font-size: var(--font-size-xl);
+      font-weight: var(--font-weight-bold);
+      color: var(--text-inverse);
+      min-width: 200px;
       text-align: center;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      padding: var(--spacing-sm) var(--spacing-md);
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
     .stats-grid {
@@ -1365,7 +1415,7 @@ import { Observable } from 'rxjs';
      }
   `
 })
-export class ResumenComponent {
+export class ResumenComponent implements OnInit, OnDestroy {
   resumenTarjetasMes$!: Observable<(ResumenTarjeta & { totalMes: number })[]>;
   resumenTarjetasGeneral$!: Observable<ResumenTarjeta[]>;
   resumenPersonas$!: Observable<ResumenPersona[]>;
@@ -1416,10 +1466,38 @@ export class ResumenComponent {
 
   currentMonthKey: string = this.monthKeyFromDate(new Date()); // YYYY-MM
   monthLabel: string = this.formatMonthLabel(this.currentMonthKey);
+  private subscriptions = new Subscription();
 
-  constructor(private resumenService: ResumenService) {
-    // Inicializar después de que Angular haya inyectado el servicio
+  constructor(
+    private resumenService: ResumenService,
+    private tarjetaService: TarjetaService,
+    private gastoService: GastoService,
+    private cdr: ChangeDetectorRef
+  ) {
+    // Los observables se inicializarán en ngOnInit
+  }
+
+  ngOnInit(): void {
+    // Refrescar todos los streams cuando el componente se inicializa
+    // Esto asegura que los datos se actualicen cuando vuelves a la página
     this.refreshAllStreams();
+    
+    // Suscribirse directamente a los cambios en tarjetas y gastos para forzar actualización
+    // Esto asegura que cuando se importan datos, el resumen se actualice inmediatamente
+    this.subscriptions.add(
+      combineLatest([
+        this.tarjetaService.getTarjetas$(),
+        this.gastoService.getGastos$()
+      ]).subscribe(() => {
+        // Cuando cambian los datos base, refrescar todos los streams
+        this.refreshAllStreams();
+        this.cdr.markForCheck();
+      })
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
   }
 
   toggleTarjetaExpansion(nombreTarjeta: string): void {
@@ -1484,16 +1562,29 @@ export class ResumenComponent {
   }
 
   private refreshAllStreams(): void {
-    this.resumenTarjetasMes$ = this.resumenService.getResumenPorTarjetaDelMes$(this.currentMonthKey);
+    // Forzar la creación de nuevos observables para evitar problemas de caché
+    // Esto asegura que los observables se actualicen correctamente cuando vuelves a la página
+    const currentKey = this.currentMonthKey;
+    
+    // Recrear todos los observables para forzar la actualización
+    // Esto es crítico: cada vez que se llama este método, se crean nuevos observables
+    // que se suscribirán a los BehaviorSubjects actualizados
+    this.resumenTarjetasMes$ = this.resumenService.getResumenPorTarjetaDelMes$(currentKey);
     this.resumenTarjetasGeneral$ = this.resumenService.getResumenPorTarjeta$();
     this.resumenPersonas$ = this.resumenService.getResumenPorPersona$();
-    this.resumenPersonasMes$ = this.resumenService.getResumenPorPersonaDelMes$(this.currentMonthKey);
-    this.detalleGastosMes$ = this.resumenService.getDetalleGastosDelMes$(this.currentMonthKey);
-    this.detalleGastosAgrupadosMes$ = this.resumenService.getDetalleGastosAgrupadosPorTarjeta$(this.currentMonthKey);
-    this.detalleGastosCompartidosMes$ = this.resumenService.getDetalleGastosCompartidosDelMes$(this.currentMonthKey);
+    this.resumenPersonasMes$ = this.resumenService.getResumenPorPersonaDelMes$(currentKey);
+    this.detalleGastosMes$ = this.resumenService.getDetalleGastosDelMes$(currentKey);
+    this.detalleGastosAgrupadosMes$ = this.resumenService.getDetalleGastosAgrupadosPorTarjeta$(currentKey);
+    this.detalleGastosCompartidosMes$ = this.resumenService.getDetalleGastosCompartidosDelMes$(currentKey);
     this.limiteTotal$ = this.resumenService.getLimiteTotal$();
-    this.totalDelMes$ = this.resumenService.getTotalDelMes$(this.currentMonthKey);
-    this.porcentajeUsoTotalMes$ = this.resumenService.getPorcentajeUsoTotalDelMes$(this.currentMonthKey);
-    this.totalPorPersona$ = this.resumenService.getTotalPorPersona$(this.currentMonthKey);
+    this.totalDelMes$ = this.resumenService.getTotalDelMes$(currentKey);
+    this.porcentajeUsoTotalMes$ = this.resumenService.getPorcentajeUsoTotalDelMes$(currentKey);
+    this.totalPorPersona$ = this.resumenService.getTotalPorPersona$(currentKey);
+    
+    // Forzar detección de cambios después de actualizar los observables
+    // Usar setTimeout para asegurar que Angular procese los cambios
+    setTimeout(() => {
+      this.cdr.markForCheck();
+    }, 0);
   }
 }

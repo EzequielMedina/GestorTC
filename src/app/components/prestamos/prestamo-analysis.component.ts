@@ -295,14 +295,14 @@ import { PrestamoProjectionService, ProjectionScenario } from '../../services/pr
       flex: 1;
     }
     .stat-label {
-      font-size: 14px;
-      color: #666;
-      margin-bottom: 4px;
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary);
+      margin-bottom: var(--spacing-xs);
     }
     .stat-value {
-      font-size: 24px;
-      font-weight: 600;
-      color: #333;
+      font-size: var(--font-size-2xl);
+      font-weight: var(--font-weight-semibold);
+      color: var(--text-primary);
     }
     .tab-content {
       padding: 24px 0;
@@ -333,35 +333,37 @@ import { PrestamoProjectionService, ProjectionScenario } from '../../services/pr
       color: #666;
     }
     .projection-summary {
-      margin-top: 24px;
-      padding: 16px;
-      background-color: #f5f5f5;
-      border-radius: 8px;
+      margin-top: var(--spacing-lg);
+      padding: var(--spacing-md);
+      background: var(--bg);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-light);
+      box-shadow: var(--shadow-xs);
     }
     .summary-item {
       display: flex;
       justify-content: space-between;
-      padding: 8px 0;
+      padding: var(--spacing-sm) 0;
     }
     .summary-item.highlight-item {
-      font-size: 16px;
-      font-weight: 600;
-      color: #2196f3;
-      border-bottom: 2px solid #2196f3;
-      padding-bottom: 12px;
-      margin-bottom: 8px;
+      font-size: var(--font-size-base);
+      font-weight: var(--font-weight-semibold);
+      color: var(--primary);
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: var(--spacing-md);
+      margin-bottom: var(--spacing-sm);
     }
     .summary-item .label {
-      font-weight: 500;
-      color: #666;
+      font-weight: var(--font-weight-medium);
+      color: var(--text-secondary);
     }
     .summary-item .value {
-      font-weight: 600;
-      color: #333;
+      font-weight: var(--font-weight-semibold);
+      color: var(--text-primary);
     }
     .summary-item .value.success {
-      color: #4caf50;
-      font-size: 16px;
+      color: var(--success) !important;
+      font-size: var(--font-size-base);
     }
     .table-container {
       overflow-x: auto;
@@ -372,33 +374,36 @@ import { PrestamoProjectionService, ProjectionScenario } from '../../services/pr
       border-collapse: collapse;
     }
     .projection-table thead {
-      background-color: #f5f5f5;
+      background: var(--bg) !important;
     }
     .projection-table th {
-      padding: 12px;
+      padding: var(--spacing-md);
       text-align: left;
-      font-weight: 600;
-      color: #666;
-      border-bottom: 2px solid #ddd;
+      font-weight: var(--font-weight-semibold);
+      color: var(--text-primary);
+      border-bottom: 2px solid var(--border-light);
+      background: var(--bg);
     }
     .projection-table td {
-      padding: 12px;
-      border-bottom: 1px solid #eee;
+      padding: var(--spacing-md);
+      border-bottom: 1px solid var(--border-light);
+      color: var(--text-primary);
     }
     .projection-table tr:hover {
-      background-color: #f9f9f9;
+      background: var(--bg) !important;
     }
     .projection-table tr.final-payment {
-      background-color: #e8f5e9;
-      font-weight: 600;
+      background: rgba(16, 185, 129, 0.1) !important;
+      font-weight: var(--font-weight-semibold);
+      border-left: 4px solid var(--success);
     }
     .projection-table .amount {
       text-align: right;
       font-family: monospace;
     }
     .projection-table .zero-balance {
-      color: #4caf50;
-      font-weight: 600;
+      color: var(--success) !important;
+      font-weight: var(--font-weight-semibold);
     }
     .scenarios-grid {
       display: grid;
@@ -414,19 +419,20 @@ import { PrestamoProjectionService, ProjectionScenario } from '../../services/pr
     .detail-row {
       display: flex;
       justify-content: space-between;
-      padding: 8px 0;
-      border-bottom: 1px solid #eee;
+      padding: var(--spacing-sm) 0;
+      border-bottom: 1px solid var(--border-light);
     }
     .detail-row .label {
-      color: #666;
+      color: var(--text-secondary);
     }
     .detail-row .value {
-      font-weight: 500;
+      font-weight: var(--font-weight-medium);
+      color: var(--text-primary);
     }
     .detail-row .value.highlight {
-      color: #2196f3;
-      font-size: 18px;
-      font-weight: 600;
+      color: var(--primary) !important;
+      font-size: var(--font-size-lg);
+      font-weight: var(--font-weight-semibold);
     }
     @media (max-width: 768px) {
       .charts-grid {
