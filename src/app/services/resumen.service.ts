@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, combineLatest, map } from 'rxjs';
+import { Observable, combineLatest, map, shareReplay } from 'rxjs';
 import { Gasto } from '../models/gasto.model';
 import { Tarjeta } from '../models/tarjeta.model';
 import { GastoService } from './gasto';
@@ -41,14 +41,36 @@ export class ResumenService {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
   }
 
-  private monthKeyFromISO(isoDate: string): string {
+  private monthKeyFromISO(isoDate: string | Date | any): string {
+    // Manejar tanto strings como objetos Date (puede venir como Date desde importaciones)
+    let dateStr: string;
+    if (isoDate instanceof Date) {
+      // Si es un objeto Date, convertirlo a string ISO
+      dateStr = isoDate.toISOString().split('T')[0];
+    } else if (typeof isoDate === 'string') {
+      dateStr = isoDate;
+    } else {
+      // Fallback: usar la fecha actual
+      dateStr = new Date().toISOString().split('T')[0];
+    }
     // isoDate esperado: YYYY-MM-DD
-    return isoDate.slice(0, 7);
+    return dateStr.slice(0, 7);
   }
 
   private firstMonthISOFromGasto(g: Gasto): string {
     // prioriza primerMesCuota si existe; si no, usa mes de fecha del gasto normalizado a día 1
-    const base = g.primerMesCuota || (this.monthKeyFromISO(g.fecha) + '-01');
+    // Convertir fecha a string si es necesario (puede venir como Date desde importaciones)
+    let fechaStr: string;
+    const fecha = g.fecha as any; // Permitir Date o string
+    if (fecha instanceof Date) {
+      fechaStr = fecha.toISOString().split('T')[0];
+    } else if (typeof fecha === 'string') {
+      fechaStr = fecha;
+    } else {
+      fechaStr = new Date().toISOString().split('T')[0];
+    }
+    
+    const base = g.primerMesCuota || (this.monthKeyFromISO(fechaStr) + '-01');
     // asegurar formato YYYY-MM-01
     const [y, m] = base.slice(0, 7).split('-');
     return `${y}-${m}-01`;
@@ -102,7 +124,8 @@ export class ResumenService {
             saldoDisponible: Math.max(0, tarjeta.limite - totalGastos)
           };
         });
-      })
+      }),
+      shareReplay({ bufferSize: 1, refCount: false })
     );
   }
 
@@ -110,6 +133,7 @@ export class ResumenService {
    * Total del mes (YYYY-MM) considerando cuotas
    */
   getTotalDelMes$(monthKey: string): Observable<number> {
+    // NO usar shareReplay aquí para que siempre se cree un nuevo observable cuando cambia el mes
     return this.gastoService.getGastos$().pipe(
       map(gastos => gastos.reduce((acc, g) => acc + this.gastoImpactaMes(g, monthKey), 0))
     );
@@ -138,6 +162,7 @@ export class ResumenService {
           };
         });
       })
+      // NO usar shareReplay aquí - cada vez que se llama debe crear un nuevo observable
     );
   }
 
@@ -145,6 +170,7 @@ export class ResumenService {
    * Porcentaje de uso total del mes (totalDelMes / limiteTotal * 100)
    */
   getPorcentajeUsoTotalDelMes$(monthKey: string): Observable<number> {
+    // NO usar shareReplay aquí para que siempre se cree un nuevo observable cuando cambia el mes
     return combineLatest([
       this.getTotalDelMes$(monthKey),
       this.getLimiteTotal$()
@@ -267,6 +293,7 @@ export class ResumenService {
           a.nombre.localeCompare(b.nombre)
         );
       })
+      // NO usar shareReplay aquí para que siempre se cree un nuevo observable cuando cambia el mes
     );
   }
 
@@ -284,7 +311,8 @@ export class ResumenService {
    */
   getLimiteTotal$(): Observable<number> {
     return this.tarjetaService.getTarjetas$().pipe(
-      map(tarjetas => tarjetas.reduce((total, tarjeta) => total + tarjeta.limite, 0))
+      map(tarjetas => tarjetas.reduce((total, tarjeta) => total + tarjeta.limite, 0)),
+      shareReplay({ bufferSize: 1, refCount: true })
     );
   }
 
@@ -421,6 +449,7 @@ export class ResumenService {
         // Ordenar por nombre de tarjeta
         return resultado.sort((a, b) => a.nombreTarjeta.localeCompare(b.nombreTarjeta));
       })
+      // NO usar shareReplay aquí para que siempre se cree un nuevo observable cuando cambia el mes
     );
   }
 
@@ -576,6 +605,7 @@ export class ResumenService {
         // Ordenar por descripción
         return detalle.sort((a, b) => a.descripcion.localeCompare(b.descripcion));
       })
+      // NO usar shareReplay aquí para que siempre se cree un nuevo observable cuando cambia el mes
     );
   }
 
@@ -583,6 +613,7 @@ export class ResumenService {
    * Obtiene el total que te debe cada persona para un mes específico
    */
   getTotalPorPersona$(monthKey: string): Observable<Array<{ persona: string; total: number }>> {
+    // NO usar shareReplay aquí para que siempre se cree un nuevo observable cuando cambia el mes
     return this.getDetalleGastosCompartidosDelMes$(monthKey).pipe(
       map(detalle => {
         const totalesPorPersona: { [key: string]: number } = {};

@@ -1,7 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ResumenService, ResumenPersona, ResumenTarjeta } from '../../services/resumen.service';
-import { Observable } from 'rxjs';
+import { Observable, Subscription, combineLatest } from 'rxjs';
+import { TarjetaService } from '../../services/tarjeta';
+import { GastoService } from '../../services/gasto';
 
 @Component({
   selector: 'app-resumen',
@@ -1413,7 +1415,7 @@ import { Observable } from 'rxjs';
      }
   `
 })
-export class ResumenComponent {
+export class ResumenComponent implements OnInit, OnDestroy {
   resumenTarjetasMes$!: Observable<(ResumenTarjeta & { totalMes: number })[]>;
   resumenTarjetasGeneral$!: Observable<ResumenTarjeta[]>;
   resumenPersonas$!: Observable<ResumenPersona[]>;
@@ -1464,10 +1466,38 @@ export class ResumenComponent {
 
   currentMonthKey: string = this.monthKeyFromDate(new Date()); // YYYY-MM
   monthLabel: string = this.formatMonthLabel(this.currentMonthKey);
+  private subscriptions = new Subscription();
 
-  constructor(private resumenService: ResumenService) {
-    // Inicializar después de que Angular haya inyectado el servicio
+  constructor(
+    private resumenService: ResumenService,
+    private tarjetaService: TarjetaService,
+    private gastoService: GastoService,
+    private cdr: ChangeDetectorRef
+  ) {
+    // Los observables se inicializarán en ngOnInit
+  }
+
+  ngOnInit(): void {
+    // Refrescar todos los streams cuando el componente se inicializa
+    // Esto asegura que los datos se actualicen cuando vuelves a la página
     this.refreshAllStreams();
+    
+    // Suscribirse directamente a los cambios en tarjetas y gastos para forzar actualización
+    // Esto asegura que cuando se importan datos, el resumen se actualice inmediatamente
+    this.subscriptions.add(
+      combineLatest([
+        this.tarjetaService.getTarjetas$(),
+        this.gastoService.getGastos$()
+      ]).subscribe(() => {
+        // Cuando cambian los datos base, refrescar todos los streams
+        this.refreshAllStreams();
+        this.cdr.markForCheck();
+      })
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
   }
 
   toggleTarjetaExpansion(nombreTarjeta: string): void {
@@ -1532,16 +1562,29 @@ export class ResumenComponent {
   }
 
   private refreshAllStreams(): void {
-    this.resumenTarjetasMes$ = this.resumenService.getResumenPorTarjetaDelMes$(this.currentMonthKey);
+    // Forzar la creación de nuevos observables para evitar problemas de caché
+    // Esto asegura que los observables se actualicen correctamente cuando vuelves a la página
+    const currentKey = this.currentMonthKey;
+    
+    // Recrear todos los observables para forzar la actualización
+    // Esto es crítico: cada vez que se llama este método, se crean nuevos observables
+    // que se suscribirán a los BehaviorSubjects actualizados
+    this.resumenTarjetasMes$ = this.resumenService.getResumenPorTarjetaDelMes$(currentKey);
     this.resumenTarjetasGeneral$ = this.resumenService.getResumenPorTarjeta$();
     this.resumenPersonas$ = this.resumenService.getResumenPorPersona$();
-    this.resumenPersonasMes$ = this.resumenService.getResumenPorPersonaDelMes$(this.currentMonthKey);
-    this.detalleGastosMes$ = this.resumenService.getDetalleGastosDelMes$(this.currentMonthKey);
-    this.detalleGastosAgrupadosMes$ = this.resumenService.getDetalleGastosAgrupadosPorTarjeta$(this.currentMonthKey);
-    this.detalleGastosCompartidosMes$ = this.resumenService.getDetalleGastosCompartidosDelMes$(this.currentMonthKey);
+    this.resumenPersonasMes$ = this.resumenService.getResumenPorPersonaDelMes$(currentKey);
+    this.detalleGastosMes$ = this.resumenService.getDetalleGastosDelMes$(currentKey);
+    this.detalleGastosAgrupadosMes$ = this.resumenService.getDetalleGastosAgrupadosPorTarjeta$(currentKey);
+    this.detalleGastosCompartidosMes$ = this.resumenService.getDetalleGastosCompartidosDelMes$(currentKey);
     this.limiteTotal$ = this.resumenService.getLimiteTotal$();
-    this.totalDelMes$ = this.resumenService.getTotalDelMes$(this.currentMonthKey);
-    this.porcentajeUsoTotalMes$ = this.resumenService.getPorcentajeUsoTotalDelMes$(this.currentMonthKey);
-    this.totalPorPersona$ = this.resumenService.getTotalPorPersona$(this.currentMonthKey);
+    this.totalDelMes$ = this.resumenService.getTotalDelMes$(currentKey);
+    this.porcentajeUsoTotalMes$ = this.resumenService.getPorcentajeUsoTotalDelMes$(currentKey);
+    this.totalPorPersona$ = this.resumenService.getTotalPorPersona$(currentKey);
+    
+    // Forzar detección de cambios después de actualizar los observables
+    // Usar setTimeout para asegurar que Angular procese los cambios
+    setTimeout(() => {
+      this.cdr.markForCheck();
+    }, 0);
   }
 }
