@@ -1,0 +1,57 @@
+<div class="saldo-personas">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>people</mat-icon>
+        Saldos por Persona
+      </mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div *ngIf="personas.length > 0; else sinPersonas">
+        <div class="resumen-list">
+          <div class="resumen-item titular">
+            <div class="persona-info">
+              <mat-icon>account_circle</mat-icon>
+              <span class="persona-nombre">Titular</span>
+            </div>
+            <div class="persona-monto">
+              ${{ resumenPorPersona['Titular'] | number:'1.2-2' }}
+            </div>
+          </div>
+
+          <div *ngFor="let persona of personas" class="resumen-item">
+            <div class="persona-info">
+              <mat-icon>person</mat-icon>
+              <span class="persona-nombre">{{ persona }}</span>
+            </div>
+            <div class="persona-monto" [class.debe]="getSaldoPersona(persona) > 0">
+              ${{ getSaldoPersona(persona) | number:'1.2-2' }}
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="deudas.length > 0" class="deudas-section">
+          <h4>Quién debe a quién</h4>
+          <div class="deudas-list">
+            <div *ngFor="let deuda of deudas" class="deuda-item">
+              <mat-icon>arrow_forward</mat-icon>
+              <span class="deuda-texto">
+                <strong>{{ deuda.de }}</strong> debe a <strong>{{ deuda.a }}</strong>
+              </span>
+              <span class="deuda-monto">${{ deuda.monto | number:'1.2-2' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <ng-template #sinPersonas>
+        <div class="empty-state">
+          <mat-icon>info</mat-icon>
+          <p>No hay gastos compartidos registrados</p>
+        </div>
+      </ng-template>
+    </mat-card-content>
+  </mat-card>
+</div>
+

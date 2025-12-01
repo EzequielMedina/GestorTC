@@ -11,6 +11,7 @@ import { GastoService } from './gasto';
 import { PrestamoService } from './prestamo.service';
 import { ResumenService } from './resumen.service';
 import { DolarService } from './dolar.service';
+import { CuotaService } from './cuota.service';
 
 const STORAGE_KEY = 'gestor_tc_alertas_vistas';
 
@@ -27,7 +28,8 @@ export class AlertService {
     private gastoService: GastoService,
     private prestamoService: PrestamoService,
     private resumenService: ResumenService,
-    private dolarService: DolarService
+    private dolarService: DolarService,
+    private cuotaService: CuotaService
   ) {
     this.inicializarAlertas();
   }
@@ -99,8 +101,9 @@ export class AlertService {
       this.gastoService.getGastos$(),
       this.prestamoService.getPrestamos$(),
       this.resumenService.getResumenPorTarjeta$(),
-      this.dolarService.obtenerDolarOficial()
-    ]).subscribe(([tarjetas, gastos, prestamos, resumenTarjetas, dolar]) => {
+      this.dolarService.obtenerDolarOficial(),
+      this.cuotaService.getCuotas$()
+    ]).subscribe(([tarjetas, gastos, prestamos, resumenTarjetas, dolar, cuotas]) => {
       const alertas: Alerta[] = [];
       
       // Alertas de tarjetas
@@ -108,6 +111,9 @@ export class AlertService {
       
       // Alertas de préstamos
       alertas.push(...this.generarAlertasPrestamos(prestamos));
+      
+      // Alertas de cuotas
+      alertas.push(...this.generarAlertasCuotas(cuotas, gastos));
       
       // Alertas de dólar (básico, se puede mejorar)
       // alertas.push(...this.generarAlertasDolar(dolar));
@@ -241,6 +247,70 @@ export class AlertService {
           }
         }
       });
+
+    return alertas;
+  }
+
+  /**
+   * Genera alertas relacionadas con cuotas próximas a vencer
+   */
+  private generarAlertasCuotas(cuotas: any[], gastos: Gasto[]): Alerta[] {
+    const alertas: Alerta[] = [];
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
+    // Obtener cuotas pendientes próximas a vencer (7, 3, 1 día)
+    const cuotasProximas = cuotas.filter(c => {
+      if (c.estado !== 'PENDIENTE') return false;
+      const fechaVenc = new Date(c.fechaVencimiento);
+      fechaVenc.setHours(0, 0, 0, 0);
+      const diffDias = Math.floor((fechaVenc.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
+      return diffDias >= 0 && diffDias <= 7;
+    });
+
+    cuotasProximas.forEach(cuota => {
+      const fechaVenc = new Date(cuota.fechaVencimiento);
+      fechaVenc.setHours(0, 0, 0, 0);
+      const diffDias = Math.floor((fechaVenc.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
+      
+      const gasto = gastos.find(g => g.id === cuota.gastoId);
+      const descripcionGasto = gasto?.descripcion || 'Gasto desconocido';
+
+      let prioridad: PrioridadAlerta = 'baja';
+      let mensaje = '';
+
+      if (diffDias === 0) {
+        prioridad = 'alta';
+        mensaje = `La cuota #${cuota.numeroCuota} de "${descripcionGasto}" vence HOY. Monto: $${cuota.monto.toFixed(2)}`;
+      } else if (diffDias === 1) {
+        prioridad = 'alta';
+        mensaje = `La cuota #${cuota.numeroCuota} de "${descripcionGasto}" vence MAÑANA. Monto: $${cuota.monto.toFixed(2)}`;
+      } else if (diffDias <= 3) {
+        prioridad = 'media';
+        mensaje = `La cuota #${cuota.numeroCuota} de "${descripcionGasto}" vence en ${diffDias} días. Monto: $${cuota.monto.toFixed(2)}`;
+      } else {
+        prioridad = 'baja';
+        mensaje = `La cuota #${cuota.numeroCuota} de "${descripcionGasto}" vence en ${diffDias} días. Monto: $${cuota.monto.toFixed(2)}`;
+      }
+
+      alertas.push({
+        id: uuidv4(),
+        tipo: 'CUOTA_VENCIMIENTO_PROXIMO',
+        titulo: `Cuota próxima a vencer: ${descripcionGasto}`,
+        mensaje: mensaje,
+        prioridad: prioridad,
+        fechaCreacion: new Date().toISOString(),
+        fechaVencimiento: cuota.fechaVencimiento,
+        vista: this.alertasVistas.has(`cuota_${cuota.id}`),
+        datosAdicionales: {
+          cuotaId: cuota.id,
+          gastoId: cuota.gastoId,
+          monto: cuota.monto,
+          diasRestantes: diffDias,
+          numeroCuota: cuota.numeroCuota
+        }
+      });
+    });
 
     return alertas;
   }

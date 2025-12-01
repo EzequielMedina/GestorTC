@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatDividerModule } from '@angular/material/divider';
 import { AlertBannerComponent } from './components/alert-banner/alert-banner.component';
 import { GlobalSearchComponent } from './components/global-search/global-search.component';
 
@@ -24,6 +25,7 @@ import { GlobalSearchComponent } from './components/global-search/global-search.
     MatSidenavModule,
     MatListModule,
     MatMenuModule,
+    MatDividerModule,
     AlertBannerComponent,
     GlobalSearchComponent
   ],

@@ -90,6 +90,8 @@ export class AlertBannerComponent implements OnInit, OnDestroy {
       this.router.navigate(['/tarjetas']);
     } else if (alerta.datosAdicionales?.prestamoId) {
       this.router.navigate(['/prestamos', alerta.datosAdicionales.prestamoId]);
+    } else if (alerta.datosAdicionales?.cuotaId) {
+      this.router.navigate(['/cuotas']);
     }
   }
 
@@ -99,6 +101,8 @@ export class AlertBannerComponent implements OnInit, OnDestroy {
         return 'event';
       case 'TARJETA_LIMITE_ALCANZADO':
         return 'warning';
+      case 'CUOTA_VENCIMIENTO_PROXIMO':
+        return 'schedule';
       case 'PRESTAMO_PAGO_PENDIENTE':
         return 'account_balance';
       case 'DOLAR_CAMBIO_SIGNIFICATIVO':

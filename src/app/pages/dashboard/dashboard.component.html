@@ -175,6 +175,33 @@
         <button mat-button color="primary" routerLink="/presupuestos">Ver Presupuestos</button>
       </mat-card-content>
     </mat-card>
+
+    <!-- Próximos Vencimientos -->
+    <mat-card class="info-card" *ngIf="stats.eventosProximos.length > 0">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>event</mat-icon>
+          Próximos Vencimientos (7 días)
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="eventos-list">
+          <div *ngFor="let evento of stats.eventosProximos.slice(0, 5)" class="evento-item">
+            <div class="evento-icon" [class]="getPrioridadClass(evento.prioridad)">
+              <mat-icon>{{ getTipoIcon(evento.tipo) }}</mat-icon>
+            </div>
+            <div class="evento-info">
+              <div class="evento-titulo">{{ evento.titulo }}</div>
+              <div class="evento-fecha">{{ formatearFecha(evento.fecha) }}</div>
+            </div>
+            <div class="evento-monto" *ngIf="evento.monto">
+              ${{ evento.monto | number:'1.0-0' }}
+            </div>
+          </div>
+        </div>
+        <button mat-button color="primary" routerLink="/calendario-financiero">Ver Calendario Completo</button>
+      </mat-card-content>
+    </mat-card>
   </div>
 </div>
 

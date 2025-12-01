@@ -72,6 +72,26 @@ export const routes: Routes = [
     title: 'Reportes WhatsApp - Gestor de Tarjetas de Crédito'
   },
   {
+    path: 'backup-restauracion',
+    loadComponent: () => import('./pages/backup-restauracion/backup-restauracion.component').then(m => m.BackupRestauracionComponent),
+    title: 'Backup y Restauración - Gestor de Tarjetas de Crédito'
+  },
+  {
+    path: 'cuotas',
+    loadComponent: () => import('./pages/cuotas/cuotas.component').then(m => m.CuotasComponent),
+    title: 'Cuotas - Gestor de Tarjetas de Crédito'
+  },
+  {
+    path: 'analisis-tendencias',
+    loadComponent: () => import('./pages/analisis-tendencias/analisis-tendencias.component').then(m => m.AnalisisTendenciasComponent),
+    title: 'Análisis de Tendencias - Gestor de Tarjetas de Crédito'
+  },
+  {
+    path: 'calendario-financiero',
+    loadComponent: () => import('./pages/calendario-financiero/calendario-financiero.component').then(m => m.CalendarioFinancieroComponent),
+    title: 'Calendario Financiero - Gestor de Tarjetas de Crédito'
+  },
+  {
     path: '**',
     redirectTo: 'dashboard'
   }

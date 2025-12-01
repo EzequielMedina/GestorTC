@@ -1,0 +1,63 @@
+<div class="calendario-cuotas">
+  <mat-card>
+    <mat-card-header>
+      <div class="calendario-header">
+        <button mat-icon-button (click)="mesAnterior()" matTooltip="Mes anterior">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+        <div class="mes-titulo">
+          <h3>{{ getNombreMes() }} {{ getAnio() }}</h3>
+        </div>
+        <button mat-icon-button (click)="mesSiguiente()" matTooltip="Mes siguiente">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+        <button mat-stroked-button (click)="irAMesActual()" class="btn-hoy">
+          <mat-icon>today</mat-icon>
+          Hoy
+        </button>
+      </div>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="calendario-grid">
+        <!-- Días de la semana -->
+        <div class="dia-semana-header" *ngFor="let nombreDia of nombresDias">
+          {{ nombreDia }}
+        </div>
+
+        <!-- Días del calendario -->
+        <div 
+          *ngFor="let dia of diasCalendario" 
+          class="dia-calendario"
+          [class.otro-mes]="!dia.esMesActual"
+          [class.tiene-cuotas]="dia.cuotas.length > 0"
+          [class.hoy]="esHoy(dia.fecha)"
+        >
+          <div class="dia-numero">{{ dia.dia }}</div>
+          <div *ngIf="dia.cuotas.length > 0" class="cuotas-info">
+            <div class="cuota-badge" [class.muchas-cuotas]="dia.cuotas.length > 2">
+              <mat-icon>event</mat-icon>
+              <span>{{ dia.cuotas.length }}</span>
+            </div>
+            <div class="monto-total" *ngIf="dia.totalMonto > 0">
+              ${{ dia.totalMonto | number:'1.0-0' }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Leyenda -->
+      <div class="leyenda">
+        <div class="leyenda-item">
+          <div class="leyenda-color hoy"></div>
+          <span>Hoy</span>
+        </div>
+        <div class="leyenda-item">
+          <div class="leyenda-color tiene-cuotas"></div>
+          <span>Con cuotas</span>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
+

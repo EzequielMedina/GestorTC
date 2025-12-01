@@ -135,6 +135,32 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  getTipoIcon(tipo: string): string {
+    switch (tipo) {
+      case 'VENCIMIENTO_TARJETA':
+        return 'credit_card';
+      case 'VENCIMIENTO_CUOTA':
+        return 'schedule';
+      case 'PAGO_PRESTAMO':
+        return 'account_balance';
+      default:
+        return 'event';
+    }
+  }
+
+  getPrioridadClass(prioridad: string): string {
+    return `prioridad-${prioridad.toLowerCase()}`;
+  }
+
+  formatearFecha(fecha: string): string {
+    const d = new Date(fecha);
+    return d.toLocaleDateString('es-AR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+  }
+
   actualizarGraficos(): void {
     if (!this.stats) return;
 
