@@ -301,3 +301,96 @@ Todas las funcionalidades planificadas han sido implementadas, probadas e integr
      - Leyenda del gráfico de pastel más compacta
    - Archivos: `src/app/pages/dashboard/dashboard.component.ts`, `src/app/pages/dashboard/dashboard.component.css`
 
+7. **Adaptación del Dashboard al Nuevo Estilo de la Aplicación**
+   - Problema: El dashboard no seguía el sistema de diseño moderno con variables CSS
+   - Solución: 
+     - Migrado a variables CSS del sistema de diseño (`--primary`, `--spacing-*`, `--font-*`, etc.)
+     - Aplicados gradientes en iconos de estadísticas
+     - Mejorados efectos hover y transiciones
+     - Agregados bordes y sombras consistentes
+     - Diseño responsive mejorado
+   - Archivos: `src/app/pages/dashboard/dashboard.component.css`
+
+8. **Cambio de Porcentajes a Montos en el Dashboard**
+   - Problema: El dashboard mostraba porcentajes en lugar de montos, menos intuitivo para el usuario
+   - Solución:
+     - Tarjeta "Uso Total" ahora muestra "Gastado del Límite" con montos (ej: "$50,000 de $100,000")
+     - Gráfico de barras de tarjetas muestra montos en pesos en vez de porcentajes
+     - Presupuestos muestran montos gastados en vez de solo porcentajes (ej: "$8,000 de $10,000")
+     - Tooltips y etiquetas actualizados para mostrar montos formateados
+   - Archivos: `src/app/pages/dashboard/dashboard.component.html`, `src/app/pages/dashboard/dashboard.component.ts`
+
+9. **Filtrado del Dashboard por Mes Actual**
+   - Problema: El dashboard mostraba datos acumulados en vez de solo del mes actual
+   - Solución:
+     - Cambiado `getResumenPorTarjeta$()` por `getResumenPorTarjetaDelMes$()` para filtrar por mes
+     - Cálculo de disponible ahora usa `totalMes` de cada tarjeta
+     - Tarjetas con mayor uso ordenadas por gastos del mes actual
+     - Gastos por categoría filtrados solo del mes actual
+     - Todos los datos del dashboard ahora reflejan únicamente el mes actual
+   - Archivos: `src/app/services/dashboard.service.ts`
+
+10. **Corrección y Mejora del Banner de Alertas**
+    - Problema 1: El botón de cerrar alerta no funcionaba correctamente
+    - Solución 1: 
+      - Agregado `event.stopPropagation()` y `event.preventDefault()` en métodos de cerrar
+      - Agregado `type="button"` a los botones para evitar comportamientos inesperados
+    - Problema 2: El banner ocupaba demasiado espacio en pantalla
+    - Solución 2:
+      - Convertido a banner flotante fijo en esquina superior derecha
+      - Tamaño máximo reducido a 400px de ancho
+      - Padding, fuentes e iconos reducidos
+      - Altura máxima de lista: 300px (250px en móviles)
+    - Problema 3: El usuario quería poder colapsar el banner y ver solo un icono con contador
+    - Solución 3:
+      - Implementado sistema de colapso/expansión
+      - Vista colapsada: icono circular con badge de notificaciones
+      - Vista expandida: banner completo con todas las alertas
+      - Estado colapsado por defecto (`colapsado = true`)
+      - Eliminado botón de flecha (expand_more/expand_less), solo queda botón de cerrar (X)
+      - Al hacer clic en el icono colapsado, se expande el banner
+      - Al hacer clic en la X, se colapsa y muestra solo el icono
+    - Archivos: 
+      - `src/app/components/alert-banner/alert-banner.component.ts`
+      - `src/app/components/alert-banner/alert-banner.component.html`
+      - `src/app/components/alert-banner/alert-banner.component.css`
+
+### Archivos Modificados en Mejoras Adicionales
+- `src/app/pages/dashboard/dashboard.component.html` - Cambio de porcentajes a montos
+- `src/app/pages/dashboard/dashboard.component.ts` - Actualización de gráficos para mostrar montos
+- `src/app/pages/dashboard/dashboard.component.css` - Adaptación al nuevo sistema de diseño
+- `src/app/services/dashboard.service.ts` - Filtrado por mes actual
+- `src/app/components/alert-banner/alert-banner.component.ts` - Sistema de colapso y correcciones
+- `src/app/components/alert-banner/alert-banner.component.html` - Vista colapsada/expandida
+- `src/app/components/alert-banner/alert-banner.component.css` - Estilos para banner compacto y colapsado
+
+---
+
+## Mejoras de UX Implementadas
+
+### Dashboard
+- **Visualización más clara**: Montos en vez de porcentajes para mejor comprensión
+- **Datos precisos**: Solo muestra información del mes actual
+- **Diseño moderno**: Integrado con el sistema de diseño de la aplicación
+- **Responsive**: Optimizado para móviles y tablets
+
+### Banner de Alertas
+- **No intrusivo**: Por defecto colapsado, solo muestra icono con contador
+- **Compacto**: Ocupa mínimo espacio cuando está colapsado
+- **Accesible**: Fácil de expandir con un clic
+- **Funcional**: Botones de cerrar funcionan correctamente
+
+---
+
+## Estado Final del Proyecto
+
+✅ **Fase 1 Completada al 100% + Mejoras Adicionales**
+
+Todas las funcionalidades planificadas han sido implementadas, probadas e integradas. Se han realizado mejoras adicionales basadas en feedback del usuario:
+- Dashboard adaptado al nuevo estilo
+- Visualización mejorada con montos en vez de porcentajes
+- Filtrado preciso por mes actual
+- Banner de alertas optimizado y funcional
+
+El proyecto está listo para continuar con la Fase 2 o para realizar mejoras adicionales según las necesidades del usuario.
+
