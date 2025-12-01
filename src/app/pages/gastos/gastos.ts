@@ -1,12 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MatIconModule } from '@angular/material/icon';
 import { Tarjeta } from '../../models/tarjeta.model';
 import { Gasto } from '../../models/gasto.model';
+import { Categoria } from '../../models/categoria.model';
 import { TarjetaService } from '../../services/tarjeta';
 import { GastoService } from '../../services/gasto';
+import { CategoriaService } from '../../services/categoria.service';
 import { GastoDialogComponent } from '../../components/gasto-dialog/gasto-dialog';
 import { NotificationService } from '../../services/notification.service';
+import { combineLatest } from 'rxjs';
 
 interface GastosPorTarjeta {
   nombreTarjeta: string;
@@ -19,13 +23,14 @@ interface GastosPorTarjeta {
 @Component({
   selector: 'app-gastos',
   standalone: true,
-  imports: [CommonModule, FormsModule, GastoDialogComponent],
+  imports: [CommonModule, FormsModule, MatIconModule, GastoDialogComponent],
   templateUrl: './gastos.component.html',
   styleUrls: ['./gastos.component.css']
 })
 export class GastosComponent implements OnInit {
   gastos: Gasto[] = [];
   tarjetas: Tarjeta[] = [];
+  categorias: Categoria[] = [];
   gastosFiltrados: Gasto[] = [];
   gastosAgrupados: GastosPorTarjeta[] = [];
   
@@ -59,6 +64,7 @@ export class GastosComponent implements OnInit {
   constructor(
     private gastoService: GastoService,
     private tarjetaService: TarjetaService,
+    private categoriaService: CategoriaService,
     private notificationService: NotificationService
   ) {}
 
@@ -69,17 +75,24 @@ export class GastosComponent implements OnInit {
   cargarDatos(): void {
     this.loading = true;
     
-    this.tarjetaService.getTarjetas$().subscribe(tarjetas => {
+    combineLatest([
+      this.tarjetaService.getTarjetas$(),
+      this.gastoService.getGastos$(),
+      this.categoriaService.getCategorias$()
+    ]).subscribe(([tarjetas, gastos, categorias]) => {
       this.tarjetas = tarjetas;
-    });
-
-    this.gastoService.getGastos$().subscribe(gastos => {
+      this.categorias = categorias;
       this.gastos = gastos;
       this.gastosFiltrados = gastos;
       this.agruparGastos();
       this.generarMesesDisponibles();
       this.loading = false;
     });
+  }
+
+  getCategoriaById(categoriaId?: string): Categoria | undefined {
+    if (!categoriaId) return undefined;
+    return this.categorias.find(c => c.id === categoriaId);
   }
 
   generarMesesDisponibles(): void {

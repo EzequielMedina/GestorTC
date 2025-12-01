@@ -3,8 +3,13 @@ import { Routes } from '@angular/router';
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'tarjetas',
+    redirectTo: 'dashboard',
     pathMatch: 'full'
+  },
+  {
+    path: 'dashboard',
+    loadComponent: () => import('./pages/dashboard/dashboard.component').then(m => m.DashboardComponent),
+    title: 'Dashboard - Gestor de Tarjetas de Crédito'
   },
   {
     path: 'tarjetas',
@@ -47,6 +52,11 @@ export const routes: Routes = [
     title: 'Importar/Exportar - Gestor de Tarjetas de Crédito'
   },
   {
+    path: 'presupuestos',
+    loadComponent: () => import('./pages/presupuestos/presupuestos.component').then(m => m.PresupuestosComponent),
+    title: 'Presupuestos - Gestor de Tarjetas de Crédito'
+  },
+  {
     path: 'graficos',
     loadComponent: () => import('./pages/graficos/graficos.component').then(m => m.GraficosComponent),
     title: 'Gráficos - Gestor de Tarjetas de Crédito'
@@ -63,6 +73,6 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    redirectTo: 'tarjetas'
+    redirectTo: 'dashboard'
   }
 ];

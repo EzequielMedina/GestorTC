@@ -1,0 +1,57 @@
+<mat-card class="presupuesto-card" [class.excedido]="presupuesto.estado === 'excedido'">
+  <mat-card-header>
+    <div class="card-header-content">
+      <div class="card-title-section">
+        <mat-icon [style.color]="getColorEstado()">{{ getIconoEstado() }}</mat-icon>
+        <div>
+          <mat-card-title>
+            {{ nombreCategoria || nombreTarjeta || 'Presupuesto' }}
+          </mat-card-title>
+          <mat-card-subtitle>
+            {{ presupuesto.tipo === 'CATEGORIA' ? 'Categoría' : 'Tarjeta' }} - {{ presupuesto.mes }}
+          </mat-card-subtitle>
+        </div>
+      </div>
+      <div class="card-actions" *ngIf="onEditar || onEliminar">
+        <button mat-icon-button (click)="onEditar!(presupuesto.id)" *ngIf="onEditar" title="Editar">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button (click)="onEliminar!(presupuesto.id)" *ngIf="onEliminar" title="Eliminar">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    </div>
+  </mat-card-header>
+
+  <mat-card-content>
+    <div class="presupuesto-stats">
+      <div class="stat-row">
+        <span class="stat-label">Presupuesto:</span>
+        <span class="stat-value">${{ presupuesto.monto | number:'1.0-0' }}</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Gastado:</span>
+        <span class="stat-value gastado">${{ presupuesto.gastado | number:'1.0-0' }}</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Disponible:</span>
+        <span class="stat-value" [class.negativo]="presupuesto.disponible < 0">
+          ${{ presupuesto.disponible | number:'1.0-0' }}
+        </span>
+      </div>
+    </div>
+
+    <div class="progress-section">
+      <div class="progress-header">
+        <span class="progress-label">Progreso</span>
+        <span class="progress-percentage">{{ presupuesto.porcentajeUsado | number:'1.0-0' }}%</span>
+      </div>
+      <mat-progress-bar
+        mode="determinate"
+        [value]="getPorcentajeLimitado()"
+        [color]="presupuesto.estado === 'excedido' ? 'warn' : presupuesto.estado === 'cerca' ? 'accent' : 'primary'"
+      ></mat-progress-bar>
+    </div>
+  </mat-card-content>
+</mat-card>
+
