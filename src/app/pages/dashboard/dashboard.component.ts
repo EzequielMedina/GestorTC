@@ -34,9 +34,9 @@ export class DashboardComponent implements OnInit {
   barChartData: ChartData<'bar'> = {
     labels: [],
     datasets: [{
-      label: 'Uso (%)',
+      label: 'Gastos ($)',
       data: [],
-      backgroundColor: '#3b82f6'
+      backgroundColor: '#0d7377'
     }]
   };
 
@@ -50,18 +50,19 @@ export class DashboardComponent implements OnInit {
       tooltip: {
         enabled: true,
         callbacks: {
-          label: (context) => `${context.parsed.y.toFixed(1)}%`
+          label: (context) => `$${context.parsed.y.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
         }
       }
     },
     scales: {
       y: {
         beginAtZero: true,
-        max: 100,
         ticks: {
-          stepSize: 20,
           font: {
             size: 11
+          },
+          callback: function(value) {
+            return '$' + value.toLocaleString('es-AR');
           }
         }
       },
@@ -137,13 +138,13 @@ export class DashboardComponent implements OnInit {
   actualizarGraficos(): void {
     if (!this.stats) return;
 
-    // Gráfico de barras - Tarjetas
+    // Gráfico de barras - Tarjetas (mostrar montos en vez de porcentajes)
     this.barChartData = {
       labels: this.stats.tarjetasConMayorUso.map(t => t.nombre),
       datasets: [{
-        label: 'Uso (%)',
-        data: this.stats.tarjetasConMayorUso.map(t => t.porcentajeUso),
-        backgroundColor: '#3b82f6'
+        label: 'Gastos ($)',
+        data: this.stats.tarjetasConMayorUso.map(t => t.totalGastos),
+        backgroundColor: '#0d7377'
       }]
     };
 

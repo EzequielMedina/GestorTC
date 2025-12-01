@@ -51,23 +51,36 @@ export class DashboardService {
       this.tarjetaService.getTarjetas$(),
       this.gastoService.getGastos$(),
       this.prestamoService.getPrestamos$(),
-      this.resumenService.getResumenPorTarjeta$(),
+      this.resumenService.getResumenPorTarjetaDelMes$(mesActual),
       this.balanceDolarService.obtenerBalanceCompleto(),
       this.categoriaService.getCategorias$(),
       this.presupuestoService.getPresupuestosConSeguimiento$(mesActual),
       this.resumenService.getTotalDelMes$(mesActual)
     ]).pipe(
-      map(([tarjetas, gastos, prestamos, resumenTarjetas, balanceDolares, categorias, presupuestos, totalGastosMes]) => {
+      map(([tarjetas, gastos, prestamos, resumenTarjetasMes, balanceDolares, categorias, presupuestos, totalGastosMes]) => {
         // totalGastosMes ya viene calculado correctamente del ResumenService incluyendo cuotas
 
-        // Límites y disponible
+        // Límites y disponible (usando datos del mes actual)
         const limiteTotal = (tarjetas || []).reduce((sum: number, t: Tarjeta) => sum + t.limite, 0);
-        const disponibleTotal = limiteTotal - (resumenTarjetas || []).reduce((sum: number, r: ResumenTarjeta) => sum + r.totalGastos, 0);
+        const gastadoMes = (resumenTarjetasMes || []).reduce((sum: number, r: any) => sum + (r.totalMes || 0), 0);
+        const disponibleTotal = limiteTotal - gastadoMes;
         const porcentajeUsoTotal = limiteTotal > 0 ? (totalGastosMes / limiteTotal) * 100 : 0;
 
-        // Tarjetas con mayor uso (top 5)
-        const tarjetasConMayorUso = [...(resumenTarjetas || [])]
-          .sort((a, b) => b.porcentajeUso - a.porcentajeUso)
+        // Tarjetas con mayor uso del mes actual (top 5)
+        // Calcular porcentaje de uso para cada tarjeta basado en el mes actual
+        const tarjetasConMayorUso = (resumenTarjetasMes || [])
+          .map((r: any) => {
+            const tarjeta = tarjetas.find((t: Tarjeta) => t.id === r.id);
+            const totalMes = r.totalMes || 0;
+            const porcentajeUso = tarjeta && tarjeta.limite > 0 ? (totalMes / tarjeta.limite) * 100 : 0;
+            return {
+              ...r,
+              totalGastos: totalMes,
+              porcentajeUso: porcentajeUso,
+              saldoDisponible: tarjeta ? tarjeta.limite - totalMes : 0
+            };
+          })
+          .sort((a: any, b: any) => b.totalGastos - a.totalGastos)
           .slice(0, 5);
 
         // Gastos por categoría - filtrar gastos del mes primero

@@ -54,8 +54,9 @@
             <mat-icon>trending_up</mat-icon>
           </div>
           <div class="stat-info">
-            <div class="stat-label">Uso Total</div>
-            <div class="stat-value">{{ stats.porcentajeUsoTotal | number:'1.0-2' }}%</div>
+            <div class="stat-label">Gastado del Límite</div>
+            <div class="stat-value">${{ (stats.limiteTotal - stats.disponibleTotal) | number:'1.0-0' }}</div>
+            <div class="stat-subtext">de ${{ stats.limiteTotal | number:'1.0-0' }}</div>
             <mat-progress-bar
               mode="determinate"
               [value]="stats.porcentajeUsoTotal"
@@ -161,7 +162,7 @@
                 {{ presupuesto.tipo === 'CATEGORIA' ? 'Categoría' : 'Tarjeta' }}
               </div>
               <div class="presupuesto-progress">
-                <span>{{ presupuesto.porcentajeUsado | number:'1.0-0' }}% usado</span>
+                <span>${{ presupuesto.gastado | number:'1.0-0' }} de ${{ presupuesto.monto | number:'1.0-0' }}</span>
                 <mat-progress-bar
                   mode="determinate"
                   [value]="presupuesto.porcentajeUsado"

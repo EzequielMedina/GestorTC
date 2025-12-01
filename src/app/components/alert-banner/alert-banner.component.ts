@@ -19,6 +19,7 @@ export class AlertBannerComponent implements OnInit, OnDestroy {
   alertas: Alerta[] = [];
   alertasNoVistas: Alerta[] = [];
   mostrarTodas = false;
+  colapsado = true; // Por defecto colapsado
   private subscription = new Subscription();
 
   constructor(
@@ -45,7 +46,19 @@ export class AlertBannerComponent implements OnInit, OnDestroy {
     this.subscription.unsubscribe();
   }
 
-  toggleMostrarTodas(): void {
+  toggleColapsar(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+    this.colapsado = !this.colapsado;
+  }
+
+  toggleMostrarTodas(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
     this.mostrarTodas = !this.mostrarTodas;
     if (this.mostrarTodas) {
       this.alertService.obtenerAlertas$().subscribe(alertas => {
@@ -56,11 +69,19 @@ export class AlertBannerComponent implements OnInit, OnDestroy {
     }
   }
 
-  marcarComoVista(alerta: Alerta): void {
+  marcarComoVista(alerta: Alerta, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
     this.alertService.marcarComoVista(alerta.id);
   }
 
-  cerrarAlerta(alerta: Alerta): void {
+  cerrarAlerta(alerta: Alerta, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
     this.alertService.eliminarAlerta(alerta.id);
   }
 
