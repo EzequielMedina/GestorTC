@@ -1,0 +1,50 @@
+<div class="alert-banner-container" *ngIf="alertas.length > 0">
+  <div class="alert-banner-header">
+    <div class="alert-banner-title">
+      <mat-icon>notifications</mat-icon>
+      <span>Alertas ({{ alertasNoVistas.length }})</span>
+    </div>
+    <button mat-icon-button (click)="toggleMostrarTodas()" class="toggle-btn">
+      <mat-icon>{{ mostrarTodas ? 'expand_less' : 'expand_more' }}</mat-icon>
+    </button>
+  </div>
+
+  <div class="alertas-list" *ngIf="mostrarTodas || alertasNoVistas.length > 0">
+    <div 
+      *ngFor="let alerta of alertas" 
+      class="alerta-item"
+      [class]="getClasePorPrioridad(alerta.prioridad)"
+      [class.vista]="alerta.vista"
+    >
+      <div class="alerta-icon" [style.color]="getColorPorPrioridad(alerta.prioridad)">
+        <mat-icon>{{ getIconoPorTipo(alerta.tipo) }}</mat-icon>
+      </div>
+      
+      <div class="alerta-content" (click)="navegarDesdeAlerta(alerta)">
+        <div class="alerta-titulo">{{ alerta.titulo }}</div>
+        <div class="alerta-mensaje">{{ alerta.mensaje }}</div>
+      </div>
+
+      <div class="alerta-actions">
+        <button 
+          mat-icon-button 
+          (click)="marcarComoVista(alerta)"
+          *ngIf="!alerta.vista"
+          class="action-btn"
+          title="Marcar como vista"
+        >
+          <mat-icon>check</mat-icon>
+        </button>
+        <button 
+          mat-icon-button 
+          (click)="cerrarAlerta(alerta)"
+          class="action-btn"
+          title="Cerrar"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+

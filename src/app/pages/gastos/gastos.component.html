@@ -122,7 +122,13 @@
             
             <div class="gasto-content">
               <div class="gasto-info">
-                <div class="gasto-descripcion">{{ gasto.descripcion }}</div>
+                <div class="gasto-descripcion">
+                  <span *ngIf="getCategoriaById(gasto.categoriaId) as categoria" class="categoria-badge">
+                    <mat-icon [style.color]="categoria.color" class="categoria-icon">{{ categoria.icono }}</mat-icon>
+                    <span class="categoria-nombre">{{ categoria.nombre }}</span>
+                  </span>
+                  {{ gasto.descripcion }}
+                </div>
                 <div class="gasto-fecha">{{ gasto.fecha | date:'dd/MM/yyyy' }}</div>
               </div>
               

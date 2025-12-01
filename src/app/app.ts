@@ -6,6 +6,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
+import { MatMenuModule } from '@angular/material/menu';
+import { AlertBannerComponent } from './components/alert-banner/alert-banner.component';
+import { GlobalSearchComponent } from './components/global-search/global-search.component';
 
 @Component({
   selector: 'app-root',
@@ -19,7 +22,10 @@ import { MatListModule } from '@angular/material/list';
     MatButtonModule,
     MatIconModule,
     MatSidenavModule,
-    MatListModule
+    MatListModule,
+    MatMenuModule,
+    AlertBannerComponent,
+    GlobalSearchComponent
   ],
   templateUrl: './app.html',
   styleUrl: './app.css'

@@ -34,4 +34,8 @@ export interface Gasto {
    * ajustando redondeos en la última cuota.
    */
   montoPorCuota?: number;
+  /**
+   * ID de la categoría asociada al gasto (opcional).
+   */
+  categoriaId?: string;
 }

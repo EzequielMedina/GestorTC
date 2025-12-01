@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Gasto } from '../../models/gasto.model';
 import { Tarjeta } from '../../models/tarjeta.model';
+import { CategoriaSelectorComponent } from '../categoria-selector/categoria-selector.component';
 
 @Component({
   selector: 'app-gasto-dialog',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, CategoriaSelectorComponent],
   templateUrl: './gasto-dialog.component.html',
   styleUrls: ['./gasto-dialog.component.css']
 })
@@ -57,6 +58,10 @@ export class GastoDialogComponent {
     if (this.esConCuotas && !this.gasto.primerMesCuota) {
       this.gasto.primerMesCuota = this.calcularMesDesdeFechaISO(this.gasto.fecha);
     }
+  }
+
+  onCategoriaChange(categoriaId: string | undefined): void {
+    this.gasto.categoriaId = categoriaId;
   }
 
   guardar(): void {
