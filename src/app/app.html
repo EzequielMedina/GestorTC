@@ -70,6 +70,11 @@
         <mat-icon>backup</mat-icon>
         <span>Backup y Restauración</span>
       </a>
+      <a mat-list-item class="nav-item" routerLink="/calculadoras-financieras" routerLinkActive="active"
+        (click)="drawer.close()">
+        <mat-icon>calculate</mat-icon>
+        <span>Calculadoras</span>
+      </a>
       <!-- <a mat-list-item class="nav-item" routerLink="/analisis" routerLinkActive="active" (click)="drawer.close()">
           <mat-icon>analytics</mat-icon>
           <span>Análisis</span>
@@ -86,6 +91,7 @@
       <span>{{ title() }}</span>
       <span class="toolbar-spacer"></span>
       <app-global-search class="toolbar-search"></app-global-search>
+      <app-theme-toggle></app-theme-toggle>
       <nav class="desktop-nav">
         <a mat-button routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
         <a mat-button routerLink="/tarjetas" routerLinkActive="active">Tarjetas</a>
@@ -138,6 +144,10 @@
           <a mat-menu-item routerLink="/backup-restauracion" routerLinkActive="active">
             <mat-icon>backup</mat-icon>
             <span>Backup y Restauración</span>
+          </a>
+          <a mat-menu-item routerLink="/calculadoras-financieras" routerLinkActive="active">
+            <mat-icon>calculate</mat-icon>
+            <span>Calculadoras Financieras</span>
           </a>
         </mat-menu>
       </nav>

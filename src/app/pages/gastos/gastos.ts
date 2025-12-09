@@ -1,16 +1,26 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { Tarjeta } from '../../models/tarjeta.model';
 import { Gasto } from '../../models/gasto.model';
 import { Categoria } from '../../models/categoria.model';
+import { Etiqueta } from '../../models/etiqueta.model';
+import { Nota } from '../../models/etiqueta.model';
+import { FiltroAvanzado, FILTRO_POR_DEFECTO } from '../../models/filtro-avanzado.model';
 import { TarjetaService } from '../../services/tarjeta';
 import { GastoService } from '../../services/gasto';
 import { CategoriaService } from '../../services/categoria.service';
+import { FiltroAvanzadoService } from '../../services/filtro-avanzado.service';
+import { EtiquetaService } from '../../services/etiqueta.service';
+import { NotaService } from '../../services/nota.service';
 import { GastoDialogComponent } from '../../components/gasto-dialog/gasto-dialog';
+import { FiltrosAvanzadosComponent } from '../../components/filtros-avanzados/filtros-avanzados.component';
 import { NotificationService } from '../../services/notification.service';
-import { combineLatest } from 'rxjs';
+import { combineLatest, Subscription } from 'rxjs';
 
 interface GastosPorTarjeta {
   nombreTarjeta: string;
@@ -23,21 +33,36 @@ interface GastosPorTarjeta {
 @Component({
   selector: 'app-gastos',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatIconModule, GastoDialogComponent],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    MatIconModule,
+    MatChipsModule,
+    MatButtonModule,
+    MatTooltipModule,
+    GastoDialogComponent,
+    FiltrosAvanzadosComponent
+  ],
   templateUrl: './gastos.component.html',
   styleUrls: ['./gastos.component.css']
 })
-export class GastosComponent implements OnInit {
+export class GastosComponent implements OnInit, OnDestroy {
   gastos: Gasto[] = [];
   tarjetas: Tarjeta[] = [];
   categorias: Categoria[] = [];
+  etiquetas: Etiqueta[] = [];
+  notas: Nota[] = [];
   gastosFiltrados: Gasto[] = [];
   gastosAgrupados: GastosPorTarjeta[] = [];
   
-  // Filtros
+  // Filtros básicos (mantener para compatibilidad)
   filtroTarjeta: string = '';
   filtroMes: string = '';
   filtroCompartido: string = '';
+  
+  // Filtros avanzados
+  filtroAvanzado: FiltroAvanzado = { ...FILTRO_POR_DEFECTO };
+  usarFiltrosAvanzados = false;
   
   // Estado
   loading = false;
@@ -61,10 +86,15 @@ export class GastosComponent implements OnInit {
   // Modo de visualización
   vistaAgrupada: boolean = true;
 
+  private subscriptions = new Subscription();
+
   constructor(
     private gastoService: GastoService,
     private tarjetaService: TarjetaService,
     private categoriaService: CategoriaService,
+    private filtroAvanzadoService: FiltroAvanzadoService,
+    private etiquetaService: EtiquetaService,
+    private notaService: NotaService,
     private notificationService: NotificationService
   ) {}
 
@@ -78,10 +108,14 @@ export class GastosComponent implements OnInit {
     combineLatest([
       this.tarjetaService.getTarjetas$(),
       this.gastoService.getGastos$(),
-      this.categoriaService.getCategorias$()
-    ]).subscribe(([tarjetas, gastos, categorias]) => {
+      this.categoriaService.getCategorias$(),
+      this.etiquetaService.getEtiquetas$(),
+      this.notaService.getNotas$()
+    ]).subscribe(([tarjetas, gastos, categorias, etiquetas, notas]) => {
       this.tarjetas = tarjetas;
       this.categorias = categorias;
+      this.etiquetas = etiquetas;
+      this.notas = notas;
       this.gastos = gastos;
       this.gastosFiltrados = gastos;
       this.agruparGastos();
@@ -90,9 +124,39 @@ export class GastosComponent implements OnInit {
     });
   }
 
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+  }
+
   getCategoriaById(categoriaId?: string): Categoria | undefined {
     if (!categoriaId) return undefined;
     return this.categorias.find(c => c.id === categoriaId);
+  }
+
+  getEtiquetaById(etiquetaId: string): Etiqueta | undefined {
+    return this.etiquetas.find(e => e.id === etiquetaId);
+  }
+
+  getEtiquetasPorGasto(gasto: Gasto): Etiqueta[] {
+    if (!gasto.etiquetasIds || gasto.etiquetasIds.length === 0) {
+      return [];
+    }
+    return gasto.etiquetasIds
+      .map(id => this.getEtiquetaById(id))
+      .filter((e): e is Etiqueta => e !== undefined);
+  }
+
+  getNotaPorGasto(gasto: Gasto): Nota | undefined {
+    if (!gasto.notaId) return undefined;
+    return this.notas.find(n => n.id === gasto.notaId);
+  }
+
+  getContrastColor(hexColor: string): string {
+    const r = parseInt(hexColor.slice(1, 3), 16);
+    const g = parseInt(hexColor.slice(3, 5), 16);
+    const b = parseInt(hexColor.slice(5, 7), 16);
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance > 0.5 ? '#000000' : '#ffffff';
   }
 
   generarMesesDisponibles(): void {
@@ -129,64 +193,93 @@ export class GastosComponent implements OnInit {
   }
 
   aplicarFiltros(): void {
-    this.gastosFiltrados = this.gastos.filter(gasto => {
-      // Filtro por tarjeta
-      if (this.filtroTarjeta && gasto.tarjetaId !== this.filtroTarjeta) {
-        return false;
-      }
-      
-      // Filtro por mes
-      if (this.filtroMes) {
-        const fechaGasto = new Date(gasto.fecha);
-        const mesGasto = `${fechaGasto.getFullYear()}-${String(fechaGasto.getMonth() + 1).padStart(2, '0')}`;
+    if (this.usarFiltrosAvanzados) {
+      // Usar filtros avanzados
+      this.gastosFiltrados = this.filtroAvanzadoService.aplicarFiltro(this.gastos, this.filtroAvanzado);
+    } else {
+      // Usar filtros básicos (compatibilidad)
+      this.gastosFiltrados = this.gastos.filter(gasto => {
+        // Filtro por tarjeta
+        if (this.filtroTarjeta && gasto.tarjetaId !== this.filtroTarjeta) {
+          return false;
+        }
         
-        // Verificar si el gasto está en el mes seleccionado o en sus cuotas
-        let coincideMes = mesGasto === this.filtroMes;
-        
-        if (!coincideMes && gasto.cantidadCuotas && gasto.cantidadCuotas > 1 && gasto.primerMesCuota) {
-          const primerMes = new Date(gasto.primerMesCuota + '-01');
-          for (let i = 0; i < gasto.cantidadCuotas; i++) {
-            const mesCuota = new Date(primerMes);
-            mesCuota.setMonth(mesCuota.getMonth() + i);
-            const mesKeyCuota = `${mesCuota.getFullYear()}-${String(mesCuota.getMonth() + 1).padStart(2, '0')}`;
-            if (mesKeyCuota === this.filtroMes) {
-              coincideMes = true;
-              break;
+        // Filtro por mes
+        if (this.filtroMes) {
+          const fechaGasto = new Date(gasto.fecha);
+          const mesGasto = `${fechaGasto.getFullYear()}-${String(fechaGasto.getMonth() + 1).padStart(2, '0')}`;
+          
+          // Verificar si el gasto está en el mes seleccionado o en sus cuotas
+          let coincideMes = mesGasto === this.filtroMes;
+          
+          if (!coincideMes && gasto.cantidadCuotas && gasto.cantidadCuotas > 1 && gasto.primerMesCuota) {
+            const primerMes = new Date(gasto.primerMesCuota + '-01');
+            for (let i = 0; i < gasto.cantidadCuotas; i++) {
+              const mesCuota = new Date(primerMes);
+              mesCuota.setMonth(mesCuota.getMonth() + i);
+              const mesKeyCuota = `${mesCuota.getFullYear()}-${String(mesCuota.getMonth() + 1).padStart(2, '0')}`;
+              if (mesKeyCuota === this.filtroMes) {
+                coincideMes = true;
+                break;
+              }
             }
+          }
+          
+          if (!coincideMes) {
+            return false;
           }
         }
         
-        if (!coincideMes) {
-          return false;
+        // Filtro por tipo (compartido/personal)
+        if (this.filtroCompartido) {
+          const esCompartido = gasto.compartidoCon && gasto.compartidoCon.trim() !== '';
+          if (this.filtroCompartido === 'compartido' && !esCompartido) {
+            return false;
+          }
+          if (this.filtroCompartido === 'personal' && esCompartido) {
+            return false;
+          }
         }
-      }
-      
-      // Filtro por tipo (compartido/personal)
-      if (this.filtroCompartido) {
-        const esCompartido = gasto.compartidoCon && gasto.compartidoCon.trim() !== '';
-        if (this.filtroCompartido === 'compartido' && !esCompartido) {
-          return false;
-        }
-        if (this.filtroCompartido === 'personal' && esCompartido) {
-          return false;
-        }
-      }
-      
-      return true;
-    });
+        
+        return true;
+      });
+    }
     
     this.agruparGastos();
+  }
+
+  onFiltroAvanzadoCambiado(filtro: FiltroAvanzado): void {
+    this.filtroAvanzado = filtro;
+    this.usarFiltrosAvanzados = true;
+    this.aplicarFiltros();
+  }
+
+  onFiltroAvanzadoAplicado(filtro: FiltroAvanzado): void {
+    this.filtroAvanzado = filtro;
+    this.usarFiltrosAvanzados = true;
+    this.aplicarFiltros();
   }
 
   limpiarFiltros(): void {
     this.filtroTarjeta = '';
     this.filtroMes = '';
     this.filtroCompartido = '';
+    this.filtroAvanzado = { ...FILTRO_POR_DEFECTO };
+    this.usarFiltrosAvanzados = false;
     this.gastosFiltrados = this.gastos;
     this.agruparGastos();
   }
 
   get hayFiltrosActivos(): boolean {
+    if (this.usarFiltrosAvanzados) {
+      return !this.filtroAvanzado.todasLasTarjetas || 
+             !this.filtroAvanzado.todasLasCategorias ||
+             !!this.filtroAvanzado.rangoFechas ||
+             (this.filtroAvanzado.meses && this.filtroAvanzado.meses.length > 0) ||
+             this.filtroAvanzado.montoMinimo !== undefined ||
+             this.filtroAvanzado.montoMaximo !== undefined ||
+             !!this.filtroAvanzado.textoBusqueda;
+    }
     return this.filtroTarjeta !== '' || this.filtroMes !== '' || this.filtroCompartido !== '';
   }
 

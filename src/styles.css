@@ -1267,3 +1267,117 @@ body {
     page-break-inside: avoid;
   }
 }
+
+/* ============================================
+   MODO OSCURO
+   ============================================ */
+
+.dark-theme {
+  /* Colores base - Esquema oscuro */
+  --color1: #0f172a; /* fondo oscuro - slate-900 */
+  --color2: #1e293b; /* superficie - slate-800 */
+  --color3: #14a085; /* primario - teal claro para contraste */
+  --color4: #1ab89a; /* acento - teal más claro */
+  --color5: #334155; /* bordes - slate-700 */
+
+  /* Colores primarios */
+  --primary: #14a085;
+  --primary-light: #1ab89a;
+  --primary-dark: #0d7377;
+  --primary-gradient: linear-gradient(135deg, #14a085 0%, #1ab89a 100%);
+  --primary-gradient-hover: linear-gradient(135deg, #1ab89a 0%, #2dd4bf 100%);
+  
+  /* Colores secundarios */
+  --secondary: #1ab89a;
+  --secondary-light: #2dd4bf;
+  --secondary-dark: #14a085;
+  --secondary-gradient: linear-gradient(135deg, #1ab89a 0%, #2dd4bf 100%);
+  
+  /* Colores semánticos adaptados para modo oscuro */
+  --success: #34d399;
+  --success-light: #6ee7b7;
+  --success-dark: #10b981;
+  --success-gradient: linear-gradient(135deg, #34d399 0%, #6ee7b7 100%);
+  
+  --danger: #f87171;
+  --danger-light: #fca5a5;
+  --danger-dark: #ef4444;
+  --danger-gradient: linear-gradient(135deg, #f87171 0%, #fca5a5 100%);
+  
+  --warning: #fbbf24;
+  --warning-light: #fcd34d;
+  --warning-dark: #f59e0b;
+  --warning-gradient: linear-gradient(135deg, #fbbf24 0%, #fcd34d 100%);
+  
+  --info: #60a5fa;
+  --info-light: #93c5fd;
+  --info-dark: #3b82f6;
+  --info-gradient: linear-gradient(135deg, #60a5fa 0%, #93c5fd 100%);
+  
+  /* Colores de fondo y superficie */
+  --bg: #0f172a;
+  --bg-secondary: #1e293b;
+  --surface: #1e293b;
+  --surface-elevated: #334155;
+  --surface-hover: #334155;
+  
+  /* Bordes */
+  --border: #334155;
+  --border-light: #475569;
+  --border-dark: #475569;
+  
+  /* Colores de texto */
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-hint: #64748b;
+  --text-inverse: #0f172a;
+  
+  /* Sombras adaptadas para modo oscuro */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.6);
+  --shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.7);
+}
+
+.dark-theme body {
+  background-color: var(--bg);
+  color: var(--text-primary);
+}
+
+.dark-theme .mat-mdc-card {
+  background: var(--surface) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border) !important;
+}
+
+.dark-theme .mat-mdc-form-field {
+  color: var(--text-primary);
+}
+
+.dark-theme .mat-mdc-form-field .mat-mdc-text-field-wrapper {
+  background-color: var(--surface);
+}
+
+.dark-theme .mat-mdc-input-element {
+  color: var(--text-primary);
+}
+
+.dark-theme .mat-mdc-table {
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+.dark-theme .mat-mdc-header-row {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-theme .mat-mdc-row {
+  background-color: var(--surface) !important;
+}
+
+.dark-theme .mat-mdc-row:hover {
+  background-color: var(--surface-hover) !important;
+}

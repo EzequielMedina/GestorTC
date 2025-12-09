@@ -11,6 +11,9 @@ import { VentaDolarService } from './venta-dolar.service';
 import { PresupuestoService } from './presupuesto.service';
 import { CategoriaService } from './categoria.service';
 import { AlertService } from './alert.service';
+import { FiltroAvanzadoService } from './filtro-avanzado.service';
+import { EtiquetaService } from './etiqueta.service';
+import { NotaService } from './nota.service';
 import { saveAs } from 'file-saver';
 
 const STORAGE_KEY_BACKUPS = 'gestor_tc_backups';
@@ -35,7 +38,10 @@ export class BackupService {
     private ventaDolarService: VentaDolarService,
     private presupuestoService: PresupuestoService,
     private categoriaService: CategoriaService,
-    private alertService: AlertService
+    private alertService: AlertService,
+    private filtroAvanzadoService: FiltroAvanzadoService,
+    private etiquetaService: EtiquetaService,
+    private notaService: NotaService
   ) {
     this.inicializarBackupAutomatico();
   }
@@ -98,9 +104,12 @@ export class BackupService {
       this.compraDolarService.obtenerCompras(),
       this.ventaDolarService.obtenerVentas(),
       this.presupuestoService.presupuestos$,
-      this.categoriaService.getCategorias$()
+      this.categoriaService.getCategorias$(),
+      this.filtroAvanzadoService.getFiltrosGuardados$(),
+      this.etiquetaService.getEtiquetas$(),
+      this.notaService.getNotas$()
     ]).pipe(
-      map(([tarjetas, gastos, prestamos, compraDolares, ventaDolares, presupuestos, categorias]) => {
+      map(([tarjetas, gastos, prestamos, compraDolares, ventaDolares, presupuestos, categorias, filtrosGuardados, etiquetas, notas]) => {
         // Obtener alertas vistas desde localStorage directamente
         let alertasVistas: string[] = [];
         try {
@@ -120,7 +129,10 @@ export class BackupService {
           ventaDolares: ventaDolares || [],
           presupuestos: presupuestos || [],
           categorias: categorias || [],
-          alertasVistas: alertasVistas || []
+          alertasVistas: alertasVistas || [],
+          filtrosGuardados: filtrosGuardados || [],
+          etiquetas: etiquetas || [],
+          notas: notas || []
         };
       })
     );
@@ -137,7 +149,10 @@ export class BackupService {
       cantidadComprasDolares: datos.compraDolares.length,
       cantidadVentasDolares: datos.ventaDolares.length,
       cantidadPresupuestos: datos.presupuestos.length,
-      cantidadCategorias: datos.categorias.length
+      cantidadCategorias: datos.categorias.length,
+      cantidadFiltrosGuardados: datos.filtrosGuardados?.length || 0,
+      cantidadEtiquetas: datos.etiquetas?.length || 0,
+      cantidadNotas: datos.notas?.length || 0
     };
 
     const totalRegistros = Object.values(resumen).reduce((sum, val) => sum + val, 0);
@@ -190,7 +205,10 @@ export class BackupService {
       Array.isArray(backup.datos.ventaDolares) &&
       Array.isArray(backup.datos.presupuestos) &&
       Array.isArray(backup.datos.categorias) &&
-      Array.isArray(backup.datos.alertasVistas)
+      Array.isArray(backup.datos.alertasVistas) &&
+      (backup.datos.filtrosGuardados === undefined || Array.isArray(backup.datos.filtrosGuardados)) &&
+      (backup.datos.etiquetas === undefined || Array.isArray(backup.datos.etiquetas)) &&
+      (backup.datos.notas === undefined || Array.isArray(backup.datos.notas))
     );
   }
 
@@ -230,6 +248,18 @@ export class BackupService {
 
       if (datos.alertasVistas.length >= 0) {
         localStorage.setItem('gestor_tc_alertas_vistas', JSON.stringify(datos.alertasVistas));
+      }
+
+      if (datos.filtrosGuardados && datos.filtrosGuardados.length >= 0) {
+        localStorage.setItem('gestor_tc_filtros_guardados', JSON.stringify(datos.filtrosGuardados));
+      }
+
+      if (datos.etiquetas && datos.etiquetas.length >= 0) {
+        localStorage.setItem('gestor_tc_etiquetas', JSON.stringify(datos.etiquetas));
+      }
+
+      if (datos.notas && datos.notas.length >= 0) {
+        localStorage.setItem('gestor_tc_notas', JSON.stringify(datos.notas));
       }
 
       // Forzar recarga de los servicios accediendo a sus métodos privados de carga

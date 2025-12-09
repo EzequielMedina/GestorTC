@@ -92,6 +92,16 @@ export const routes: Routes = [
     title: 'Calendario Financiero - Gestor de Tarjetas de Crédito'
   },
   {
+    path: 'calculadoras-financieras',
+    loadComponent: () => import('./pages/calculadoras-financieras/calculadoras-financieras.component').then(m => m.CalculadorasFinancierasComponent),
+    title: 'Calculadoras Financieras - Gestor de Tarjetas de Crédito'
+  },
+  {
+    path: 'reportes-personalizados',
+    loadComponent: () => import('./pages/reportes-personalizados/reportes-personalizados.component').then(m => m.ReportesPersonalizadosComponent),
+    title: 'Reportes Personalizados - Gestor de Tarjetas de Crédito'
+  },
+  {
     path: '**',
     redirectTo: 'dashboard'
   }

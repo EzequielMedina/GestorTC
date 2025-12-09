@@ -48,4 +48,12 @@ export interface Gasto {
    * ID de la categoría asociada al gasto (opcional).
    */
   categoriaId?: string;
+  /**
+   * IDs de las etiquetas asociadas al gasto (opcional).
+   */
+  etiquetasIds?: string[];
+  /**
+   * ID de la nota asociada al gasto (opcional).
+   */
+  notaId?: string;
 }

@@ -1,7 +1,4 @@
-:host {
-  /* Heredar variables globales estandarizadas - no redeclarar */
-  /* Las variables se heredan automáticamente de :root */
-}
+/* Variables heredadas de :root */
 
 .page {
   min-height: 100vh;
@@ -508,6 +505,43 @@
   font-size: var(--font-size-xs);
   color: var(--text-secondary);
   font-weight: var(--font-weight-medium);
+}
+
+.gasto-etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-sm);
+}
+
+.etiqueta-chip {
+  font-size: var(--font-size-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+}
+
+.gasto-nota {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-sm);
+  padding: var(--spacing-xs);
+  background: var(--bg-light);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.nota-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.nota-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .gasto-details {

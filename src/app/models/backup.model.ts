@@ -22,6 +22,9 @@ export interface BackupDatos {
   presupuestos: any[];
   categorias: any[];
   alertasVistas: string[]; // IDs de alertas vistas
+  filtrosGuardados: any[]; // Filtros avanzados guardados
+  etiquetas?: any[]; // Etiquetas (opcional para compatibilidad)
+  notas?: any[]; // Notas (opcional para compatibilidad)
 }
 
 /**
@@ -38,6 +41,9 @@ export interface BackupMetadata {
     cantidadVentasDolares: number;
     cantidadPresupuestos: number;
     cantidadCategorias: number;
+    cantidadFiltrosGuardados: number;
+    cantidadEtiquetas?: number;
+    cantidadNotas?: number;
   };
 }
 
