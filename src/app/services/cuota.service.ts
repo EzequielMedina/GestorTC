@@ -135,10 +135,12 @@ export class CuotaService {
 
   /**
    * Obtiene resumen de cuotas por mes
+   * SOLO incluye cuotas (instalments), NO gastos sin cuotas
    */
   getResumenPorMes$(mes: string): Observable<ResumenCuotasMes> {
     return this.cuotas$.pipe(
       map(cuotas => {
+        // Solo cuotas que vencen en este mes
         const cuotasDelMes = cuotas.filter(c => c.fechaVencimiento.startsWith(mes));
         const pendientes = cuotasDelMes.filter(c => c.estado === 'PENDIENTE');
         const pagadas = cuotasDelMes.filter(c => c.estado === 'PAGADA');
@@ -193,6 +195,50 @@ export class CuotaService {
         const gastosDeTarjeta = gastos.filter(g => g.tarjetaId === tarjetaId);
         const gastosIds = new Set(gastosDeTarjeta.map(g => g.id));
         return cuotas.filter(c => gastosIds.has(c.gastoId));
+      })
+    );
+  }
+
+  /**
+   * Marca todas las cuotas pendientes de una tarjeta como pagadas
+   * @param tarjetaId ID de la tarjeta
+   * @param fechaPago Fecha de pago (opcional, por defecto hoy)
+   * @param mesFiltro Mes en formato YYYY-MM para filtrar las cuotas (opcional)
+   */
+  marcarTodasCuotasTarjetaComoPagadas(tarjetaId: string, fechaPago?: string, mesFiltro?: string): Observable<number> {
+    return combineLatest([
+      this.cuotas$,
+      this.gastoService.getGastos$()
+    ]).pipe(
+      map(([cuotas, gastos]) => {
+        const gastosDeTarjeta = gastos.filter(g => g.tarjetaId === tarjetaId);
+        const gastosIds = new Set(gastosDeTarjeta.map(g => g.id));
+        let cuotasDeTarjeta = cuotas.filter(c => 
+          gastosIds.has(c.gastoId) && c.estado === 'PENDIENTE'
+        );
+
+        // Filtrar por mes si se proporciona
+        if (mesFiltro) {
+          cuotasDeTarjeta = cuotasDeTarjeta.filter(c => 
+            c.fechaVencimiento.startsWith(mesFiltro)
+          );
+        }
+
+        const fechaPagoStr = fechaPago || new Date().toISOString().split('T')[0];
+        let marcadas = 0;
+
+        cuotasDeTarjeta.forEach(cuota => {
+          cuota.estado = 'PAGADA';
+          cuota.fechaPago = fechaPagoStr;
+          marcadas++;
+        });
+
+        if (marcadas > 0) {
+          this.guardarCuotas(cuotas);
+          this.cuotasSubject.next(cuotas);
+        }
+
+        return marcadas;
       })
     );
   }

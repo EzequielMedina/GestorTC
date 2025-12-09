@@ -1,44 +1,63 @@
 <div class="page">
   <div class="header">
-    <h2>Gestión de Cuotas</h2>
-    <p class="subtitle">Administra y sigue el estado de tus cuotas pendientes</p>
+    <div class="header-content">
+      <h2>📅 Gestión de Cuotas</h2>
+      <p class="subtitle">Administra y sigue el estado de tus cuotas pendientes</p>
+    </div>
+    <!-- Navegación mensual -->
+    <div class="month-nav">
+      <button class="btn-nav" (click)="prevMonth()" aria-label="Mes anterior">
+        <span class="nav-icon">◀</span>
+      </button>
+      <div class="month-label">{{ monthLabel }}</div>
+      <button class="btn-nav" (click)="nextMonth()" aria-label="Mes siguiente">
+        <span class="nav-icon">▶</span>
+      </button>
+    </div>
   </div>
 
   <!-- Resumen del Mes -->
-  <section class="content-card" *ngIf="resumenMes$ | async as resumen">
+  <section class="content-card">
     <div class="card-header">
-      <h3 class="card-title">Resumen del Mes</h3>
-      <mat-form-field appearance="outline" class="mes-selector">
-        <mat-label>Mes</mat-label>
-        <input 
-          matInput 
-          type="month" 
-          [value]="mesSeleccionado"
-          (change)="cambiarMes($any($event.target).value)"
-        />
-      </mat-form-field>
+      <h3 class="card-title">Resumen del Mes - {{ monthLabel }}</h3>
     </div>
     
     <div class="resumen-grid">
       <div class="resumen-item">
+        <div class="resumen-icon total">
+          <mat-icon>attach_money</mat-icon>
+        </div>
+        <div class="resumen-info">
+          <div class="resumen-label">Total del Mes</div>
+          <div class="resumen-value">${{ (totalDelMes$ | async) ?? 0 | number:'1.2-2' }}</div>
+          <div class="resumen-count" *ngIf="resumenTarjetasMes$ | async as tarjetas">
+            {{ tarjetas.length }} tarjeta{{ tarjetas.length !== 1 ? 's' : '' }}
+          </div>
+          <div class="resumen-note">Incluye gastos y cuotas</div>
+        </div>
+      </div>
+
+      <div class="resumen-item" *ngIf="resumenTarjetasMes$ | async as tarjetas">
         <div class="resumen-icon pendiente">
           <mat-icon>schedule</mat-icon>
         </div>
         <div class="resumen-info">
-          <div class="resumen-label">Pendientes</div>
-          <div class="resumen-value">${{ resumen.totalPendiente | number:'1.2-2' }}</div>
-          <div class="resumen-count">{{ resumen.cantidadPendientes }} cuota{{ resumen.cantidadPendientes !== 1 ? 's' : '' }}</div>
+          <div class="resumen-label">A Pagar por Tarjetas</div>
+          <div class="resumen-value">${{ getTotalAPagarTarjetas(tarjetas) | number:'1.2-2' }}</div>
+          <div class="resumen-count">{{ getTarjetasConPagos(tarjetas) }} tarjeta{{ getTarjetasConPagos(tarjetas) !== 1 ? 's' : '' }} con pagos</div>
+          <div class="resumen-note">Gastos + cuotas del mes</div>
         </div>
       </div>
 
-      <div class="resumen-item">
+      <div class="resumen-item" *ngIf="resumenMes$ | async as resumen">
         <div class="resumen-icon pagada">
           <mat-icon>check_circle</mat-icon>
         </div>
         <div class="resumen-info">
-          <div class="resumen-label">Pagadas</div>
+          <div class="resumen-label">Cuotas Pagadas</div>
           <div class="resumen-value">${{ resumen.totalPagado | number:'1.2-2' }}</div>
           <div class="resumen-count">{{ resumen.cantidadPagadas }} cuota{{ resumen.cantidadPagadas !== 1 ? 's' : '' }}</div>
+          <div class="resumen-note">Ya pagadas</div>
         </div>
       </div>
     </div>
@@ -67,20 +86,6 @@
           </mat-option>
         </mat-select>
       </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Fecha Inicio</mat-label>
-        <input matInput [matDatepicker]="pickerInicio" [(ngModel)]="fechaInicio" (dateChange)="aplicarFiltros()">
-        <mat-datepicker-toggle matSuffix [for]="pickerInicio"></mat-datepicker-toggle>
-        <mat-datepicker #pickerInicio></mat-datepicker>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Fecha Fin</mat-label>
-        <input matInput [matDatepicker]="pickerFin" [(ngModel)]="fechaFin" (dateChange)="aplicarFiltros()">
-        <mat-datepicker-toggle matSuffix [for]="pickerFin"></mat-datepicker-toggle>
-        <mat-datepicker #pickerFin></mat-datepicker>
-      </mat-form-field>
     </div>
 
     <div class="filtros-actions">
@@ -91,14 +96,194 @@
     </div>
   </section>
 
+  <!-- Resumen por Tarjeta -->
+  <section class="content-card" *ngIf="resumenTarjetasMes$ | async as tarjetas">
+    <div class="card-header">
+      <h3 class="card-title">Resumen por Tarjeta - {{ monthLabel }}</h3>
+    </div>
+    <div class="tarjetas-resumen-grid">
+      <ng-container *ngFor="let tarjeta of tarjetas">
+        <div *ngIf="tarjeta.totalMes > 0" class="tarjeta-resumen-card">
+          <div class="tarjeta-resumen-header">
+            <mat-icon class="tarjeta-icon">credit_card</mat-icon>
+            <div class="tarjeta-resumen-info">
+              <h4 class="tarjeta-nombre">{{ tarjeta.nombre }}</h4>
+              <div class="tarjeta-meta">
+                <span>Límite: ${{ tarjeta.limite | number:'1.2-2' }}</span>
+                <span class="separator">•</span>
+                <span>Disponible: ${{ tarjeta.saldoDisponible | number:'1.2-2' }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="tarjeta-resumen-total">
+            <div class="total-label">Total a Pagar este Mes</div>
+            <div class="total-value">${{ tarjeta.totalMes | number:'1.2-2' }}</div>
+            <div class="total-porcentaje">({{ tarjeta.porcentajeUso | number:'1.1-1' }}% del límite)</div>
+          </div>
+        </div>
+      </ng-container>
+      <div *ngIf="getTarjetasConPagos(tarjetas) === 0" class="empty-state">
+        <mat-icon>info</mat-icon>
+        <p>No hay pagos pendientes para este mes</p>
+      </div>
+    </div>
+  </section>
+
   <!-- Lista de Cuotas -->
   <section class="content-card">
     <div class="card-header">
-      <h3 class="card-title">Cuotas ({{ cuotasFiltradas.length }})</h3>
+      <h3 class="card-title">Detalle de Cuotas ({{ cuotasFiltradas.length }})</h3>
+      <button mat-stroked-button (click)="toggleVista()" *ngIf="cuotasFiltradas.length > 0">
+        <mat-icon>{{ mostrarVistaAgrupada ? 'view_list' : 'view_module' }}</mat-icon>
+        {{ mostrarVistaAgrupada ? 'Vista Lista' : 'Vista Agrupada' }}
+      </button>
     </div>
 
     <div *ngIf="cuotasFiltradas.length > 0; else sinCuotas">
-      <table mat-table [dataSource]="cuotasFiltradas" class="cuotas-table" *ngIf="gastos$ | async as gastos; else loading">
+      <!-- Vista Agrupada por Tarjeta -->
+      <div *ngIf="mostrarVistaAgrupada && cuotasPorTarjeta.length > 0" class="cuotas-por-tarjeta">
+        <div class="tarjetas-controls" *ngIf="cuotasPorTarjeta.length > 1">
+          <button mat-stroked-button (click)="expandirTodasTarjetas()" matTooltip="Expandir todas las tarjetas">
+            <mat-icon>expand_more</mat-icon>
+            Expandir Todas
+          </button>
+          <button mat-stroked-button (click)="colapsarTodasTarjetas()" matTooltip="Colapsar todas las tarjetas">
+            <mat-icon>expand_less</mat-icon>
+            Colapsar Todas
+          </button>
+        </div>
+        <div *ngFor="let grupo of cuotasPorTarjeta" class="tarjeta-grupo">
+          <div class="tarjeta-grupo-header" (click)="toggleTarjeta(grupo.tarjetaId)">
+            <div class="tarjeta-info">
+              <mat-icon class="tarjeta-icon">credit_card</mat-icon>
+              <div>
+                <h4 class="tarjeta-nombre">{{ grupo.tarjetaNombre }}</h4>
+                <div class="tarjeta-resumen">
+                  <span class="resumen-badge pendiente">
+                    <mat-icon>schedule</mat-icon>
+                    {{ grupo.cantidadPendientes }} pendiente{{ grupo.cantidadPendientes !== 1 ? 's' : '' }} - ${{ grupo.totalPendiente | number:'1.2-2' }}
+                  </span>
+                  <span class="resumen-badge pagada" *ngIf="grupo.cantidadPagadas > 0">
+                    <mat-icon>check_circle</mat-icon>
+                    {{ grupo.cantidadPagadas }} pagada{{ grupo.cantidadPagadas !== 1 ? 's' : '' }} - ${{ grupo.totalPagado | number:'1.2-2' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div class="tarjeta-actions">
+              <button 
+                mat-raised-button 
+                color="primary"
+                *ngIf="grupo.cantidadPendientes > 0"
+                (click)="marcarTodasCuotasTarjetaComoPagadas(grupo.tarjetaId); $event.stopPropagation()"
+                [matTooltip]="'Marcar todas las cuotas pendientes de esta tarjeta del mes ' + formatearMesLabel(mesSeleccionado) + ' como pagadas'"
+              >
+                <mat-icon>check_circle</mat-icon>
+                Marcar Todas del Mes
+              </button>
+              <mat-icon class="expand-icon" [class.expanded]="isTarjetaExpandida(grupo.tarjetaId)">expand_more</mat-icon>
+            </div>
+          </div>
+
+          <div class="cuotas-detalle" *ngIf="isTarjetaExpandida(grupo.tarjetaId)">
+            <ng-container *ngIf="gastos$ | async as gastos">
+            <table mat-table [dataSource]="grupo.cuotas" class="cuotas-table-detalle">
+              <ng-container matColumnDef="numero">
+                <th mat-header-cell *matHeaderCellDef>Cuota</th>
+                <td mat-cell *matCellDef="let cuota">
+                  <div class="cuota-numero">
+                    <strong *ngIf="!cuota.id.startsWith('virtual_')">{{ cuota.numeroCuota }}/{{ getCantidadTotalCuotas(cuota, gastos) }}</strong>
+                    <strong *ngIf="cuota.id.startsWith('virtual_')" class="gasto-unico">Pago Único</strong>
+                  </div>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="gasto">
+                <th mat-header-cell *matHeaderCellDef>Gasto</th>
+                <td mat-cell *matCellDef="let cuota">
+                  <div class="gasto-info-detalle">
+                    <div class="gasto-descripcion">{{ getGastoDescripcion(cuota, gastos) }}</div>
+                    <div class="gasto-meta">
+                      <ng-container *ngIf="getGastoOriginal(cuota, gastos) as gasto">
+                        <span class="meta-item">
+                          <span class="meta-label">Original:</span>
+                          <span class="meta-value">${{ gasto.monto | number:'1.2-2' }}</span>
+                        </span>
+                        <span class="meta-item" *ngIf="gasto.compartidoCon || (gasto.personasCompartidas && gasto.personasCompartidas.length > 0)">
+                          <span class="meta-label">Compartido</span>
+                        </span>
+                      </ng-container>
+                    </div>
+                  </div>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="fechaVencimiento">
+                <th mat-header-cell *matHeaderCellDef>Vencimiento</th>
+                <td mat-cell *matCellDef="let cuota">
+                  <div class="fecha-info">
+                    <div class="fecha-principal">{{ formatearFecha(cuota.fechaVencimiento) }}</div>
+                    <div class="fecha-secundaria" *ngIf="cuota.fechaPago">
+                      Pagado: {{ formatearFecha(cuota.fechaPago) }}
+                    </div>
+                  </div>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="monto">
+                <th mat-header-cell *matHeaderCellDef>Monto Cuota</th>
+                <td mat-cell *matCellDef="let cuota">
+                  <div class="monto-info">
+                    <div class="monto-principal">${{ cuota.monto | number:'1.2-2' }}</div>
+                  </div>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="estado">
+                <th mat-header-cell *matHeaderCellDef>Estado</th>
+                <td mat-cell *matCellDef="let cuota">
+                  <mat-chip [class]="getEstadoClass(cuota.estado)">
+                    <mat-icon>{{ getEstadoIcon(cuota.estado) }}</mat-icon>
+                    {{ cuota.estado }}
+                  </mat-chip>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="acciones">
+                <th mat-header-cell *matHeaderCellDef>Acciones</th>
+                <td mat-cell *matCellDef="let cuota">
+                  <button 
+                    mat-icon-button 
+                    *ngIf="cuota.estado === 'PENDIENTE'"
+                    (click)="marcarComoPagada(cuota)"
+                    matTooltip="Marcar como pagada"
+                    color="primary"
+                  >
+                    <mat-icon>check</mat-icon>
+                  </button>
+                  <button 
+                    mat-icon-button 
+                    *ngIf="cuota.estado === 'PENDIENTE'"
+                    (click)="adelantarCuota(cuota)"
+                    matTooltip="Adelantar cuota"
+                    color="accent"
+                  >
+                    <mat-icon>fast_forward</mat-icon>
+                  </button>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="['numero', 'gasto', 'fechaVencimiento', 'monto', 'estado', 'acciones']"></tr>
+              <tr mat-row *matRowDef="let row; columns: ['numero', 'gasto', 'fechaVencimiento', 'monto', 'estado', 'acciones'];"></tr>
+            </table>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vista Lista (Tabla tradicional) -->
+      <ng-container *ngIf="!mostrarVistaAgrupada">
+        <table mat-table [dataSource]="cuotasFiltradas" class="cuotas-table" *ngIf="gastos$ | async as gastos; else loading">
         <ng-container matColumnDef="numero">
           <th mat-header-cell *matHeaderCellDef>#</th>
           <td mat-cell *matCellDef="let cuota">{{ cuota.numeroCuota }}</td>
@@ -162,7 +347,8 @@
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-      </table>
+        </table>
+      </ng-container>
     </div>
 
     <ng-template #sinCuotas>
