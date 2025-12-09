@@ -14,6 +14,8 @@ import { ResumenService, ResumenTarjeta } from './resumen.service';
 import { BalanceDolarService } from './balance-dolar.service';
 import { CategoriaService } from './categoria.service';
 import { PresupuestoService } from './presupuesto.service';
+import { CalendarioFinancieroService } from './calendario-financiero.service';
+import { EventoFinanciero } from '../models/evento-financiero.model';
 
 export interface DashboardStats {
   totalGastosMes: number;
@@ -25,6 +27,7 @@ export interface DashboardStats {
   balanceDolares: BalanceDolar | null;
   prestamosActivos: Prestamo[];
   presupuestosCerca: PresupuestoSeguimiento[];
+  eventosProximos: EventoFinanciero[];
 }
 
 @Injectable({
@@ -38,7 +41,8 @@ export class DashboardService {
     private resumenService: ResumenService,
     private balanceDolarService: BalanceDolarService,
     private categoriaService: CategoriaService,
-    private presupuestoService: PresupuestoService
+    private presupuestoService: PresupuestoService,
+    private calendarioService: CalendarioFinancieroService
   ) {}
 
   /**
@@ -55,9 +59,10 @@ export class DashboardService {
       this.balanceDolarService.obtenerBalanceCompleto(),
       this.categoriaService.getCategorias$(),
       this.presupuestoService.getPresupuestosConSeguimiento$(mesActual),
-      this.resumenService.getTotalDelMes$(mesActual)
+      this.resumenService.getTotalDelMes$(mesActual),
+      this.calendarioService.getEventosProximos$(7)
     ]).pipe(
-      map(([tarjetas, gastos, prestamos, resumenTarjetasMes, balanceDolares, categorias, presupuestos, totalGastosMes]) => {
+      map(([tarjetas, gastos, prestamos, resumenTarjetasMes, balanceDolares, categorias, presupuestos, totalGastosMes, eventosProximos]) => {
         // totalGastosMes ya viene calculado correctamente del ResumenService incluyendo cuotas
 
         // Límites y disponible (usando datos del mes actual)
@@ -102,7 +107,8 @@ export class DashboardService {
           gastosPorCategoria,
           balanceDolares: balanceDolares || null,
           prestamosActivos,
-          presupuestosCerca
+          presupuestosCerca,
+          eventosProximos: eventosProximos || []
         };
       })
     );

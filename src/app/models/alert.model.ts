@@ -5,7 +5,8 @@ export type TipoAlerta =
   | 'TARJETA_VENCIMIENTO_PROXIMO'
   | 'TARJETA_LIMITE_ALCANZADO'
   | 'PRESTAMO_PAGO_PENDIENTE'
-  | 'DOLAR_CAMBIO_SIGNIFICATIVO';
+  | 'DOLAR_CAMBIO_SIGNIFICATIVO'
+  | 'CUOTA_VENCIMIENTO_PROXIMO';
 
 /**
  * Prioridad de la alerta
@@ -37,8 +38,11 @@ export interface Alerta {
     tarjetaId?: string;
     tarjetaNombre?: string;
     prestamoId?: string;
+    cuotaId?: string;
+    gastoId?: string;
     porcentajeUso?: number;
     diasRestantes?: number;
+    monto?: number;
     [key: string]: any;
   };
 }

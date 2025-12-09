@@ -1,0 +1,55 @@
+.etiquetas-selector {
+  margin: var(--spacing-sm) 0;
+}
+
+.etiquetas-actuales {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-sm);
+}
+
+.btn-agregar-etiqueta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+  padding: var(--spacing-xs) var(--spacing-sm);
+}
+
+.selector-panel {
+  padding: var(--spacing-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-top: var(--spacing-sm);
+}
+
+.etiquetas-disponibles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-md);
+}
+
+.etiquetas-disponibles mat-chip {
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.etiquetas-disponibles mat-chip:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-sm);
+}
+
+.etiquetas-disponibles mat-chip.selected {
+  background: var(--bg);
+  border: 2px solid;
+}
+
+.btn-nueva,
+.btn-cerrar {
+  margin-top: var(--spacing-sm);
+  margin-right: var(--spacing-sm);
+}
+

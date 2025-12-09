@@ -7,8 +7,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatDividerModule } from '@angular/material/divider';
 import { AlertBannerComponent } from './components/alert-banner/alert-banner.component';
 import { GlobalSearchComponent } from './components/global-search/global-search.component';
+import { ThemeToggleComponent } from './components/theme-toggle/theme-toggle.component';
+import { ThemeService } from './services/theme.service';
 
 @Component({
   selector: 'app-root',
@@ -24,12 +27,18 @@ import { GlobalSearchComponent } from './components/global-search/global-search.
     MatSidenavModule,
     MatListModule,
     MatMenuModule,
+    MatDividerModule,
     AlertBannerComponent,
-    GlobalSearchComponent
+    GlobalSearchComponent,
+    ThemeToggleComponent
   ],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
 export class App {
   protected readonly title = signal('Gestor de Cuentas');
+  
+  constructor(private themeService: ThemeService) {
+    // El servicio se inicializa automáticamente
+  }
 }

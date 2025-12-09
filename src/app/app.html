@@ -51,6 +51,30 @@
         <mat-icon>chat</mat-icon>
         <span>Reportes WhatsApp</span>
       </a>
+      <a mat-list-item class="nav-item" routerLink="/cuotas" routerLinkActive="active" (click)="drawer.close()">
+        <mat-icon>schedule</mat-icon>
+        <span>Cuotas</span>
+      </a>
+      <a mat-list-item class="nav-item" routerLink="/analisis-tendencias" routerLinkActive="active"
+        (click)="drawer.close()">
+        <mat-icon>trending_up</mat-icon>
+        <span>Análisis de Tendencias</span>
+      </a>
+      <a mat-list-item class="nav-item" routerLink="/calendario-financiero" routerLinkActive="active"
+        (click)="drawer.close()">
+        <mat-icon>calendar_today</mat-icon>
+        <span>Calendario Financiero</span>
+      </a>
+      <a mat-list-item class="nav-item" routerLink="/backup-restauracion" routerLinkActive="active"
+        (click)="drawer.close()">
+        <mat-icon>backup</mat-icon>
+        <span>Backup y Restauración</span>
+      </a>
+      <a mat-list-item class="nav-item" routerLink="/calculadoras-financieras" routerLinkActive="active"
+        (click)="drawer.close()">
+        <mat-icon>calculate</mat-icon>
+        <span>Calculadoras</span>
+      </a>
       <!-- <a mat-list-item class="nav-item" routerLink="/analisis" routerLinkActive="active" (click)="drawer.close()">
           <mat-icon>analytics</mat-icon>
           <span>Análisis</span>
@@ -67,6 +91,7 @@
       <span>{{ title() }}</span>
       <span class="toolbar-spacer"></span>
       <app-global-search class="toolbar-search"></app-global-search>
+      <app-theme-toggle></app-theme-toggle>
       <nav class="desktop-nav">
         <a mat-button routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
         <a mat-button routerLink="/tarjetas" routerLinkActive="active">Tarjetas</a>
@@ -102,6 +127,27 @@
           <a mat-menu-item routerLink="/reportes-whatsapp" routerLinkActive="active">
             <mat-icon>chat</mat-icon>
             <span>Reportes WhatsApp</span>
+          </a>
+          <mat-divider></mat-divider>
+          <a mat-menu-item routerLink="/cuotas" routerLinkActive="active">
+            <mat-icon>schedule</mat-icon>
+            <span>Cuotas</span>
+          </a>
+          <a mat-menu-item routerLink="/analisis-tendencias" routerLinkActive="active">
+            <mat-icon>trending_up</mat-icon>
+            <span>Análisis de Tendencias</span>
+          </a>
+          <a mat-menu-item routerLink="/calendario-financiero" routerLinkActive="active">
+            <mat-icon>calendar_today</mat-icon>
+            <span>Calendario Financiero</span>
+          </a>
+          <a mat-menu-item routerLink="/backup-restauracion" routerLinkActive="active">
+            <mat-icon>backup</mat-icon>
+            <span>Backup y Restauración</span>
+          </a>
+          <a mat-menu-item routerLink="/calculadoras-financieras" routerLinkActive="active">
+            <mat-icon>calculate</mat-icon>
+            <span>Calculadoras Financieras</span>
           </a>
         </mat-menu>
       </nav>

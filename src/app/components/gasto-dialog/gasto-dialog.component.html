@@ -148,7 +148,25 @@
           </div>
         </div>
 
-        
+        <div class="form-group">
+          <label class="form-label">Etiquetas</label>
+          <app-etiquetas-selector
+            [etiquetasIds]="gasto.etiquetasIds || []"
+            (etiquetasChange)="onEtiquetasChange($event)"
+          ></app-etiquetas-selector>
+        </div>
+
+        <div class="form-group">
+          <label for="nota" class="form-label">Nota</label>
+          <textarea
+            id="nota"
+            name="nota"
+            [(ngModel)]="notaContenido"
+            class="form-input form-textarea"
+            placeholder="Agregar una nota extensa sobre este gasto (opcional)"
+            rows="4"
+          ></textarea>
+        </div>
         
       </form>
     </div>

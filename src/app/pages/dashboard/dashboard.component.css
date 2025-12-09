@@ -234,13 +234,15 @@
 
 .balance-info,
 .prestamos-list,
-.presupuestos-list {
+.presupuestos-list,
+.eventos-list {
   margin-bottom: var(--spacing-md);
 }
 
 .balance-item,
 .prestamo-item,
-.presupuesto-item {
+.presupuesto-item,
+.evento-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -251,7 +253,8 @@
 
 .balance-item:hover,
 .prestamo-item:hover,
-.presupuesto-item:hover {
+.presupuesto-item:hover,
+.evento-item:hover {
   background-color: var(--surface-hover);
   margin: 0 calc(-1 * var(--spacing-md));
   padding-left: var(--spacing-md);
@@ -261,7 +264,8 @@
 
 .balance-item:last-child,
 .prestamo-item:last-child,
-.presupuesto-item:last-child {
+.presupuesto-item:last-child,
+.evento-item:last-child {
   border-bottom: none;
 }
 
@@ -305,6 +309,73 @@
   margin-bottom: var(--spacing-xs);
   display: block;
   font-weight: var(--font-weight-medium);
+}
+
+.evento-item {
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+  transition: all var(--transition-base);
+}
+
+.evento-item:hover {
+  box-shadow: var(--shadow-sm);
+  border-color: var(--border);
+}
+
+.evento-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.evento-icon.prioridad-alta {
+  background: var(--danger-gradient);
+  color: var(--text-inverse);
+}
+
+.evento-icon.prioridad-media {
+  background: var(--warning-gradient);
+  color: var(--text-inverse);
+}
+
+.evento-icon.prioridad-baja {
+  background: var(--info-gradient);
+  color: var(--text-inverse);
+}
+
+.evento-icon mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.evento-info {
+  flex: 1;
+}
+
+.evento-titulo {
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  margin-bottom: 2px;
+}
+
+.evento-fecha {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+.evento-monto {
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
 }
 
 /* Responsive */

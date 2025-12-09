@@ -1,0 +1,162 @@
+<div class="filtros-avanzados">
+  <div class="filtros-header">
+    <button 
+      class="btn btn-outline toggle-btn" 
+      (click)="toggleFiltros()"
+      [class.active]="mostrarFiltros || hayFiltrosActivos"
+    >
+      <mat-icon>filter_list</mat-icon>
+      <span>Filtros Avanzados</span>
+      <mat-icon *ngIf="hayFiltrosActivos" class="badge-icon">circle</mat-icon>
+    </button>
+    
+    <div class="filtros-guardados" *ngIf="filtrosGuardados.length > 0">
+      <button mat-button [matMenuTriggerFor]="filtrosMenu" class="filtros-menu-btn">
+        <mat-icon>bookmark</mat-icon>
+        <span>Filtros Guardados</span>
+      </button>
+      <mat-menu #filtrosMenu="matMenu">
+        <button mat-menu-item *ngFor="let filtro of filtrosGuardados" (click)="cargarFiltroGuardado(filtro)">
+          <mat-icon>bookmark</mat-icon>
+          <span>{{ filtro.nombre }}</span>
+          <button 
+            mat-icon-button 
+            (click)="eliminarFiltroGuardado(filtro, $event)"
+            class="delete-btn"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        </button>
+      </mat-menu>
+    </div>
+  </div>
+
+  <div class="filtros-panel" *ngIf="mostrarFiltros">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Filtros Avanzados</mat-card-title>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <!-- Búsqueda de texto -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Buscar en descripción</mat-label>
+          <input matInput [(ngModel)]="filtro.textoBusqueda" placeholder="Ej: supermercado, restaurante...">
+          <mat-icon matPrefix>search</mat-icon>
+        </mat-form-field>
+
+        <!-- Filtros de tarjetas -->
+        <div class="filter-section">
+          <h4>Tarjetas</h4>
+          <mat-checkbox [(ngModel)]="filtro.todasLasTarjetas" (change)="filtro.tarjetasIds = []">
+            Todas las tarjetas
+          </mat-checkbox>
+          <div class="checkbox-group" *ngIf="!filtro.todasLasTarjetas">
+            <mat-checkbox 
+              *ngFor="let tarjeta of tarjetas"
+              [checked]="filtro.tarjetasIds.includes(tarjeta.id)"
+              (change)="seleccionarTarjeta(tarjeta.id, $event.checked)"
+            >
+              {{ tarjeta.nombre }}
+            </mat-checkbox>
+          </div>
+        </div>
+
+        <!-- Filtros de categorías -->
+        <div class="filter-section">
+          <h4>Categorías</h4>
+          <mat-checkbox [(ngModel)]="filtro.todasLasCategorias" (change)="filtro.categoriasIds = []">
+            Todas las categorías
+          </mat-checkbox>
+          <div class="checkbox-group" *ngIf="!filtro.todasLasCategorias">
+            <mat-checkbox 
+              *ngFor="let categoria of categorias"
+              [checked]="filtro.categoriasIds.includes(categoria.id)"
+              (change)="seleccionarCategoria(categoria.id, $event.checked)"
+            >
+              <mat-icon [style.color]="categoria.color">{{ categoria.icono }}</mat-icon>
+              {{ categoria.nombre }}
+            </mat-checkbox>
+          </div>
+        </div>
+
+        <!-- Filtros de fecha -->
+        <div class="filter-section">
+          <h4>Rango de Fechas</h4>
+          <div class="date-range">
+            <mat-form-field appearance="outline">
+              <mat-label>Desde</mat-label>
+              <input matInput type="date" [(ngModel)]="rangoFechasDesde">
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Hasta</mat-label>
+              <input matInput type="date" [(ngModel)]="rangoFechasHasta">
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Filtros de monto -->
+        <div class="filter-section">
+          <h4>Monto</h4>
+          <div class="monto-range">
+            <mat-form-field appearance="outline">
+              <mat-label>Monto mínimo</mat-label>
+              <input matInput type="number" [(ngModel)]="filtro.montoMinimo" placeholder="0">
+              <mat-icon matPrefix>attach_money</mat-icon>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Monto máximo</mat-label>
+              <input matInput type="number" [(ngModel)]="filtro.montoMaximo" placeholder="Sin límite">
+              <mat-icon matPrefix>attach_money</mat-icon>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Filtros de tipo -->
+        <div class="filter-section">
+          <h4>Tipo de Gasto</h4>
+          <mat-checkbox [(ngModel)]="filtro.incluirCompartidos">Incluir compartidos</mat-checkbox>
+          <mat-checkbox [(ngModel)]="filtro.incluirPersonales">Incluir personales</mat-checkbox>
+          <mat-checkbox [(ngModel)]="filtro.soloCompartidos">Solo compartidos</mat-checkbox>
+          <mat-checkbox [(ngModel)]="filtro.soloPersonales">Solo personales</mat-checkbox>
+        </div>
+
+        <!-- Filtros de cuotas -->
+        <div class="filter-section">
+          <h4>Cuotas</h4>
+          <mat-checkbox [(ngModel)]="filtro.soloConCuotas">Solo con cuotas</mat-checkbox>
+          <mat-checkbox [(ngModel)]="filtro.soloSinCuotas">Solo sin cuotas</mat-checkbox>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions>
+        <div class="actions-left">
+          <mat-form-field appearance="outline" class="save-filter-field">
+            <mat-label>Guardar filtro como...</mat-label>
+            <input matInput [(ngModel)]="nombreFiltroGuardar" placeholder="Nombre del filtro">
+            <button 
+              mat-icon-button 
+              matSuffix 
+              (click)="guardarFiltro()"
+              [disabled]="!nombreFiltroGuardar.trim() || guardandoFiltro"
+              matTooltip="Guardar filtro"
+            >
+              <mat-icon>save</mat-icon>
+            </button>
+          </mat-form-field>
+        </div>
+        <div class="actions-right">
+          <button mat-button (click)="limpiarFiltro()">
+            <mat-icon>clear</mat-icon>
+            Limpiar
+          </button>
+          <button mat-raised-button color="primary" (click)="aplicarFiltro()">
+            <mat-icon>check</mat-icon>
+            Aplicar
+          </button>
+        </div>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>
+

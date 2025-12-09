@@ -72,6 +72,36 @@ export const routes: Routes = [
     title: 'Reportes WhatsApp - Gestor de Tarjetas de Crédito'
   },
   {
+    path: 'backup-restauracion',
+    loadComponent: () => import('./pages/backup-restauracion/backup-restauracion.component').then(m => m.BackupRestauracionComponent),
+    title: 'Backup y Restauración - Gestor de Tarjetas de Crédito'
+  },
+  {
+    path: 'cuotas',
+    loadComponent: () => import('./pages/cuotas/cuotas.component').then(m => m.CuotasComponent),
+    title: 'Cuotas - Gestor de Tarjetas de Crédito'
+  },
+  {
+    path: 'analisis-tendencias',
+    loadComponent: () => import('./pages/analisis-tendencias/analisis-tendencias.component').then(m => m.AnalisisTendenciasComponent),
+    title: 'Análisis de Tendencias - Gestor de Tarjetas de Crédito'
+  },
+  {
+    path: 'calendario-financiero',
+    loadComponent: () => import('./pages/calendario-financiero/calendario-financiero.component').then(m => m.CalendarioFinancieroComponent),
+    title: 'Calendario Financiero - Gestor de Tarjetas de Crédito'
+  },
+  {
+    path: 'calculadoras-financieras',
+    loadComponent: () => import('./pages/calculadoras-financieras/calculadoras-financieras.component').then(m => m.CalculadorasFinancierasComponent),
+    title: 'Calculadoras Financieras - Gestor de Tarjetas de Crédito'
+  },
+  {
+    path: 'reportes-personalizados',
+    loadComponent: () => import('./pages/reportes-personalizados/reportes-personalizados.component').then(m => m.ReportesPersonalizadosComponent),
+    title: 'Reportes Personalizados - Gestor de Tarjetas de Crédito'
+  },
+  {
     path: '**',
     redirectTo: 'dashboard'
   }

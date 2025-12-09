@@ -1,0 +1,103 @@
+<div class="page">
+  <div class="header">
+    <div class="header-content">
+      <h2>📆 Calendario Financiero</h2>
+      <p class="subtitle">Visualiza todos tus vencimientos y eventos financieros</p>
+    </div>
+  </div>
+
+  <!-- Eventos Próximos -->
+  <section class="content-card" *ngIf="eventosProximos$ | async as eventosProximos">
+    <h3 class="card-title">Próximos Eventos (7 días)</h3>
+    <div *ngIf="eventosProximos.length > 0; else sinEventosProximos" class="eventos-proximos">
+      <div *ngFor="let evento of eventosProximos" class="evento-item">
+        <div class="evento-icon" [class]="getPrioridadClass(evento.prioridad)">
+          <mat-icon>{{ getTipoIcon(evento.tipo) }}</mat-icon>
+        </div>
+        <div class="evento-info">
+          <div class="evento-titulo">{{ evento.titulo }}</div>
+          <div class="evento-fecha">{{ formatearFecha(evento.fecha) }}</div>
+          <div class="evento-descripcion" *ngIf="evento.descripcion">{{ evento.descripcion }}</div>
+        </div>
+        <div class="evento-monto" *ngIf="evento.monto">
+          ${{ evento.monto | number:'1.2-2' }}
+        </div>
+      </div>
+    </div>
+    <ng-template #sinEventosProximos>
+      <div class="empty-state">
+        <p>No hay eventos próximos</p>
+      </div>
+    </ng-template>
+  </section>
+
+  <!-- Calendario Mensual -->
+  <section class="content-card">
+    <div class="calendario-header">
+      <button mat-icon-button (click)="mesAnterior()" matTooltip="Mes anterior">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <div class="mes-titulo">
+        <h3>{{ getNombreMes() }} {{ getAnio() }}</h3>
+      </div>
+      <button mat-icon-button (click)="mesSiguiente()" matTooltip="Mes siguiente">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+      <button mat-stroked-button (click)="irAMesActual()" class="btn-hoy">
+        <mat-icon>today</mat-icon>
+        Hoy
+      </button>
+    </div>
+
+    <div class="calendario-grid">
+      <!-- Días de la semana -->
+      <div class="dia-semana-header" *ngFor="let nombreDia of nombresDias">
+        {{ nombreDia }}
+      </div>
+
+      <!-- Días del calendario -->
+      <div 
+        *ngFor="let dia of diasCalendario" 
+        class="dia-calendario"
+        [class.otro-mes]="!dia.esMesActual"
+        [class.tiene-eventos]="dia.eventos.length > 0"
+        [class.hoy]="esHoy(dia.fecha)"
+        [class.seleccionado]="fechaSeleccionada && esMismaFecha(dia.fecha, fechaSeleccionada)"
+        (click)="seleccionarDia(dia)"
+      >
+        <div class="dia-numero">{{ dia.dia }}</div>
+        <div *ngIf="dia.eventos.length > 0" class="eventos-dia">
+          <div class="evento-badge" *ngFor="let evento of dia.eventos.slice(0, 2)" [class]="getPrioridadClass(evento.prioridad)">
+            <mat-icon>{{ getTipoIcon(evento.tipo) }}</mat-icon>
+          </div>
+          <div class="mas-eventos" *ngIf="dia.eventos.length > 2">
+            +{{ dia.eventos.length - 2 }}
+          </div>
+        </div>
+        <div class="monto-dia" *ngIf="dia.totalMonto > 0">
+          ${{ dia.totalMonto | number:'1.0-0' }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Eventos del día seleccionado -->
+    <div *ngIf="fechaSeleccionada && eventosDelDia.length > 0" class="eventos-dia-seleccionado">
+      <h4>Eventos del {{ formatearFecha(fechaSeleccionada.toISOString().split('T')[0]) }}</h4>
+      <div class="eventos-lista">
+        <div *ngFor="let evento of eventosDelDia" class="evento-detalle">
+          <div class="evento-icon" [class]="getPrioridadClass(evento.prioridad)">
+            <mat-icon>{{ getTipoIcon(evento.tipo) }}</mat-icon>
+          </div>
+          <div class="evento-info">
+            <div class="evento-titulo">{{ evento.titulo }}</div>
+            <div class="evento-descripcion" *ngIf="evento.descripcion">{{ evento.descripcion }}</div>
+          </div>
+          <div class="evento-monto" *ngIf="evento.monto">
+            ${{ evento.monto | number:'1.2-2' }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
