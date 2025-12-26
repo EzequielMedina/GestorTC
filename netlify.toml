@@ -1,5 +1,7 @@
 # Configuración de Netlify para Angular PWA
 
+# Configuración de Netlify para Angular PWA
+
 [build]
   # Comando para construir la aplicación
   # El archivo .npmrc ya configura legacy-peer-deps automáticamente

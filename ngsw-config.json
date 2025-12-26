@@ -37,7 +37,7 @@
         "https://**"
       ],
       "cacheConfig": {
-        "strategy": "networkFirst",
+        "strategy": "freshness",
         "maxSize": 100,
         "maxAge": "1h",
         "timeout": "10s"
