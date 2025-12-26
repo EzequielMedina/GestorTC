@@ -63,12 +63,13 @@
       "name": "Nuevo Gasto Rápido",
       "short_name": "Gasto Rápido",
       "description": "Registrar un gasto rápidamente",
-      "url": "/?action=nuevo-gasto",
+      "url": "./?action=nuevo-gasto",
       "icons": [
         {
-          "src": "icons/icon-192x192.png",
+          "src": "./icons/icon-192x192.png",
           "sizes": "192x192",
-          "type": "image/png"
+          "type": "image/png",
+          "purpose": "any"
         }
       ]
     },
@@ -76,12 +77,13 @@
       "name": "Ver Dashboard",
       "short_name": "Dashboard",
       "description": "Ver resumen financiero",
-      "url": "/dashboard",
+      "url": "./dashboard",
       "icons": [
         {
-          "src": "icons/icon-192x192.png",
+          "src": "./icons/icon-192x192.png",
           "sizes": "192x192",
-          "type": "image/png"
+          "type": "image/png",
+          "purpose": "any"
         }
       ]
     },
@@ -89,12 +91,13 @@
       "name": "Ver Gastos",
       "short_name": "Gastos",
       "description": "Ver lista de gastos",
-      "url": "/gastos",
+      "url": "./gastos",
       "icons": [
         {
-          "src": "icons/icon-192x192.png",
+          "src": "./icons/icon-192x192.png",
           "sizes": "192x192",
-          "type": "image/png"
+          "type": "image/png",
+          "purpose": "any"
         }
       ]
     },
@@ -102,12 +105,13 @@
       "name": "Próximos Vencimientos",
       "short_name": "Vencimientos",
       "description": "Ver próximos vencimientos",
-      "url": "/calendario-financiero",
+      "url": "./calendario-financiero",
       "icons": [
         {
-          "src": "icons/icon-192x192.png",
+          "src": "./icons/icon-192x192.png",
           "sizes": "192x192",
-          "type": "image/png"
+          "type": "image/png",
+          "purpose": "any"
         }
       ]
     }
