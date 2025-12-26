@@ -83,17 +83,34 @@ export class PwaUpdateService {
     if (this.swUpdate.isEnabled) {
       this.swUpdate.activateUpdate()
         .then(() => {
-          console.log('Actualización activada, recargando página...');
+          console.log('Actualización activada, limpiando caché y recargando página...');
+          // Limpiar caché del navegador antes de recargar
+          if ('caches' in window) {
+            caches.keys().then(names => {
+              names.forEach(name => {
+                caches.delete(name);
+              });
+            });
+          }
           // Recargar automáticamente después de un breve delay
           setTimeout(() => {
-            window.location.reload();
+            // Forzar recarga sin caché
+            window.location.href = window.location.href;
           }, 500);
         })
         .catch(err => {
           console.error('Error al activar actualización:', err);
+          // Limpiar caché de todas formas
+          if ('caches' in window) {
+            caches.keys().then(names => {
+              names.forEach(name => {
+                caches.delete(name);
+              });
+            });
+          }
           // Intentar recargar de todas formas para forzar la actualización
           setTimeout(() => {
-            window.location.reload();
+            window.location.href = window.location.href;
           }, 2000);
         });
     }
