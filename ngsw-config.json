@@ -16,6 +16,9 @@
           "/*.css",
           "/*.js"
         ]
+      },
+      "cacheQueryOptions": {
+        "ignoreVary": true
       }
     },
     {
@@ -27,6 +30,9 @@
           "/**/*.(svg|cur|jpg|jpeg|png|apng|webp|avif|gif|otf|ttf|woff|woff2)",
           "/icons/**/*"
         ]
+      },
+      "cacheQueryOptions": {
+        "ignoreVary": true
       }
     }
   ],
