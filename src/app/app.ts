@@ -16,6 +16,7 @@ import { TourGuiadoComponent } from './components/tour-guiado/tour-guiado.compon
 import { GastoRapidoFabComponent } from './components/gasto-rapido-fab/gasto-rapido-fab.component';
 import { ThemeService } from './services/theme.service';
 import { TourService } from './services/tour.service';
+import { PwaUpdateService } from './services/pwa-update.service';
 
 @Component({
   selector: 'app-root',
@@ -47,9 +48,10 @@ export class App {
   
   constructor(
     private themeService: ThemeService,
-    private tourService: TourService
+    private tourService: TourService,
+    private pwaUpdateService: PwaUpdateService
   ) {
-    // El servicio se inicializa automáticamente
+    // Los servicios se inicializan automáticamente
   }
 
   iniciarTour(): void {
