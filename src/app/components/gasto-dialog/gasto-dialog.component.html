@@ -80,6 +80,14 @@
           </div>
         </div>
 
+        <div class="form-group">
+          <app-categoria-selector
+            [categoriaId]="gasto.categoriaId"
+            [descripcion]="gasto.descripcion"
+            (categoriaChange)="onCategoriaChange($event)"
+          ></app-categoria-selector>
+        </div>
+
         <div class="form-row">
           <div class="form-group">
             <label for="compartidoCon" class="form-label">Compartido con</label>
@@ -140,7 +148,25 @@
           </div>
         </div>
 
-        
+        <div class="form-group">
+          <label class="form-label">Etiquetas</label>
+          <app-etiquetas-selector
+            [etiquetasIds]="gasto.etiquetasIds || []"
+            (etiquetasChange)="onEtiquetasChange($event)"
+          ></app-etiquetas-selector>
+        </div>
+
+        <div class="form-group">
+          <label for="nota" class="form-label">Nota</label>
+          <textarea
+            id="nota"
+            name="nota"
+            [(ngModel)]="notaContenido"
+            class="form-input form-textarea"
+            placeholder="Agregar una nota extensa sobre este gasto (opcional)"
+            rows="4"
+          ></textarea>
+        </div>
         
       </form>
     </div>

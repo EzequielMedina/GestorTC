@@ -1,0 +1,46 @@
+<div class="etiquetas-selector">
+  <div class="etiquetas-actuales" *ngIf="etiquetas.length > 0">
+    <mat-chip
+      *ngFor="let etiqueta of etiquetas"
+      [style.background-color]="etiqueta.color"
+      [style.color]="getContrastColor(etiqueta.color)"
+      (removed)="eliminarEtiqueta(etiqueta.id)"
+    >
+      {{ etiqueta.nombre }}
+      <button matChipRemove>
+        <mat-icon>cancel</mat-icon>
+      </button>
+    </mat-chip>
+  </div>
+
+  <button
+    mat-button
+    class="btn-agregar-etiqueta"
+    (click)="toggleSelector()"
+    *ngIf="!mostrarSelector"
+  >
+    <mat-icon>label</mat-icon>
+    <span>Agregar etiqueta</span>
+  </button>
+
+  <div class="selector-panel" *ngIf="mostrarSelector">
+    <div class="etiquetas-disponibles">
+      <mat-chip
+        *ngFor="let etiqueta of etiquetasDisponibles"
+        [class.selected]="etiquetasIds.includes(etiqueta.id)"
+        [style.border-color]="etiqueta.color"
+        (click)="seleccionarEtiqueta(etiqueta.id)"
+      >
+        <span [style.color]="etiqueta.color">{{ etiqueta.nombre }}</span>
+      </mat-chip>
+    </div>
+    <button mat-button (click)="crearNuevaEtiqueta()" class="btn-nueva">
+      <mat-icon>add</mat-icon>
+      <span>Nueva etiqueta</span>
+    </button>
+    <button mat-button (click)="toggleSelector()" class="btn-cerrar">
+      Cerrar
+    </button>
+  </div>
+</div>
+

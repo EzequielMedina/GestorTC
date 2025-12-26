@@ -1,0 +1,22 @@
+<div class="categoria-selector">
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Categoría</mat-label>
+    <mat-select [value]="categoriaId || null" (selectionChange)="onCategoriaChange($event.value)">
+      <mat-option [value]="null">
+        <span class="option-text">Sin categoría</span>
+      </mat-option>
+      <mat-option *ngFor="let categoria of categorias" [value]="categoria.id">
+        <div class="categoria-option">
+          <mat-icon [style.color]="categoria.color">{{ categoria.icono }}</mat-icon>
+          <span class="categoria-nombre">{{ categoria.nombre }}</span>
+        </div>
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+  
+  <div *ngIf="categoriaSeleccionada" class="categoria-selected">
+    <mat-icon [style.color]="categoriaSeleccionada.color">{{ categoriaSeleccionada.icono }}</mat-icon>
+    <span>{{ categoriaSeleccionada.nombre }}</span>
+  </div>
+</div>
+

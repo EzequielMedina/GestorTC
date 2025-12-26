@@ -1,0 +1,97 @@
+<div class="gasto-compartido-form">
+  <div class="form-header">
+    <h4>Gastos Compartidos</h4>
+    <button 
+      mat-icon-button 
+      type="button"
+      (click)="agregarPersona()"
+      [disabled]="personasEditando.length >= 5"
+      matTooltip="Agregar persona"
+    >
+      <mat-icon>add</mat-icon>
+    </button>
+  </div>
+
+  <div *ngIf="personasEditando.length > 0" class="personas-list">
+    <div *ngFor="let persona of personasEditando; let i = index" class="persona-item">
+      <div class="persona-inputs">
+        <mat-form-field appearance="outline" class="nombre-field">
+          <mat-label>Nombre</mat-label>
+          <input 
+            matInput 
+            [(ngModel)]="persona.nombre"
+            placeholder="Nombre de la persona"
+            (ngModelChange)="validar()"
+          />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="porcentaje-field">
+          <mat-label>Porcentaje</mat-label>
+          <input 
+            matInput 
+            type="number"
+            [(ngModel)]="persona.porcentaje"
+            min="0"
+            max="100"
+            step="0.01"
+            (ngModelChange)="onPorcentajeChange(i)"
+            placeholder="%"
+          />
+          <span matSuffix>%</span>
+        </mat-form-field>
+
+        <div class="monto-display">
+          <span class="monto-label">Monto:</span>
+          <span class="monto-value">${{ persona.monto | number:'1.2-2' }}</span>
+        </div>
+
+        <button 
+          mat-icon-button 
+          type="button"
+          (click)="eliminarPersona(i)"
+          color="warn"
+          matTooltip="Eliminar persona"
+        >
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button 
+        mat-stroked-button 
+        type="button"
+        (click)="dividirEquitativamente()"
+        [disabled]="personasEditando.length === 0"
+      >
+        <mat-icon>balance</mat-icon>
+        Dividir Equitativamente
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="personasEditando.length > 0" class="resumen">
+    <div class="resumen-item">
+      <span class="resumen-label">Titular:</span>
+      <span class="resumen-value">{{ porcentajeTitular.toFixed(2) }}% (${{ montoTitular | number:'1.2-2' }})</span>
+    </div>
+    <div class="resumen-item">
+      <span class="resumen-label">Total Compartido:</span>
+      <span class="resumen-value">{{ sumaPorcentajes.toFixed(2) }}%</span>
+    </div>
+  </div>
+
+  <div *ngIf="errorValidacion" class="error-message">
+    <mat-icon>error</mat-icon>
+    <span>{{ errorValidacion }}</span>
+  </div>
+
+  <div *ngIf="personasEditando.length === 0" class="empty-state">
+    <p>No hay personas compartiendo este gasto</p>
+    <button mat-stroked-button type="button" (click)="agregarPersona()">
+      <mat-icon>add</mat-icon>
+      Agregar Primera Persona
+    </button>
+  </div>
+</div>
+

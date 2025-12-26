@@ -3,8 +3,13 @@ import { Routes } from '@angular/router';
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'tarjetas',
+    redirectTo: 'dashboard',
     pathMatch: 'full'
+  },
+  {
+    path: 'dashboard',
+    loadComponent: () => import('./pages/dashboard/dashboard.component').then(m => m.DashboardComponent),
+    title: 'Dashboard - Gestor de Tarjetas de Crédito'
   },
   {
     path: 'tarjetas',
@@ -47,6 +52,11 @@ export const routes: Routes = [
     title: 'Importar/Exportar - Gestor de Tarjetas de Crédito'
   },
   {
+    path: 'presupuestos',
+    loadComponent: () => import('./pages/presupuestos/presupuestos.component').then(m => m.PresupuestosComponent),
+    title: 'Presupuestos - Gestor de Tarjetas de Crédito'
+  },
+  {
     path: 'graficos',
     loadComponent: () => import('./pages/graficos/graficos.component').then(m => m.GraficosComponent),
     title: 'Gráficos - Gestor de Tarjetas de Crédito'
@@ -62,7 +72,42 @@ export const routes: Routes = [
     title: 'Reportes WhatsApp - Gestor de Tarjetas de Crédito'
   },
   {
+    path: 'backup-restauracion',
+    loadComponent: () => import('./pages/backup-restauracion/backup-restauracion.component').then(m => m.BackupRestauracionComponent),
+    title: 'Backup y Restauración - Gestor de Tarjetas de Crédito'
+  },
+  {
+    path: 'cuotas',
+    loadComponent: () => import('./pages/cuotas/cuotas.component').then(m => m.CuotasComponent),
+    title: 'Cuotas - Gestor de Tarjetas de Crédito'
+  },
+  {
+    path: 'analisis-tendencias',
+    loadComponent: () => import('./pages/analisis-tendencias/analisis-tendencias.component').then(m => m.AnalisisTendenciasComponent),
+    title: 'Análisis de Tendencias - Gestor de Tarjetas de Crédito'
+  },
+  {
+    path: 'calendario-financiero',
+    loadComponent: () => import('./pages/calendario-financiero/calendario-financiero.component').then(m => m.CalendarioFinancieroComponent),
+    title: 'Calendario Financiero - Gestor de Tarjetas de Crédito'
+  },
+  {
+    path: 'calculadoras-financieras',
+    loadComponent: () => import('./pages/calculadoras-financieras/calculadoras-financieras.component').then(m => m.CalculadorasFinancierasComponent),
+    title: 'Calculadoras Financieras - Gestor de Tarjetas de Crédito'
+  },
+  {
+    path: 'reportes-personalizados',
+    loadComponent: () => import('./pages/reportes-personalizados/reportes-personalizados.component').then(m => m.ReportesPersonalizadosComponent),
+    title: 'Reportes Personalizados - Gestor de Tarjetas de Crédito'
+  },
+  {
+    path: 'gastos-servicios',
+    loadComponent: () => import('./pages/gastos-servicios/gastos-servicios.component').then(m => m.GastosServiciosComponent),
+    title: 'Gastos de Servicios - Gestor de Tarjetas de Crédito'
+  },
+  {
     path: '**',
-    redirectTo: 'tarjetas'
+    redirectTo: 'dashboard'
   }
 ];

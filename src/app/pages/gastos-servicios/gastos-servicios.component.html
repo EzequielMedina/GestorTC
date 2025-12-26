@@ -1,0 +1,239 @@
+<div class="gastos-servicios-container">
+  <section class="content-card">
+    <div class="card-header">
+      <h2 class="card-title">
+        <mat-icon>receipt_long</mat-icon>
+        Gastos de Servicios Recurrentes
+      </h2>
+      <button mat-raised-button color="primary" (click)="mostrarFormulario = !mostrarFormulario">
+        <mat-icon>{{ mostrarFormulario ? 'close' : 'add' }}</mat-icon>
+        {{ mostrarFormulario ? 'Cancelar' : 'Nueva Serie' }}
+      </button>
+    </div>
+
+    <div class="card-content">
+      <!-- Formulario de nueva serie -->
+      <mat-card *ngIf="mostrarFormulario" class="formulario-card">
+        <mat-card-header>
+          <mat-card-title>
+            {{ serieEditando ? 'Editar Serie' : 'Nueva Serie de Gasto Recurrente' }}
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <form (ngSubmit)="serieEditando ? actualizarSerie() : crearSerie()">
+            <div class="form-grid">
+              <mat-form-field>
+                <mat-label>Nombre del Servicio</mat-label>
+                <input matInput [(ngModel)]="nuevaSerie.nombre" name="nombre" required placeholder="Ej: Luz EDENOR">
+                <mat-hint>Nombre corto del servicio</mat-hint>
+              </mat-form-field>
+
+              <mat-form-field>
+                <mat-label>Descripción</mat-label>
+                <input matInput [(ngModel)]="nuevaSerie.descripcion" name="descripcion" required placeholder="Ej: Factura de luz">
+                <mat-hint>Descripción detallada</mat-hint>
+              </mat-form-field>
+
+              <mat-form-field>
+                <mat-label>Monto</mat-label>
+                <input matInput type="number" [(ngModel)]="nuevaSerie.monto" name="monto" required min="0" step="0.01">
+                <span matPrefix>$&nbsp;</span>
+              </mat-form-field>
+
+              <mat-form-field>
+                <mat-label>Tarjeta</mat-label>
+                <mat-select [(ngModel)]="nuevaSerie.tarjetaId" name="tarjetaId" required>
+                  <mat-option *ngFor="let tarjeta of tarjetas" [value]="tarjeta.id">
+                    {{ tarjeta.nombre }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field>
+                <mat-label>Categoría</mat-label>
+                <mat-select [(ngModel)]="nuevaSerie.categoriaId" name="categoriaId">
+                  <mat-option value="">Sin categoría</mat-option>
+                  <mat-option *ngFor="let categoria of categorias" [value]="categoria.id">
+                    {{ categoria.nombre }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field>
+                <mat-label>Proveedor</mat-label>
+                <mat-select [(ngModel)]="nuevaSerie.proveedor" name="proveedor">
+                  <mat-option value="">Sin proveedor</mat-option>
+                  <mat-option *ngFor="let proveedor of proveedores" [value]="proveedor">
+                    {{ proveedor }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field>
+                <mat-label>Día de Vencimiento</mat-label>
+                <input matInput type="number" [(ngModel)]="nuevaSerie.diaVencimiento" name="diaVencimiento" required min="1" max="31">
+                <mat-hint>Día del mes (1-31)</mat-hint>
+              </mat-form-field>
+
+              <mat-form-field>
+                <mat-label>Frecuencia</mat-label>
+                <mat-select [(ngModel)]="nuevaSerie.frecuencia" name="frecuencia" required>
+                  <mat-option *ngFor="let freq of frecuencias" [value]="freq.value">
+                    {{ freq.label }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field>
+                <mat-label>Fecha de Inicio</mat-label>
+                <input matInput [matDatepicker]="picker" [(ngModel)]="nuevaSerie.fechaInicio" name="fechaInicio" required>
+                <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                <mat-datepicker #picker></mat-datepicker>
+              </mat-form-field>
+
+              <mat-form-field>
+                <mat-label>Fecha de Fin (Opcional)</mat-label>
+                <input matInput [matDatepicker]="pickerFin" [(ngModel)]="nuevaSerie.fechaFin" name="fechaFin">
+                <mat-datepicker-toggle matIconSuffix [for]="pickerFin"></mat-datepicker-toggle>
+                <mat-datepicker #pickerFin></mat-datepicker>
+                <mat-hint>Dejar vacío si no tiene fin</mat-hint>
+              </mat-form-field>
+            </div>
+
+            <mat-form-field class="full-width">
+              <mat-label>Notas (Opcional)</mat-label>
+              <textarea matInput [(ngModel)]="nuevaSerie.notas" name="notas" rows="3"></textarea>
+            </mat-form-field>
+
+            <div class="form-actions">
+              <button mat-raised-button color="primary" type="submit">
+                <mat-icon>{{ serieEditando ? 'save' : 'add' }}</mat-icon>
+                {{ serieEditando ? 'Actualizar' : 'Crear' }} Serie
+              </button>
+              <button mat-button type="button" (click)="cancelarEdicion()">
+                <mat-icon>cancel</mat-icon>
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Lista de series -->
+      <mat-card class="series-card">
+        <mat-card-header>
+          <mat-card-title>Series de Gastos Recurrentes</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="series-list" *ngIf="series.length > 0; else sinSeries">
+            <div *ngFor="let serie of series" class="serie-item">
+              <div class="serie-header">
+                <div class="serie-info">
+                  <h3>{{ serie.nombre }}</h3>
+                  <p>{{ serie.descripcion }}</p>
+                  <div class="serie-details">
+                    <mat-chip>Monto: ${{ serie.monto | number:'1.0-0' }}</mat-chip>
+                    <mat-chip>Día: {{ serie.diaVencimiento }}</mat-chip>
+                    <mat-chip>{{ getFrecuenciaLabel(serie.frecuencia) }}</mat-chip>
+                    <mat-chip>{{ getNombreCategoria(serie.categoriaId) }}</mat-chip>
+                    <mat-chip>{{ getNombreTarjeta(serie.tarjetaId) }}</mat-chip>
+                    <mat-chip [class]="serie.activo ? 'activo' : 'inactivo'">
+                      {{ serie.activo ? 'Activo' : 'Inactivo' }}
+                    </mat-chip>
+                  </div>
+                </div>
+                <div class="serie-actions">
+                  <button mat-icon-button (click)="editarSerie(serie)" matTooltip="Editar">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button mat-icon-button (click)="toggleActivo(serie)" [color]="serie.activo ? 'warn' : 'primary'" matTooltip="{{ serie.activo ? 'Desactivar' : 'Activar' }}">
+                    <mat-icon>{{ serie.activo ? 'pause' : 'play_arrow' }}</mat-icon>
+                  </button>
+                  <button mat-icon-button (click)="eliminarSerie(serie)" color="warn" matTooltip="Eliminar">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <ng-template #sinSeries>
+            <div class="sin-datos">
+              <mat-icon>receipt_long</mat-icon>
+              <p>No hay series de gastos recurrentes creadas</p>
+              <p class="hint">Crea una nueva serie para comenzar</p>
+            </div>
+          </ng-template>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Tabla de instancias pendientes agrupadas por mes -->
+      <mat-card class="instancias-card">
+        <mat-card-header>
+          <mat-card-title>Próximos Vencimientos</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div *ngIf="instanciasAgrupadasPorMes.length > 0; else sinVencimientos">
+            <div *ngFor="let grupo of instanciasAgrupadasPorMes" class="grupo-mes">
+              <div class="mes-header">
+                <h3>{{ getNombreMes(grupo.mes) }}</h3>
+                <mat-chip class="total-mes">Total: ${{ grupo.total | number:'1.0-0' }}</mat-chip>
+              </div>
+              <table mat-table [dataSource]="grupo.instancias" class="instancias-table">
+            <ng-container matColumnDef="fecha">
+              <th mat-header-cell *matHeaderCellDef>Fecha</th>
+              <td mat-cell *matCellDef="let instancia">{{ instancia.fechaVencimiento }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="nombre">
+              <th mat-header-cell *matHeaderCellDef>Servicio</th>
+              <td mat-cell *matCellDef="let instancia">
+                <strong>{{ getNombreSerie(instancia.serieRecurrenteId) }}</strong>
+                <p class="descripcion">{{ getDescripcionSerie(instancia.serieRecurrenteId) }}</p>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="monto">
+              <th mat-header-cell *matHeaderCellDef>Monto</th>
+              <td mat-cell *matCellDef="let instancia">${{ instancia.monto | number:'1.0-0' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="pagado">
+              <th mat-header-cell *matHeaderCellDef>Estado</th>
+              <td mat-cell *matCellDef="let instancia">
+                <mat-chip [class]="instancia.pagado ? 'pagado' : 'pendiente'">
+                  <mat-icon>{{ instancia.pagado ? 'check_circle' : 'schedule' }}</mat-icon>
+                  {{ instancia.pagado ? 'Pagado' : 'Pendiente' }}
+                </mat-chip>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="acciones">
+              <th mat-header-cell *matHeaderCellDef>Acciones</th>
+              <td mat-cell *matCellDef="let instancia">
+                <button 
+                  mat-icon-button 
+                  [color]="instancia.pagado ? 'warn' : 'primary'"
+                  (click)="instancia.pagado ? marcarComoNoPagado(instancia) : marcarComoPagado(instancia)"
+                  [matTooltip]="instancia.pagado ? 'Marcar como no pagado' : 'Marcar como pagado'">
+                  <mat-icon>{{ instancia.pagado ? 'undo' : 'check_circle' }}</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+              </table>
+            </div>
+          </div>
+          <ng-template #sinVencimientos>
+            <div class="sin-datos">
+              <mat-icon>check_circle</mat-icon>
+              <p>No hay vencimientos pendientes</p>
+            </div>
+          </ng-template>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </section>
+</div>
+

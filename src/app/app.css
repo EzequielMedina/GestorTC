@@ -36,8 +36,45 @@
   }
 }
 
+.toolbar > * {
+  display: flex;
+  align-items: center;
+}
+
 .toolbar-spacer {
   flex: 1 1 auto;
+}
+
+.tour-button {
+  margin-left: var(--spacing-sm);
+}
+
+.toolbar-search {
+  margin: 0 12px;
+  flex: 0 1 350px;
+  min-width: 200px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.more-menu-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.more-menu-btn mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+@media (max-width: 959px) {
+  .toolbar-search {
+    display: none;
+  }
 }
 
 /* Navegación en toolbar (desktop) y botón menú (mobile) */

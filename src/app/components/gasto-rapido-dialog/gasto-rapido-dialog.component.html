@@ -1,0 +1,150 @@
+<div class="gasto-rapido-dialog">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>
+      <mat-icon>flash_on</mat-icon>
+      Registro Rápido
+    </h2>
+    <button mat-icon-button (click)="cancelar()" class="close-button">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content>
+    <form (ngSubmit)="guardar()" #gastoForm="ngForm">
+      <!-- Monto -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Monto *</mat-label>
+        <input 
+          matInput 
+          type="number" 
+          [(ngModel)]="gasto.monto" 
+          name="monto"
+          placeholder="0.00"
+          min="0.01"
+          step="0.01"
+          required
+          autofocus
+          #montoInput="ngModel">
+        <mat-icon matPrefix>attach_money</mat-icon>
+        <mat-error *ngIf="montoInput.invalid && montoInput.touched">
+          El monto es requerido
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Descripción con autocompletado -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Descripción *</mat-label>
+        <input 
+          matInput 
+          [(ngModel)]="gasto.descripcion" 
+          name="descripcion"
+          placeholder="Ej: Café, Supermercado, Combustible"
+          required
+          (input)="onDescripcionChange()"
+          [matAutocomplete]="auto"
+          #descripcionInput="ngModel">
+        <mat-icon matPrefix>description</mat-icon>
+        <mat-autocomplete #auto="matAutocomplete">
+          <mat-option 
+            *ngFor="let desc of descripcionesFiltradas" 
+            [value]="desc.texto"
+            (click)="seleccionarDescripcion(desc)">
+            <div class="descripcion-option">
+              <span>{{ desc.texto }}</span>
+              <span class="descripcion-meta" *ngIf="desc.montoPromedio">
+                ~${{ desc.montoPromedio | number:'1.0-0' }}
+              </span>
+              <span class="descripcion-meta">
+                ({{ desc.vecesUsada }}x)
+              </span>
+            </div>
+          </mat-option>
+        </mat-autocomplete>
+        <mat-error *ngIf="descripcionInput.invalid && descripcionInput.touched">
+          La descripción es requerida
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Tarjeta -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Tarjeta *</mat-label>
+        <mat-select [(ngModel)]="gasto.tarjetaId" name="tarjetaId" required #tarjetaInput="ngModel">
+          <mat-option *ngFor="let tarjeta of tarjetas" [value]="tarjeta.id">
+            {{ tarjeta.nombre }}
+          </mat-option>
+        </mat-select>
+        <mat-icon matPrefix>credit_card</mat-icon>
+        <mat-error *ngIf="tarjetaInput.invalid && tarjetaInput.touched">
+          La tarjeta es requerida
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Cantidad de Cuotas -->
+      <div class="cuotas-section">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Cantidad de Cuotas</mat-label>
+          <input 
+            matInput 
+            type="number" 
+            [(ngModel)]="gasto.cantidadCuotas" 
+            name="cantidadCuotas"
+            placeholder="1 (sin cuotas)"
+            min="1"
+            step="1"
+            (change)="onCantidadCuotasChange(gasto.cantidadCuotas || null)">
+          <mat-icon matPrefix>schedule</mat-icon>
+          <mat-hint *ngIf="esConCuotas && gasto.monto && gasto.cantidadCuotas">
+            ${{ (gasto.monto / gasto.cantidadCuotas) | number:'1.2-2' }} por cuota
+          </mat-hint>
+        </mat-form-field>
+      </div>
+
+      <!-- Más opciones (colapsable) -->
+      <div class="mas-opciones" *ngIf="mostrarMasOpciones">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Fecha</mat-label>
+          <input 
+            matInput 
+            type="date" 
+            [(ngModel)]="gasto.fecha" 
+            name="fecha"
+            (change)="onCantidadCuotasChange(gasto.cantidadCuotas || null)">
+          <mat-icon matPrefix>calendar_today</mat-icon>
+        </mat-form-field>
+      </div>
+
+      <!-- Botón más opciones -->
+      <button 
+        type="button" 
+        mat-button 
+        (click)="mostrarMasOpciones = !mostrarMasOpciones"
+        class="mas-opciones-btn">
+        <mat-icon>{{ mostrarMasOpciones ? 'expand_less' : 'expand_more' }}</mat-icon>
+        {{ mostrarMasOpciones ? 'Menos opciones' : 'Más opciones' }}
+      </button>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="dialog-actions">
+    <button mat-button (click)="cancelar()" type="button">
+      Cancelar
+    </button>
+    <button 
+      mat-button 
+      (click)="abrirFormularioCompleto()" 
+      type="button"
+      class="btn-formulario-completo">
+      <mat-icon>settings</mat-icon>
+      Formulario Completo
+    </button>
+    <button 
+      mat-raised-button 
+      color="primary" 
+      (click)="guardar()"
+      [disabled]="!gasto.descripcion || !gasto.monto || !gasto.tarjetaId">
+      <mat-icon>check</mat-icon>
+      Guardar
+    </button>
+  </mat-dialog-actions>
+</div>
+

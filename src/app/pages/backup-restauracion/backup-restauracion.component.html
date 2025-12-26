@@ -1,0 +1,184 @@
+<div class="page">
+  <div class="header">
+    <div class="header-content">
+      <h2>💾 Backup y Restauración</h2>
+      <p class="subtitle">Gestiona tus respaldos de datos y configura backups automáticos</p>
+    </div>
+  </div>
+
+  <!-- Configuración de Backup Automático -->
+  <section class="content-card">
+    <h3 class="card-title">Configuración de Backup Automático</h3>
+    <div class="config-form">
+      <div class="form-row">
+        <mat-form-field appearance="outline">
+          <mat-label>Activar Backup Automático</mat-label>
+          <mat-select [(ngModel)]="config.activo">
+            <mat-option [value]="true">Activado</mat-option>
+            <mat-option [value]="false">Desactivado</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" *ngIf="config.activo">
+          <mat-label>Frecuencia</mat-label>
+          <mat-select [(ngModel)]="config.frecuencia">
+            <mat-option value="DIARIO">Diario</mat-option>
+            <mat-option value="SEMANAL">Semanal</mat-option>
+            <mat-option value="MENSUAL">Mensual</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" *ngIf="config.activo">
+          <mat-label>Cantidad Máxima de Backups</mat-label>
+          <input matInput type="number" [(ngModel)]="config.maxBackups" min="1" max="50">
+          <mat-icon matSuffix>backup</mat-icon>
+        </mat-form-field>
+      </div>
+
+      <div class="form-actions">
+        <button mat-flat-button color="primary" (click)="guardarConfiguracion()">
+          <mat-icon>save</mat-icon>
+          Guardar Configuración
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Crear Backup Manual -->
+  <section class="content-card">
+    <h3 class="card-title">Crear Backup Manual</h3>
+    <p class="card-description">Crea un respaldo completo de todos tus datos en este momento</p>
+    <div class="action-buttons">
+      <button 
+        mat-flat-button 
+        color="primary" 
+        (click)="crearBackupManual()"
+        [disabled]="creandoBackup"
+      >
+        <mat-icon>backup</mat-icon>
+        {{ creandoBackup ? 'Creando Backup...' : 'Crear Backup Ahora' }}
+      </button>
+    </div>
+    <mat-progress-bar *ngIf="creandoBackup" mode="indeterminate"></mat-progress-bar>
+  </section>
+
+  <!-- Importar Backup -->
+  <section class="content-card">
+    <h3 class="card-title">Importar Backup</h3>
+    <p class="card-description">Importa un backup desde un archivo JSON</p>
+    <div class="import-section">
+      <input 
+        type="file" 
+        accept=".json" 
+        (change)="importarBackup($event)"
+        style="display: none"
+        #fileInput
+      >
+      <button mat-stroked-button (click)="fileInput.click()">
+        <mat-icon>upload_file</mat-icon>
+        Seleccionar Archivo JSON
+      </button>
+    </div>
+  </section>
+
+  <!-- Lista de Backups -->
+  <section class="content-card">
+    <div class="card-header">
+      <h3 class="card-title">Backups Disponibles</h3>
+      <span class="backup-count" *ngIf="(backups$ | async) as backups">
+        {{ backups.length }} backup{{ backups.length !== 1 ? 's' : '' }}
+      </span>
+    </div>
+
+    <div *ngIf="(backups$ | async) as backups; else loadingOrEmpty">
+      <div *ngIf="backups.length > 0; else emptyState" class="backups-list">
+        <div 
+          *ngFor="let backup of backups | slice:0:20" 
+          class="backup-item"
+          [class]="getTipoBackupClass(backup.tipo)"
+        >
+          <div class="backup-info">
+            <div class="backup-header">
+              <div class="backup-type">
+                <mat-icon>{{ backup.tipo === 'AUTOMATICO' ? 'schedule' : 'backup' }}</mat-icon>
+                <span class="tipo-badge">{{ backup.tipo === 'AUTOMATICO' ? 'Automático' : 'Manual' }}</span>
+              </div>
+              <div class="backup-date">{{ formatearFecha(backup.fechaCreacion) }}</div>
+            </div>
+            
+            <div class="backup-details">
+              <div class="detail-item">
+                <mat-icon>info</mat-icon>
+                <span>Versión: {{ backup.version }}</span>
+              </div>
+              <div class="detail-item">
+                <mat-icon>storage</mat-icon>
+                <span>{{ formatearTamano(backup.metadata.tamano) }}</span>
+              </div>
+              <div class="detail-item">
+                <mat-icon>list</mat-icon>
+                <span>{{ backup.metadata.totalRegistros }} registros</span>
+              </div>
+            </div>
+
+            <div class="backup-resumen">
+              <mat-chip-listbox>
+                <mat-chip>{{ backup.metadata.resumen.cantidadTarjetas }} Tarjetas</mat-chip>
+                <mat-chip>{{ backup.metadata.resumen.cantidadGastos }} Gastos</mat-chip>
+                <mat-chip>{{ backup.metadata.resumen.cantidadPrestamos }} Préstamos</mat-chip>
+                <mat-chip *ngIf="backup.metadata.resumen.cantidadPresupuestos > 0">
+                  {{ backup.metadata.resumen.cantidadPresupuestos }} Presupuestos
+                </mat-chip>
+              </mat-chip-listbox>
+            </div>
+          </div>
+
+          <div class="backup-actions">
+            <button 
+              mat-icon-button 
+              (click)="restaurarBackup(backup.id)"
+              [disabled]="restaurando"
+              matTooltip="Restaurar este backup"
+              color="primary"
+            >
+              <mat-icon>restore</mat-icon>
+            </button>
+            <button 
+              mat-icon-button 
+              (click)="exportarBackup(backup.id)"
+              matTooltip="Exportar a archivo JSON"
+              color="accent"
+            >
+              <mat-icon>download</mat-icon>
+            </button>
+            <button 
+              mat-icon-button 
+              (click)="eliminarBackup(backup.id)"
+              matTooltip="Eliminar backup"
+              color="warn"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <ng-template #loadingOrEmpty>
+      <div class="empty-state">
+        <mat-icon>backup</mat-icon>
+        <p>No hay backups disponibles</p>
+        <p>Crea tu primer backup para empezar</p>
+      </div>
+    </ng-template>
+
+    <ng-template #emptyState>
+      <div class="empty-state">
+        <mat-icon>backup</mat-icon>
+        <p>No hay backups disponibles</p>
+        <p>Crea tu primer backup para empezar</p>
+      </div>
+    </ng-template>
+  </section>
+</div>
+

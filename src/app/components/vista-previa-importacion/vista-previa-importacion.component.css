@@ -1,0 +1,140 @@
+.vista-previa-container {
+  padding: var(--spacing-lg);
+}
+
+.resumen-section {
+  margin-bottom: var(--spacing-lg);
+  padding: var(--spacing-md);
+  background: var(--bg-light);
+  border-radius: var(--radius-sm);
+}
+
+.resumen-section h3 {
+  margin-top: 0;
+  margin-bottom: var(--spacing-md);
+  color: var(--text-primary);
+}
+
+.resumen-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.resumen-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--primary);
+}
+
+.resumen-item.success {
+  border-left-color: var(--success);
+}
+
+.resumen-item.error {
+  border-left-color: var(--error);
+}
+
+.resumen-item.warning {
+  border-left-color: var(--warning);
+}
+
+.resumen-label {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.resumen-value {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--primary);
+}
+
+.tabla-section {
+  overflow-x: auto;
+  margin-bottom: var(--spacing-lg);
+}
+
+.tabla-importacion {
+  width: 100%;
+}
+
+.tabla-importacion th {
+  background: var(--bg-light);
+  font-weight: var(--font-weight-semibold);
+}
+
+.tabla-importacion td,
+.tabla-importacion th {
+  padding: var(--spacing-sm);
+}
+
+.fila-error {
+  background: rgba(var(--error-rgb), 0.1);
+}
+
+.fila-advertencia {
+  background: rgba(var(--warning-rgb), 0.1);
+}
+
+.fila-excluida {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+.proveedor-chip {
+  font-size: var(--font-size-xs);
+  margin-left: var(--spacing-xs);
+}
+
+.estado-ok {
+  background: var(--success);
+  color: white;
+}
+
+.estado-error {
+  background: var(--error);
+  color: white;
+}
+
+.estado-advertencia {
+  background: var(--warning);
+  color: white;
+}
+
+.estado-duplicado {
+  background: var(--info);
+  color: white;
+}
+
+.estado-excluido {
+  background: var(--text-secondary);
+  color: white;
+}
+
+.confianza-badge {
+  font-size: var(--font-size-xs);
+  margin-top: var(--spacing-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.acciones-section {
+  display: flex;
+  gap: var(--spacing-sm);
+  justify-content: flex-end;
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--border);
+}
+
+.error {
+  color: var(--error);
+}
+
+.warning {
+  color: var(--warning);
+}
+

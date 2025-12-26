@@ -1,0 +1,142 @@
+<div class="page">
+  <div class="header">
+    <div class="header-content">
+      <h2>📈 Análisis de Tendencias</h2>
+      <p class="subtitle">Analiza tus patrones de gasto y tendencias financieras</p>
+    </div>
+  </div>
+
+  <div *ngIf="analisis$ | async as analisis">
+    <!-- Métricas Principales -->
+    <section class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-icon" [class]="getTendenciaClass(analisis.metricas.tendenciaGeneral)">
+          <mat-icon>{{ getTendenciaIcon(analisis.metricas.tendenciaGeneral) }}</mat-icon>
+        </div>
+        <div class="metric-info">
+          <div class="metric-label">Tendencia General</div>
+          <div class="metric-value">{{ analisis.metricas.tendenciaGeneral }}</div>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon promedio">
+          <mat-icon>calculate</mat-icon>
+        </div>
+        <div class="metric-info">
+          <div class="metric-label">Promedio Mensual</div>
+          <div class="metric-value">${{ analisis.metricas.promedioMensual | number:'1.2-2' }}</div>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon variacion">
+          <mat-icon>percent</mat-icon>
+        </div>
+        <div class="metric-info">
+          <div class="metric-label">Variación Último Mes</div>
+          <div class="metric-value" [class.positivo]="analisis.metricas.variacionUltimoMes > 0"
+                                 [class.negativo]="analisis.metricas.variacionUltimoMes < 0">
+            {{ analisis.metricas.variacionUltimoMes > 0 ? '+' : '' }}{{ analisis.metricas.variacionUltimoMes | number:'1.2-2' }}%
+          </div>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon promedio-movil">
+          <mat-icon>show_chart</mat-icon>
+        </div>
+        <div class="metric-info">
+          <div class="metric-label">Promedio Móvil (3 meses)</div>
+          <div class="metric-value">${{ analisis.metricas.promedioMovil | number:'1.2-2' }}</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Gráfico de Líneas: Comparación Mensual -->
+    <section class="content-card">
+      <h3 class="card-title">Tendencia Mensual (Últimos 12 Meses)</h3>
+      <div class="chart-container">
+        <canvas baseChart
+          [type]="lineChartType"
+          [data]="lineChartData"
+          [options]="lineChartOptions">
+        </canvas>
+      </div>
+    </section>
+
+    <!-- Gráfico de Barras: Comparación Anual -->
+    <section class="content-card">
+      <h3 class="card-title">Comparación Anual</h3>
+      <div class="chart-container">
+        <canvas baseChart
+          [type]="barChartType"
+          [data]="barChartData"
+          [options]="barChartOptions">
+        </canvas>
+      </div>
+    </section>
+
+    <!-- Picos y Valles -->
+    <section class="content-card">
+      <h3 class="card-title">Picos y Valles</h3>
+      <div class="picos-valles-grid">
+        <div class="pico-valle-item">
+          <div class="pico-valle-icon pico">
+            <mat-icon>arrow_upward</mat-icon>
+          </div>
+          <div class="pico-valle-info">
+            <div class="pico-valle-label">Pico Máximo</div>
+            <div class="pico-valle-mes">{{ formatearMes(analisis.metricas.picoMaximo.mes) }}</div>
+            <div class="pico-valle-monto">${{ analisis.metricas.picoMaximo.monto | number:'1.2-2' }}</div>
+          </div>
+        </div>
+
+        <div class="pico-valle-item">
+          <div class="pico-valle-icon valle">
+            <mat-icon>arrow_downward</mat-icon>
+          </div>
+          <div class="pico-valle-info">
+            <div class="pico-valle-label">Valle Mínimo</div>
+            <div class="pico-valle-mes">{{ formatearMes(analisis.metricas.valleMinimo.mes) }}</div>
+            <div class="pico-valle-monto">${{ analisis.metricas.valleMinimo.monto | number:'1.2-2' }}</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Patrones Detectados -->
+    <section class="content-card" *ngIf="analisis.metricas.patrones.length > 0">
+      <h3 class="card-title">Patrones Detectados</h3>
+      <div class="patrones-list">
+        <mat-chip *ngFor="let patron of analisis.metricas.patrones" class="patron-chip">
+          <mat-icon>{{ patron.tipo === 'FIN_MES' ? 'event' : 'calendar_today' }}</mat-icon>
+          {{ patron.descripcion }}
+          <span class="frecuencia">({{ (patron.frecuencia * 100).toFixed(0) }}%)</span>
+        </mat-chip>
+      </div>
+    </section>
+
+    <!-- Comparaciones Mensuales -->
+    <section class="content-card">
+      <h3 class="card-title">Comparación Mes a Mes</h3>
+      <div class="comparaciones-table">
+        <div class="comparacion-header">
+          <span>Mes</span>
+          <span>Monto</span>
+          <span>Variación</span>
+        </div>
+        <div *ngFor="let comp of analisis.comparacionesMensuales.slice().reverse()" class="comparacion-row">
+          <span class="mes">{{ formatearMes(comp.mes) }}</span>
+          <span class="monto">${{ comp.monto | number:'1.2-2' }}</span>
+          <span class="variacion" 
+                [class.positivo]="comp.variacionPorcentual > 0"
+                [class.negativo]="comp.variacionPorcentual < 0">
+            {{ comp.variacionPorcentual > 0 ? '+' : '' }}{{ comp.variacionPorcentual | number:'1.2-2' }}%
+          </span>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+

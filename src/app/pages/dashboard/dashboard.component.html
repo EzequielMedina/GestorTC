@@ -1,0 +1,207 @@
+<div class="dashboard-page">
+  <div class="dashboard-header">
+    <h1>Dashboard</h1>
+    <p class="subtitle">Resumen financiero del mes actual</p>
+  </div>
+
+  <div *ngIf="loading" class="loading-state">
+    <div class="loading-spinner"></div>
+    <p>Cargando datos...</p>
+  </div>
+
+  <div *ngIf="!loading && stats" class="dashboard-content">
+    <!-- Estadísticas principales -->
+    <div class="stats-grid">
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-icon total-gastos">
+            <mat-icon>account_balance_wallet</mat-icon>
+          </div>
+          <div class="stat-info">
+            <div class="stat-label">Total a Pagar este Mes</div>
+            <div class="stat-value">${{ stats.totalGastosMes | number:'1.0-0' }}</div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-icon limite">
+            <mat-icon>credit_card</mat-icon>
+          </div>
+          <div class="stat-info">
+            <div class="stat-label">Límite Total</div>
+            <div class="stat-value">${{ stats.limiteTotal | number:'1.0-0' }}</div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-icon disponible">
+            <mat-icon>check_circle</mat-icon>
+          </div>
+          <div class="stat-info">
+            <div class="stat-label">Disponible</div>
+            <div class="stat-value">${{ stats.disponibleTotal | number:'1.0-0' }}</div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-icon uso">
+            <mat-icon>trending_up</mat-icon>
+          </div>
+          <div class="stat-info">
+            <div class="stat-label">Gastado del Límite</div>
+            <div class="stat-value">${{ (stats.limiteTotal - stats.disponibleTotal) | number:'1.0-0' }}</div>
+            <div class="stat-subtext">de ${{ stats.limiteTotal | number:'1.0-0' }}</div>
+            <mat-progress-bar
+              mode="determinate"
+              [value]="stats.porcentajeUsoTotal"
+              [color]="stats.porcentajeUsoTotal >= 90 ? 'warn' : 'primary'"
+            ></mat-progress-bar>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="charts-grid">
+      <mat-card class="chart-card">
+        <mat-card-header>
+          <mat-card-title>Tarjetas con Mayor Uso</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <canvas baseChart
+            [data]="barChartData"
+            [options]="barChartOptions"
+            type="bar">
+          </canvas>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="chart-card" *ngIf="stats.gastosPorCategoria.length > 0">
+        <mat-card-header>
+          <mat-card-title>Gastos por Categoría</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <canvas baseChart
+            [data]="pieChartData"
+            [options]="pieChartOptions"
+            type="pie">
+          </canvas>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Balance de Dólares -->
+    <mat-card class="info-card" *ngIf="stats.balanceDolares">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>attach_money</mat-icon>
+          Balance de Dólares
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="balance-info">
+          <div class="balance-item">
+            <span class="balance-label">Disponibles:</span>
+            <span class="balance-value">${{ stats.balanceDolares.dolaresDisponibles | number:'1.2-2' }} USD</span>
+          </div>
+          <div class="balance-item">
+            <span class="balance-label">Valor Actual:</span>
+            <span class="balance-value">${{ stats.balanceDolares.valorActualDisponibles | number:'1.0-0' }}</span>
+          </div>
+          <div class="balance-item">
+            <span class="balance-label">Ganancia Total:</span>
+            <span class="balance-value" [class.ganancia]="stats.balanceDolares.gananciaTotal >= 0" [class.perdida]="stats.balanceDolares.gananciaTotal < 0">
+              ${{ stats.balanceDolares.gananciaTotal | number:'1.0-0' }}
+            </span>
+          </div>
+        </div>
+        <button mat-button color="primary" routerLink="/gestion-dolares">Ver Detalles</button>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Préstamos Activos -->
+    <mat-card class="info-card" *ngIf="stats.prestamosActivos.length > 0">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>account_balance</mat-icon>
+          Préstamos Activos ({{ stats.prestamosActivos.length }})
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="prestamos-list">
+          <div *ngFor="let prestamo of stats.prestamosActivos" class="prestamo-item">
+            <div class="prestamo-info">
+              <div class="prestamo-nombre">{{ prestamo.prestamista }}</div>
+              <div class="prestamo-monto">${{ prestamo.montoPrestado | number:'1.0-0' }} {{ prestamo.moneda }}</div>
+            </div>
+          </div>
+        </div>
+        <button mat-button color="primary" routerLink="/prestamos">Ver Todos</button>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Presupuestos Cerca del Límite -->
+    <mat-card class="info-card warning" *ngIf="stats.presupuestosCerca.length > 0">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>warning</mat-icon>
+          Presupuestos Cerca del Límite
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="presupuestos-list">
+          <div *ngFor="let presupuesto of stats.presupuestosCerca" class="presupuesto-item">
+            <div class="presupuesto-info">
+              <div class="presupuesto-nombre">
+                {{ presupuesto.tipo === 'CATEGORIA' ? 'Categoría' : 'Tarjeta' }}
+              </div>
+              <div class="presupuesto-progress">
+                <span>${{ presupuesto.gastado | number:'1.0-0' }} de ${{ presupuesto.monto | number:'1.0-0' }}</span>
+                <mat-progress-bar
+                  mode="determinate"
+                  [value]="presupuesto.porcentajeUsado"
+                  color="warn"
+                ></mat-progress-bar>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button mat-button color="primary" routerLink="/presupuestos">Ver Presupuestos</button>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Próximos Vencimientos -->
+    <mat-card class="info-card" *ngIf="stats.eventosProximos.length > 0">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>event</mat-icon>
+          Próximos Vencimientos (7 días)
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="eventos-list">
+          <div *ngFor="let evento of stats.eventosProximos.slice(0, 5)" class="evento-item">
+            <div class="evento-icon" [class]="getPrioridadClass(evento.prioridad)">
+              <mat-icon>{{ getTipoIcon(evento.tipo) }}</mat-icon>
+            </div>
+            <div class="evento-info">
+              <div class="evento-titulo">{{ evento.titulo }}</div>
+              <div class="evento-fecha">{{ formatearFecha(evento.fecha) }}</div>
+            </div>
+            <div class="evento-monto" *ngIf="evento.monto">
+              ${{ evento.monto | number:'1.0-0' }}
+            </div>
+          </div>
+        </div>
+        <button mat-button color="primary" routerLink="/calendario-financiero">Ver Calendario Completo</button>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
+

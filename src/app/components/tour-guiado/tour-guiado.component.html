@@ -1,0 +1,52 @@
+<!-- Debug: tourActivo={{ tourActivo }}, pasoActual={{ pasoActual?.id || 'null' }} -->
+<div *ngIf="tourActivo && pasoActual" class="tour-container" style="display: block !important; visibility: visible !important;">
+  <!-- Overlay oscuro con agujero -->
+  <div #overlay class="tour-overlay"></div>
+
+  <!-- Tooltip con información del paso -->
+  <div #tooltip class="tour-tooltip" [class.centered]="!pasoActual.selector">
+    <mat-card class="tour-card">
+      <mat-card-header>
+        <div class="tour-header">
+          <div>
+            <mat-card-title>{{ pasoActual.titulo }}</mat-card-title>
+            <div class="tour-progress">
+              <span class="paso-info">Paso {{ pasoActualNumero }} de {{ totalPasos }}</span>
+              <mat-progress-bar mode="determinate" [value]="progreso" class="progress-bar"></mat-progress-bar>
+            </div>
+          </div>
+        </div>
+      </mat-card-header>
+      <mat-card-content>
+        <p class="tour-descripcion">{{ pasoActual.descripcion }}</p>
+      </mat-card-content>
+      <mat-card-actions class="tour-actions">
+        <div class="tour-buttons-left">
+          <button mat-button (click)="saltar()" class="btn-saltar">
+            <mat-icon>close</mat-icon>
+            Saltar Tour
+          </button>
+        </div>
+        <div class="tour-buttons-right">
+          <button 
+            mat-button 
+            (click)="anterior()" 
+            [disabled]="pasoActualNumero === 1"
+            class="btn-anterior">
+            <mat-icon>arrow_back</mat-icon>
+            Anterior
+          </button>
+          <button 
+            mat-raised-button 
+            color="primary" 
+            (click)="pasoActualNumero === totalPasos ? finalizar() : siguiente()"
+            class="btn-siguiente">
+            {{ pasoActualNumero === totalPasos ? 'Finalizar' : 'Siguiente' }}
+            <mat-icon>{{ pasoActualNumero === totalPasos ? 'check' : 'arrow_forward' }}</mat-icon>
+          </button>
+        </div>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>
+

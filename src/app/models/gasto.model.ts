@@ -1,3 +1,5 @@
+import { PersonaGasto } from './gasto-compartido.model';
+
 /**
  * Modelo que representa un gasto asociado a una tarjeta de crédito.
  * @property id - Identificador único del gasto (generado con UUID).
@@ -5,8 +7,9 @@
  * @property descripcion - Descripción detallada del gasto.
  * @property monto - Monto del gasto.
  * @property fecha - Fecha en que se realizó el gasto (formato ISO 8601: YYYY-MM-DD).
- * @property compartidoCon - (Opcional) Nombre de la persona con quien se compartió el gasto.
- * @property porcentajeCompartido - (Opcional) Porcentaje del monto que se comparte (0-100).
+ * @property compartidoCon - (Opcional, DEPRECADO) Nombre de la persona con quien se compartió el gasto. Usar personasCompartidas en su lugar.
+ * @property porcentajeCompartido - (Opcional, DEPRECADO) Porcentaje del monto que se comparte (0-100). Usar personasCompartidas en su lugar.
+ * @property personasCompartidas - (Opcional) Array de personas que comparten el gasto (nuevo formato, soporta 3-5 personas).
  */
 export interface Gasto {
   id: string;
@@ -14,8 +17,15 @@ export interface Gasto {
   descripcion: string;
   monto: number;
   fecha: string; // Formato ISO 8601: YYYY-MM-DD
+  /** @deprecated Usar personasCompartidas en su lugar */
   compartidoCon?: string;
+  /** @deprecated Usar personasCompartidas en su lugar */
   porcentajeCompartido?: number; // 0-100
+  /**
+   * Array de personas que comparten el gasto (soporta 3-5 personas).
+   * Si está presente, tiene prioridad sobre compartidoCon/porcentajeCompartido.
+   */
+  personasCompartidas?: PersonaGasto[];
   /**
    * Cantidad de cuotas (opcional). Si no se define, se asume 1 (sin cuotas).
    * Debe ser un entero >= 1.
@@ -34,4 +44,25 @@ export interface Gasto {
    * ajustando redondeos en la última cuota.
    */
   montoPorCuota?: number;
+  /**
+   * ID de la categoría asociada al gasto (opcional).
+   */
+  categoriaId?: string;
+  /**
+   * IDs de las etiquetas asociadas al gasto (opcional).
+   */
+  etiquetasIds?: string[];
+  /**
+   * ID de la nota asociada al gasto (opcional).
+   */
+  notaId?: string;
+  /**
+   * Indica si el gasto ya fue pagado (opcional).
+   * Útil para gastos recurrentes de servicios.
+   */
+  pagado?: boolean;
+  /**
+   * ID de la serie recurrente a la que pertenece este gasto (opcional).
+   */
+  serieRecurrenteId?: string;
 }

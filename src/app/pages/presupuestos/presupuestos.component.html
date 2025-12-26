@@ -1,0 +1,100 @@
+<div class="page">
+  <div class="header">
+    <div class="header-content">
+      <h2>💰 Presupuestos</h2>
+      <p class="subtitle">Gestiona tus presupuestos mensuales</p>
+    </div>
+    <button class="btn btn-primary add-btn" (click)="agregarPresupuesto()">
+      <span class="btn-icon">➕</span>
+      <span class="btn-text">Nuevo Presupuesto</span>
+    </button>
+  </div>
+
+  <!-- Selector de mes -->
+  <section class="content-card">
+    <div class="month-selector">
+      <label for="mesSeleccionado" class="month-label">Mes:</label>
+      <select id="mesSeleccionado" [(ngModel)]="mesSeleccionado" (change)="onMesChange()" class="month-select">
+        <option *ngFor="let mes of mesesDisponibles" [value]="mes">
+          {{ mes }}
+        </option>
+      </select>
+    </div>
+  </section>
+
+  <!-- Formulario de presupuesto -->
+  <section class="content-card" *ngIf="mostrarFormulario">
+    <h3 class="card-title">{{ esEdicion ? 'Editar' : 'Nuevo' }} Presupuesto</h3>
+    <form [formGroup]="presupuestoForm" (ngSubmit)="guardarPresupuesto()">
+      <div class="form-row">
+        <mat-form-field appearance="outline">
+          <mat-label>Tipo</mat-label>
+          <mat-select formControlName="tipo">
+            <mat-option value="CATEGORIA">Categoría</mat-option>
+            <mat-option value="TARJETA">Tarjeta</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" *ngIf="presupuestoForm.get('tipo')?.value === 'CATEGORIA'">
+          <mat-label>Categoría</mat-label>
+          <mat-select formControlName="categoriaId">
+            <mat-option *ngFor="let categoria of categorias" [value]="categoria.id">
+              {{ categoria.nombre }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" *ngIf="presupuestoForm.get('tipo')?.value === 'TARJETA'">
+          <mat-label>Tarjeta</mat-label>
+          <mat-select formControlName="tarjetaId">
+            <mat-option *ngFor="let tarjeta of tarjetas" [value]="tarjeta.id">
+              {{ tarjeta.nombre }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline">
+          <mat-label>Monto</mat-label>
+          <input matInput type="number" formControlName="monto" min="0.01" step="0.01">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Mes</mat-label>
+          <input matInput type="month" formControlName="mes">
+        </mat-form-field>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" mat-button (click)="cancelarFormulario()">Cancelar</button>
+        <button type="submit" mat-raised-button color="primary" [disabled]="presupuestoForm.invalid">
+          {{ esEdicion ? 'Actualizar' : 'Crear' }}
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <!-- Lista de presupuestos -->
+  <section class="content-card" *ngIf="!mostrarFormulario">
+    <h3 class="card-title">Presupuestos - {{ mesSeleccionado }}</h3>
+    
+    <div *ngIf="presupuestos.length === 0" class="empty-state">
+      <mat-icon class="empty-icon">account_balance_wallet</mat-icon>
+      <div class="empty-text">No hay presupuestos para este mes</div>
+      <div class="empty-subtext">Crea un presupuesto para comenzar a hacer seguimiento</div>
+    </div>
+
+    <div class="presupuestos-grid" *ngIf="presupuestos.length > 0">
+      <app-presupuesto-card
+        *ngFor="let presupuesto of presupuestos"
+        [presupuesto]="presupuesto"
+        [nombreCategoria]="getNombreCategoria(presupuesto.categoriaId)"
+        [nombreTarjeta]="getNombreTarjeta(presupuesto.tarjetaId)"
+        [onEditar]="editarPresupuesto.bind(this)"
+        [onEliminar]="eliminarPresupuesto.bind(this)"
+      ></app-presupuesto-card>
+    </div>
+  </section>
+</div>
+

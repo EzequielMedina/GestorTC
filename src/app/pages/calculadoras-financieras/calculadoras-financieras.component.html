@@ -1,0 +1,262 @@
+<div class="page">
+  <div class="header">
+    <div class="header-content">
+      <h2>🧮 Calculadoras Financieras</h2>
+      <p class="subtitle">Herramientas para cálculos financieros</p>
+    </div>
+  </div>
+
+  <mat-tab-group class="calculadoras-tabs">
+    <!-- Calculadora de Interés Compuesto -->
+    <mat-tab label="Interés Compuesto">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>trending_up</mat-icon>
+            Interés Compuesto
+          </mat-card-title>
+          <mat-card-subtitle>Calcula el valor futuro de una inversión</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="calculator-form">
+            <mat-form-field appearance="outline">
+              <mat-label>Capital Inicial</mat-label>
+              <input matInput type="number" [(ngModel)]="capitalInicial" placeholder="0">
+              <mat-icon matPrefix>attach_money</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Tasa de Interés Anual (%)</mat-label>
+              <input matInput type="number" [(ngModel)]="tasaInteres" placeholder="0">
+              <mat-icon matPrefix>percent</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Período (años)</mat-label>
+              <input matInput type="number" [(ngModel)]="periodoAnios" placeholder="0">
+              <mat-icon matPrefix>calendar_today</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Frecuencia de Capitalización</mat-label>
+              <mat-select [(ngModel)]="frecuenciaCapitalizacion">
+                <mat-option value="mensual">Mensual</mat-option>
+                <mat-option value="trimestral">Trimestral</mat-option>
+                <mat-option value="semestral">Semestral</mat-option>
+                <mat-option value="anual">Anual</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <div class="calculator-actions">
+              <button mat-raised-button color="primary" (click)="calcularInteresCompuesto()">
+                <mat-icon>calculate</mat-icon>
+                Calcular
+              </button>
+              <button mat-button (click)="limpiarInteresCompuesto()">
+                <mat-icon>clear</mat-icon>
+                Limpiar
+              </button>
+            </div>
+
+            <div class="calculator-result" *ngIf="resultadoInteresCompuesto > 0">
+              <div class="result-label">Valor Futuro:</div>
+              <div class="result-value">${{ resultadoInteresCompuesto | number:'1.2-2' }}</div>
+              <div class="result-detail">
+                Ganancia: ${{ (resultadoInteresCompuesto - capitalInicial) | number:'1.2-2' }}
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </mat-tab>
+
+    <!-- Calculadora de Préstamos -->
+    <mat-tab label="Préstamos">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>account_balance</mat-icon>
+            Calculadora de Préstamos
+          </mat-card-title>
+          <mat-card-subtitle>Calcula la cuota mensual de un préstamo</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="calculator-form">
+            <mat-form-field appearance="outline">
+              <mat-label>Monto del Préstamo</mat-label>
+              <input matInput type="number" [(ngModel)]="montoPrestamo" placeholder="0">
+              <mat-icon matPrefix>attach_money</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Tasa de Interés Anual (%)</mat-label>
+              <input matInput type="number" [(ngModel)]="tasaInteresPrestamo" placeholder="0">
+              <mat-icon matPrefix>percent</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Plazo (años)</mat-label>
+              <input matInput type="number" [(ngModel)]="plazoAnios" placeholder="0">
+              <mat-icon matPrefix>calendar_today</mat-icon>
+            </mat-form-field>
+
+            <div class="calculator-actions">
+              <button mat-raised-button color="primary" (click)="calcularPrestamo()">
+                <mat-icon>calculate</mat-icon>
+                Calcular
+              </button>
+              <button mat-button (click)="limpiarPrestamo()">
+                <mat-icon>clear</mat-icon>
+                Limpiar
+              </button>
+            </div>
+
+            <div class="calculator-result" *ngIf="cuotaMensual > 0">
+              <div class="result-item">
+                <div class="result-label">Cuota Mensual:</div>
+                <div class="result-value">${{ cuotaMensual | number:'1.2-2' }}</div>
+              </div>
+              <div class="result-item">
+                <div class="result-label">Total a Pagar:</div>
+                <div class="result-value">${{ totalPagar | number:'1.2-2' }}</div>
+              </div>
+              <div class="result-item">
+                <div class="result-label">Total de Intereses:</div>
+                <div class="result-value">${{ totalIntereses | number:'1.2-2' }}</div>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </mat-tab>
+
+    <!-- Calculadora de Ahorro -->
+    <mat-tab label="Ahorro">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>savings</mat-icon>
+            Calculadora de Ahorro
+          </mat-card-title>
+          <mat-card-subtitle>Calcula el valor futuro de tus ahorros</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="calculator-form">
+            <mat-form-field appearance="outline">
+              <mat-label>Monto Inicial</mat-label>
+              <input matInput type="number" [(ngModel)]="montoInicialAhorro" placeholder="0">
+              <mat-icon matPrefix>attach_money</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Aporte Mensual</mat-label>
+              <input matInput type="number" [(ngModel)]="aporteMensual" placeholder="0">
+              <mat-icon matPrefix>attach_money</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Tasa de Interés Anual (%)</mat-label>
+              <input matInput type="number" [(ngModel)]="tasaInteresAhorro" placeholder="0">
+              <mat-icon matPrefix>percent</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Plazo (años)</mat-label>
+              <input matInput type="number" [(ngModel)]="plazoAniosAhorro" placeholder="0">
+              <mat-icon matPrefix>calendar_today</mat-icon>
+            </mat-form-field>
+
+            <div class="calculator-actions">
+              <button mat-raised-button color="primary" (click)="calcularAhorro()">
+                <mat-icon>calculate</mat-icon>
+                Calcular
+              </button>
+              <button mat-button (click)="limpiarAhorro()">
+                <mat-icon>clear</mat-icon>
+                Limpiar
+              </button>
+            </div>
+
+            <div class="calculator-result" *ngIf="resultadoAhorro > 0">
+              <div class="result-item">
+                <div class="result-label">Valor Futuro:</div>
+                <div class="result-value">${{ resultadoAhorro | number:'1.2-2' }}</div>
+              </div>
+              <div class="result-item">
+                <div class="result-label">Total Aportado:</div>
+                <div class="result-value">${{ totalAportado | number:'1.2-2' }}</div>
+              </div>
+              <div class="result-item">
+                <div class="result-label">Intereses Ganados:</div>
+                <div class="result-value highlight">${{ interesesGanados | number:'1.2-2' }}</div>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </mat-tab>
+
+    <!-- Calculadora de Conversión -->
+    <mat-tab label="Conversión">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>swap_horiz</mat-icon>
+            Conversión de Monedas
+          </mat-card-title>
+          <mat-card-subtitle>Convierte entre ARS y USD</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="calculator-form">
+            <mat-form-field appearance="outline">
+              <mat-label>Monto</mat-label>
+              <input matInput type="number" [(ngModel)]="montoConvertir" placeholder="0">
+              <mat-icon matPrefix>attach_money</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>De</mat-label>
+              <mat-select [(ngModel)]="monedaOrigen">
+                <mat-option value="ARS">ARS (Pesos Argentinos)</mat-option>
+                <mat-option value="USD">USD (Dólares)</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>A</mat-label>
+              <mat-select [(ngModel)]="monedaDestino">
+                <mat-option value="ARS">ARS (Pesos Argentinos)</mat-option>
+                <mat-option value="USD">USD (Dólares)</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Tasa de Cambio (ARS por USD)</mat-label>
+              <input matInput type="number" [(ngModel)]="tasaCambio" placeholder="1000">
+              <mat-icon matPrefix>swap_horiz</mat-icon>
+            </mat-form-field>
+
+            <div class="calculator-actions">
+              <button mat-raised-button color="primary" (click)="calcularConversion()">
+                <mat-icon>calculate</mat-icon>
+                Calcular
+              </button>
+              <button mat-button (click)="limpiarConversion()">
+                <mat-icon>clear</mat-icon>
+                Limpiar
+              </button>
+            </div>
+
+            <div class="calculator-result" *ngIf="resultadoConversion > 0">
+              <div class="result-label">Resultado:</div>
+              <div class="result-value">
+                {{ resultadoConversion | number:'1.2-2' }} {{ monedaDestino }}
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </mat-tab>
+  </mat-tab-group>
+</div>
+

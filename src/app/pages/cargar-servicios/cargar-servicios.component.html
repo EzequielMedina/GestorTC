@@ -1,0 +1,130 @@
+<div class="cargar-servicios-container">
+  <section class="content-card">
+    <div class="card-header">
+      <h2 class="card-title">
+        <mat-icon>upload_file</mat-icon>
+        Cargar Gastos de Servicios
+      </h2>
+    </div>
+
+    <div class="card-content">
+      <!-- Resultado de importación -->
+      <div class="resultado-importacion" *ngIf="resultadoImportacion">
+        <mat-card class="resultado-card success">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>check_circle</mat-icon>
+              Importación Completada
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="resultado-stats">
+              <div class="stat-item">
+                <span class="stat-label">Exitosos:</span>
+                <span class="stat-value success">{{ resultadoImportacion.exitosos }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Errores:</span>
+                <span class="stat-value error">{{ resultadoImportacion.errores }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Monto total:</span>
+                <span class="stat-value">${{ resultadoImportacion.montoTotal | number:'1.0-0' }}</span>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- Zona de carga de archivo -->
+      <div class="zona-carga" *ngIf="!mostrarVistaPrevia">
+        <div 
+          class="drop-zone"
+          [class.drag-over]="isDragOver"
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave($event)"
+          (drop)="onDrop($event)"
+        >
+          <input
+            type="file"
+            id="fileInput"
+            #fileInput
+            (change)="onFileSelected($event)"
+            accept=".csv,.xlsx,.xls,.json,.pdf"
+            style="display: none"
+          />
+          
+          <div class="drop-zone-content">
+            <mat-icon class="upload-icon">cloud_upload</mat-icon>
+            <h3>Arrastra y suelta tu archivo aquí</h3>
+            <p>o haz clic para seleccionar</p>
+            <button mat-raised-button color="primary" (click)="fileInput.click()">
+              <mat-icon>folder_open</mat-icon>
+              Seleccionar Archivo
+            </button>
+            
+            <div class="formatos-soportados">
+              <p><strong>Formatos soportados:</strong></p>
+              <div class="formatos-list">
+                <span class="formato-badge">CSV</span>
+                <span class="formato-badge">Excel (.xlsx, .xls)</span>
+                <span class="formato-badge">JSON</span>
+                <span class="formato-badge">PDF</span>
+              </div>
+              <p class="tamano-max">Tamaño máximo: 10MB (PDFs: 20MB)</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Archivo seleccionado -->
+        <div class="archivo-seleccionado" *ngIf="archivoSeleccionado && !procesando">
+          <mat-icon>description</mat-icon>
+          <span>{{ archivoSeleccionado.name }}</span>
+          <span class="tamano">({{ (archivoSeleccionado.size / 1024).toFixed(2) }} KB)</span>
+          <button mat-icon-button (click)="resetear()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
+        <!-- Barra de progreso -->
+        <mat-progress-bar 
+          *ngIf="procesando" 
+          mode="determinate" 
+          [value]="progreso"
+        ></mat-progress-bar>
+
+        <!-- Plantillas -->
+        <div class="plantillas-section">
+          <h4>📋 Plantillas disponibles</h4>
+          <div class="plantillas-buttons">
+            <button mat-button (click)="descargarPlantillaCSV()">
+              <mat-icon>download</mat-icon>
+              Descargar CSV
+            </button>
+            <button mat-button (click)="descargarPlantillaExcel()">
+              <mat-icon>download</mat-icon>
+              Descargar Excel
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vista previa -->
+      <div class="vista-previa-section" *ngIf="mostrarVistaPrevia">
+        <app-vista-previa-importacion
+          [datos]="datosImportados"
+          [categorias]="categorias"
+          [tarjetas]="tarjetas"
+          [errores]="resultadoValidacion?.errores || []"
+          [advertencias]="resultadoValidacion?.advertencias || []"
+          [duplicados]="duplicados"
+          (editarDato)="onEditarDato($event)"
+          (excluirDato)="onExcluirDato($event)"
+          (importar)="onImportar()"
+          (cancelar)="onCancelar()"
+        ></app-vista-previa-importacion>
+      </div>
+    </div>
+  </section>
+</div>
+

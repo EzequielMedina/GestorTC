@@ -1,0 +1,44 @@
+.categoria-selector {
+  width: 100%;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.categoria-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.categoria-option mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.categoria-nombre {
+  flex: 1;
+}
+
+.categoria-selected {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 8px;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+
+.categoria-selected mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.option-text {
+  color: rgba(0, 0, 0, 0.6);
+}
+

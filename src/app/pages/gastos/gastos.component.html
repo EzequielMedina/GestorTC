@@ -10,9 +10,42 @@
     </button>
   </div>
 
-  <!-- Filtros -->
-  <section class="content-card">
-    <h3 class="card-title">Filtros</h3>
+  <!-- Plantillas de Gastos Frecuentes -->
+  <section class="content-card plantillas-section" *ngIf="plantillasFrecuentes.length > 0">
+    <h3 class="card-title">
+      <mat-icon>flash_on</mat-icon>
+      Gastos Rápidos
+    </h3>
+    <p class="card-subtitle">Haz clic para usar un gasto frecuente</p>
+    <div class="plantillas-grid">
+      <button 
+        *ngFor="let plantilla of plantillasFrecuentes" 
+        class="plantilla-btn"
+        (click)="usarPlantilla(plantilla)"
+        [matTooltip]="'Usado ' + plantilla.vecesUsada + ' veces'">
+        <span class="plantilla-icon">{{ plantilla.icono }}</span>
+        <div class="plantilla-content">
+          <span class="plantilla-nombre">{{ plantilla.nombre }}</span>
+          <span class="plantilla-monto" *ngIf="plantilla.montoPromedio">
+            ~${{ plantilla.montoPromedio | number:'1.0-0' }}
+          </span>
+        </div>
+      </button>
+    </div>
+  </section>
+
+  <!-- Filtros Avanzados -->
+  <app-filtros-avanzados
+    [tarjetas]="tarjetas"
+    [categorias]="categorias"
+    [filtroActual]="filtroAvanzado"
+    (filtroCambiado)="onFiltroAvanzadoCambiado($event)"
+    (filtroAplicado)="onFiltroAvanzadoAplicado($event)"
+  ></app-filtros-avanzados>
+
+  <!-- Filtros Básicos (compatibilidad) -->
+  <section class="content-card" *ngIf="!usarFiltrosAvanzados">
+    <h3 class="card-title">Filtros Básicos</h3>
     <div class="filters">
       <div class="filter-group">
         <label for="filtroTarjeta" class="filter-label">Tarjeta</label>
@@ -122,7 +155,13 @@
             
             <div class="gasto-content">
               <div class="gasto-info">
-                <div class="gasto-descripcion">{{ gasto.descripcion }}</div>
+                <div class="gasto-descripcion">
+                  <span *ngIf="getCategoriaById(gasto.categoriaId) as categoria" class="categoria-badge">
+                    <mat-icon [style.color]="categoria.color" class="categoria-icon">{{ categoria.icono }}</mat-icon>
+                    <span class="categoria-nombre">{{ categoria.nombre }}</span>
+                  </span>
+                  {{ gasto.descripcion }}
+                </div>
                 <div class="gasto-fecha">{{ gasto.fecha | date:'dd/MM/yyyy' }}</div>
               </div>
               
@@ -142,6 +181,22 @@
                   <span class="detail-label">Cuotas:</span>
                   <span class="detail-value">{{ gasto.cantidadCuotas }} cuotas desde {{ gasto.primerMesCuota }}</span>
                 </div>
+              </div>
+
+              <div class="gasto-etiquetas" *ngIf="getEtiquetasPorGasto(gasto).length > 0">
+                <mat-chip
+                  *ngFor="let etiqueta of getEtiquetasPorGasto(gasto)"
+                  [style.background-color]="etiqueta.color"
+                  [style.color]="getContrastColor(etiqueta.color)"
+                  class="etiqueta-chip"
+                >
+                  {{ etiqueta.nombre }}
+                </mat-chip>
+              </div>
+
+              <div class="gasto-nota" *ngIf="getNotaPorGasto(gasto) as nota">
+                <mat-icon class="nota-icon">note</mat-icon>
+                <span class="nota-text" [matTooltip]="nota.contenido">{{ nota.contenido | slice:0:50 }}{{ nota.contenido.length > 50 ? '...' : '' }}</span>
               </div>
             </div>
           </div>
@@ -187,6 +242,22 @@
               <span class="detail-label">Cuotas:</span>
               <span class="detail-value">{{ gasto.cantidadCuotas }} cuotas desde {{ gasto.primerMesCuota }}</span>
             </div>
+          </div>
+
+          <div class="gasto-etiquetas" *ngIf="getEtiquetasPorGasto(gasto).length > 0">
+            <mat-chip
+              *ngFor="let etiqueta of getEtiquetasPorGasto(gasto)"
+              [style.background-color]="etiqueta.color"
+              [style.color]="getContrastColor(etiqueta.color)"
+              class="etiqueta-chip"
+            >
+              {{ etiqueta.nombre }}
+            </mat-chip>
+          </div>
+
+          <div class="gasto-nota" *ngIf="getNotaPorGasto(gasto) as nota">
+            <mat-icon class="nota-icon">note</mat-icon>
+            <span class="nota-text" [matTooltip]="nota.contenido">{{ nota.contenido | slice:0:50 }}{{ nota.contenido.length > 50 ? '...' : '' }}</span>
           </div>
         </div>
       </div>
