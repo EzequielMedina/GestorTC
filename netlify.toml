@@ -9,12 +9,14 @@
   publish = "dist/gestor-tc/browser"
 
 # Redirecciones para SPA (Single Page Application)
-# Redirigir todas las rutas a index.html EXCEPTO archivos estáticos
-# Netlify automáticamente excluye archivos que existen físicamente
+# IMPORTANTE: Esta redirección debe estar al final
+# Netlify automáticamente excluye archivos estáticos que existen físicamente
+# Solo redirige rutas que no corresponden a archivos reales
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+  force = false
 
 # Headers para PWA y seguridad
 [[headers]]
