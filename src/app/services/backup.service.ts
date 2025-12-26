@@ -14,6 +14,7 @@ import { AlertService } from './alert.service';
 import { FiltroAvanzadoService } from './filtro-avanzado.service';
 import { EtiquetaService } from './etiqueta.service';
 import { NotaService } from './nota.service';
+import { GastosRecurrentesService } from './gastos-recurrentes.service';
 import { saveAs } from 'file-saver';
 
 const STORAGE_KEY_BACKUPS = 'gestor_tc_backups';
@@ -41,7 +42,8 @@ export class BackupService {
     private alertService: AlertService,
     private filtroAvanzadoService: FiltroAvanzadoService,
     private etiquetaService: EtiquetaService,
-    private notaService: NotaService
+    private notaService: NotaService,
+    private gastosRecurrentesService: GastosRecurrentesService
   ) {
     this.inicializarBackupAutomatico();
   }
@@ -107,9 +109,11 @@ export class BackupService {
       this.categoriaService.getCategorias$(),
       this.filtroAvanzadoService.getFiltrosGuardados$(),
       this.etiquetaService.getEtiquetas$(),
-      this.notaService.getNotas$()
+      this.notaService.getNotas$(),
+      this.gastosRecurrentesService.getGastosRecurrentes$(),
+      this.gastosRecurrentesService.getInstancias$()
     ]).pipe(
-      map(([tarjetas, gastos, prestamos, compraDolares, ventaDolares, presupuestos, categorias, filtrosGuardados, etiquetas, notas]) => {
+      map(([tarjetas, gastos, prestamos, compraDolares, ventaDolares, presupuestos, categorias, filtrosGuardados, etiquetas, notas, gastosRecurrentes, instanciasGastosRecurrentes]) => {
         // Obtener alertas vistas desde localStorage directamente
         let alertasVistas: string[] = [];
         try {
@@ -132,7 +136,9 @@ export class BackupService {
           alertasVistas: alertasVistas || [],
           filtrosGuardados: filtrosGuardados || [],
           etiquetas: etiquetas || [],
-          notas: notas || []
+          notas: notas || [],
+          gastosRecurrentes: gastosRecurrentes || [],
+          instanciasGastosRecurrentes: instanciasGastosRecurrentes || []
         };
       })
     );
@@ -152,7 +158,9 @@ export class BackupService {
       cantidadCategorias: datos.categorias.length,
       cantidadFiltrosGuardados: datos.filtrosGuardados?.length || 0,
       cantidadEtiquetas: datos.etiquetas?.length || 0,
-      cantidadNotas: datos.notas?.length || 0
+      cantidadNotas: datos.notas?.length || 0,
+      cantidadGastosRecurrentes: datos.gastosRecurrentes?.length || 0,
+      cantidadInstanciasGastosRecurrentes: datos.instanciasGastosRecurrentes?.length || 0
     };
 
     const totalRegistros = Object.values(resumen).reduce((sum, val) => sum + val, 0);
@@ -262,6 +270,14 @@ export class BackupService {
         localStorage.setItem('gestor_tc_notas', JSON.stringify(datos.notas));
       }
 
+      if (datos.gastosRecurrentes && datos.gastosRecurrentes.length >= 0) {
+        localStorage.setItem('gestor_tc_gastos_recurrentes', JSON.stringify(datos.gastosRecurrentes));
+      }
+
+      if (datos.instanciasGastosRecurrentes && datos.instanciasGastosRecurrentes.length >= 0) {
+        localStorage.setItem('gestor_tc_instancias_gastos_recurrentes', JSON.stringify(datos.instanciasGastosRecurrentes));
+      }
+
       // Forzar recarga de los servicios accediendo a sus métodos privados de carga
       // Nota: Esto requiere acceso a métodos privados, pero es necesario para la restauración
       // Los servicios recargarán desde localStorage en su próximo acceso
@@ -329,6 +345,22 @@ export class BackupService {
       const categorias = JSON.parse(localStorage.getItem('gestor_tc_categorias') || '[]');
       if (this.categoriaService['categoriasSubject']) {
         this.categoriaService['categoriasSubject'].next(categorias);
+      }
+    } catch (e) {}
+
+    // Recargar gastos recurrentes
+    try {
+      const gastosRecurrentes = JSON.parse(localStorage.getItem('gestor_tc_gastos_recurrentes') || '[]');
+      if (this.gastosRecurrentesService['gastosRecurrentesSubject']) {
+        this.gastosRecurrentesService['gastosRecurrentesSubject'].next(gastosRecurrentes);
+      }
+    } catch (e) {}
+
+    // Recargar instancias de gastos recurrentes
+    try {
+      const instancias = JSON.parse(localStorage.getItem('gestor_tc_instancias_gastos_recurrentes') || '[]');
+      if (this.gastosRecurrentesService['instanciasSubject']) {
+        this.gastosRecurrentesService['instanciasSubject'].next(instancias);
       }
     } catch (e) {}
   }

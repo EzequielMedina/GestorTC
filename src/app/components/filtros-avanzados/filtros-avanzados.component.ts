@@ -128,7 +128,7 @@ export class FiltrosAvanzadosComponent implements OnInit, OnDestroy {
         this.filtro.tarjetasIds.push(tarjetaId);
       }
     } else {
-      this.filtro.tarjetasIds = this.filtro.tarjetasIds.filter(id => id !== tarjetaId);
+      this.filtro.tarjetasIds = this.filtro.tarjetasIds.filter((id: string) => id !== tarjetaId);
     }
     this.filtro.todasLasTarjetas = this.filtro.tarjetasIds.length === 0;
   }
@@ -139,7 +139,7 @@ export class FiltrosAvanzadosComponent implements OnInit, OnDestroy {
         this.filtro.categoriasIds.push(categoriaId);
       }
     } else {
-      this.filtro.categoriasIds = this.filtro.categoriasIds.filter(id => id !== categoriaId);
+      this.filtro.categoriasIds = this.filtro.categoriasIds.filter((id: string) => id !== categoriaId);
     }
     this.filtro.todasLasCategorias = this.filtro.categoriasIds.length === 0;
   }

@@ -10,6 +10,7 @@ import { TarjetaService } from './tarjeta';
 import { PrestamoService } from './prestamo.service';
 import { CuotaService } from './cuota.service';
 import { ResumenService } from './resumen.service';
+import { GastosRecurrentesService } from './gastos-recurrentes.service';
 
 @Injectable({
   providedIn: 'root'
@@ -22,7 +23,8 @@ export class CalendarioFinancieroService {
     private tarjetaService: TarjetaService,
     private prestamoService: PrestamoService,
     private cuotaService: CuotaService,
-    private resumenService: ResumenService
+    private resumenService: ResumenService,
+    private gastosRecurrentesService: GastosRecurrentesService
   ) {
     this.generarEventosAutomaticos();
   }
@@ -34,8 +36,10 @@ export class CalendarioFinancieroService {
     combineLatest([
       this.tarjetaService.getTarjetas$(),
       this.cuotaService.getCuotas$(),
-      this.prestamoService.getPrestamos$()
-    ]).subscribe(([tarjetas, cuotas, prestamos]) => {
+      this.prestamoService.getPrestamos$(),
+      this.gastosRecurrentesService.getInstanciasPendientes$(),
+      this.gastosRecurrentesService.getGastosRecurrentes$()
+    ]).subscribe(([tarjetas, cuotas, prestamos, instanciasServicios, series]) => {
       const eventos: EventoFinanciero[] = [];
 
       // Eventos de vencimiento de tarjetas
@@ -95,6 +99,27 @@ export class CalendarioFinancieroService {
             fechaCreacion: new Date().toISOString()
           });
         });
+      });
+
+      // Eventos de gastos recurrentes (servicios)
+      instanciasServicios.forEach(instancia => {
+        const serie = series.find(s => s.id === instancia.serieRecurrenteId);
+        if (serie && !instancia.pagado) {
+          eventos.push({
+            id: uuidv4(),
+            tipo: 'VENCIMIENTO_SERVICIO',
+            titulo: serie.nombre,
+            descripcion: serie.descripcion,
+            fecha: instancia.fechaVencimiento,
+            monto: instancia.monto,
+            prioridad: this.calcularPrioridadVencimiento(new Date(instancia.fechaVencimiento)),
+            gastoRecurrenteId: serie.id,
+            instanciaGastoRecurrenteId: instancia.id,
+            pagado: instancia.pagado,
+            recurrente: true,
+            fechaCreacion: new Date().toISOString()
+          });
+        }
       });
 
       this.eventosSubject.next(eventos);

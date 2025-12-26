@@ -5,6 +5,7 @@ export type TipoEventoFinanciero =
   | 'VENCIMIENTO_TARJETA'
   | 'VENCIMIENTO_CUOTA'
   | 'PAGO_PRESTAMO'
+  | 'VENCIMIENTO_SERVICIO'
   | 'EVENTO_PERSONALIZADO';
 
 /**
@@ -28,6 +29,9 @@ export interface EventoFinanciero {
   tarjetaId?: string; // Para eventos de tarjeta
   cuotaId?: string; // Para eventos de cuota
   prestamoId?: string; // Para eventos de préstamo
+  gastoRecurrenteId?: string; // Para eventos de gastos recurrentes
+  instanciaGastoRecurrenteId?: string; // Para instancias específicas
+  pagado?: boolean; // Si el gasto de servicio ya fue pagado
   recurrente?: boolean; // Si el evento se repite
   fechaCreacion: string; // ISO string
 }

@@ -20,6 +20,7 @@ import { NotaService } from '../../services/nota.service';
 import { GastoDialogComponent } from '../../components/gasto-dialog/gasto-dialog';
 import { FiltrosAvanzadosComponent } from '../../components/filtros-avanzados/filtros-avanzados.component';
 import { NotificationService } from '../../services/notification.service';
+import { PreferenciasUsuarioService, DescripcionFrecuente } from '../../services/preferencias-usuario.service';
 import { combineLatest, Subscription } from 'rxjs';
 
 interface GastosPorTarjeta {
@@ -88,6 +89,16 @@ export class GastosComponent implements OnInit, OnDestroy {
 
   private subscriptions = new Subscription();
 
+  // Plantillas de gastos frecuentes
+  plantillasFrecuentes: Array<{
+    nombre: string;
+    icono: string;
+    montoPromedio?: number;
+    vecesUsada: number;
+    categoriaId?: string;
+    descripcion: string;
+  }> = [];
+
   constructor(
     private gastoService: GastoService,
     private tarjetaService: TarjetaService,
@@ -95,7 +106,8 @@ export class GastosComponent implements OnInit, OnDestroy {
     private filtroAvanzadoService: FiltroAvanzadoService,
     private etiquetaService: EtiquetaService,
     private notaService: NotaService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private preferenciasService: PreferenciasUsuarioService
   ) {}
 
   ngOnInit(): void {
@@ -110,8 +122,9 @@ export class GastosComponent implements OnInit, OnDestroy {
       this.gastoService.getGastos$(),
       this.categoriaService.getCategorias$(),
       this.etiquetaService.getEtiquetas$(),
-      this.notaService.getNotas$()
-    ]).subscribe(([tarjetas, gastos, categorias, etiquetas, notas]) => {
+      this.notaService.getNotas$(),
+      this.preferenciasService.getDescripcionesFrecuentes$(8)
+    ]).subscribe(([tarjetas, gastos, categorias, etiquetas, notas, descripcionesFrecuentes]) => {
       this.tarjetas = tarjetas;
       this.categorias = categorias;
       this.etiquetas = etiquetas;
@@ -120,8 +133,58 @@ export class GastosComponent implements OnInit, OnDestroy {
       this.gastosFiltrados = gastos;
       this.agruparGastos();
       this.generarMesesDisponibles();
+      this.cargarPlantillasFrecuentes(descripcionesFrecuentes);
       this.loading = false;
     });
+  }
+
+  cargarPlantillasFrecuentes(descripciones: DescripcionFrecuente[]): void {
+    const iconosPorCategoria: { [key: string]: string } = {
+      'Alimentación': '🍔',
+      'Transporte': '🚗',
+      'Entretenimiento': '🎬',
+      'Salud': '💊',
+      'Educación': '📚',
+      'Ropa': '👕',
+      'Servicios': '💡',
+      'Compras': '🛒',
+      'Otros': '📦'
+    };
+
+    this.plantillasFrecuentes = descripciones.map(desc => {
+      const categoria = desc.categoriaId 
+        ? this.categorias.find(c => c.id === desc.categoriaId)
+        : null;
+      
+      return {
+        nombre: desc.texto,
+        icono: categoria ? iconosPorCategoria[categoria.nombre] || '💰' : '💰',
+        montoPromedio: desc.montoPromedio,
+        vecesUsada: desc.vecesUsada,
+        categoriaId: desc.categoriaId,
+        descripcion: desc.texto
+      };
+    });
+  }
+
+  usarPlantilla(plantilla: {
+    nombre: string;
+    montoPromedio?: number;
+    categoriaId?: string;
+    descripcion: string;
+  }): void {
+    const preferencias = this.preferenciasService.getPreferencias();
+    
+    this.esEdicion = false;
+    this.gastoSeleccionado = {
+      id: '',
+      tarjetaId: preferencias.ultimaTarjetaId || this.filtroTarjeta || (this.tarjetas.length > 0 ? this.tarjetas[0].id : ''),
+      descripcion: plantilla.descripcion,
+      monto: plantilla.montoPromedio ? Math.round(plantilla.montoPromedio) : 0,
+      fecha: new Date().toISOString().slice(0, 10),
+      categoriaId: plantilla.categoriaId
+    };
+    this.mostrarModal = true;
   }
 
   ngOnDestroy(): void {
@@ -338,6 +401,13 @@ export class GastosComponent implements OnInit, OnDestroy {
       this.gastoService.actualizarGasto(id, cambios).subscribe({
         next: (gastoActualizado) => {
           if (gastoActualizado) {
+            // Registrar descripción frecuente
+            this.preferenciasService.registrarDescripcion(
+              gastoActualizado.descripcion,
+              gastoActualizado.monto,
+              gastoActualizado.categoriaId
+            );
+            
             this.cargarDatos();
             this.cerrarModal();
             this.notificationService.success('Gasto actualizado correctamente');
@@ -354,6 +424,19 @@ export class GastosComponent implements OnInit, OnDestroy {
       const { id, ...nuevoGasto } = gasto;
       this.gastoService.agregarGasto(nuevoGasto).subscribe({
         next: () => {
+          // Actualizar preferencias
+          this.preferenciasService.actualizarUltimaTarjeta(nuevoGasto.tarjetaId);
+          if (nuevoGasto.categoriaId) {
+            this.preferenciasService.actualizarUltimaCategoria(nuevoGasto.categoriaId);
+          }
+          
+          // Registrar descripción frecuente
+          this.preferenciasService.registrarDescripcion(
+            nuevoGasto.descripcion,
+            nuevoGasto.monto,
+            nuevoGasto.categoriaId
+          );
+          
           this.cargarDatos();
           this.cerrarModal();
           this.notificationService.success('Gasto agregado correctamente');

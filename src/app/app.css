@@ -45,6 +45,10 @@
   flex: 1 1 auto;
 }
 
+.tour-button {
+  margin-left: var(--spacing-sm);
+}
+
 .toolbar-search {
   margin: 0 12px;
   flex: 0 1 350px;

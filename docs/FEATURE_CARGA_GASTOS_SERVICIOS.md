@@ -1,12 +1,29 @@
 # Feature: Carga de Gastos de Servicios desde Archivo
 
-## 📋 Resumen Ejecutivo
+## ⚠️ NOTA IMPORTANTE - CAMBIO DE IMPLEMENTACIÓN
 
-Esta feature permite a los usuarios importar gastos de servicios (facturas de servicios públicos, suscripciones, servicios recurrentes) desde archivos en diferentes formatos (CSV, Excel, JSON), automatizando el proceso de registro y categorización de estos gastos recurrentes.
+**Estado Actual:** ❌ **CANCELADA** - La funcionalidad de importación de archivos (CSV, Excel, JSON, PDF) fue cancelada debido a complejidades técnicas con la lectura de PDFs y variabilidad en los formatos.
+
+**Implementación Alternativa:** ✅ **COMPLETADA** - Se implementó en su lugar un **Sistema Manual de Gastos Recurrentes** que permite:
+- Crear series de gastos recurrentes manualmente
+- Configurar frecuencia (mensual, bimestral, trimestral, semestral, anual)
+- Generar instancias automáticamente para los próximos meses
+- Marcar instancias como pagadas
+- Integración con el calendario financiero
+- Agrupación por mes para mejor visualización
+
+Ver sección "Sistema de Gastos Recurrentes" en `context.md` para detalles de la implementación actual.
+
+---
+
+## 📋 Resumen Ejecutivo (Original)
+
+Esta feature permitiría a los usuarios importar gastos de servicios (facturas de servicios públicos, suscripciones, servicios recurrentes) desde archivos en diferentes formatos (CSV, Excel, JSON, PDF), automatizando el proceso de registro y categorización de estos gastos recurrentes.
 
 **Versión:** 1.0.0  
 **Fecha de Creación:** 2025-01-27  
-**Estado:** Especificación  
+**Fecha de Cancelación:** 2025-01-27  
+**Estado:** ❌ Cancelada - Reemplazada por Sistema Manual de Gastos Recurrentes  
 **Prioridad:** Media-Alta
 
 ---

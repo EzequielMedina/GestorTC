@@ -1,0 +1,142 @@
+<div class="vista-previa-container">
+  <div class="resumen-section">
+    <h3>Resumen de Importación</h3>
+    <div class="resumen-grid">
+      <div class="resumen-item">
+        <span class="resumen-label">Total de filas:</span>
+        <span class="resumen-value">{{ getResumen().total }}</span>
+      </div>
+      <div class="resumen-item">
+        <span class="resumen-label">Monto total:</span>
+        <span class="resumen-value">${{ getResumen().montoTotal | number:'1.0-0' }}</span>
+      </div>
+      <div class="resumen-item success">
+        <span class="resumen-label">Listos para importar:</span>
+        <span class="resumen-value">{{ getResumen().exitosos }}</span>
+      </div>
+      <div class="resumen-item error" *ngIf="getResumen().conErrores > 0">
+        <span class="resumen-label">Con errores:</span>
+        <span class="resumen-value">{{ getResumen().conErrores }}</span>
+      </div>
+      <div class="resumen-item warning" *ngIf="getResumen().conAdvertencias > 0">
+        <span class="resumen-label">Con advertencias:</span>
+        <span class="resumen-value">{{ getResumen().conAdvertencias }}</span>
+      </div>
+      <div class="resumen-item" *ngIf="getResumen().excluidos > 0">
+        <span class="resumen-label">Excluidos:</span>
+        <span class="resumen-value">{{ getResumen().excluidos }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabla-section">
+    <table mat-table [dataSource]="datosPaginados" class="tabla-importacion">
+      <!-- Columna Fila -->
+      <ng-container matColumnDef="fila">
+        <th mat-header-cell *matHeaderCellDef>Fila</th>
+        <td mat-cell *matCellDef="let dato">{{ dato.filaOriginal }}</td>
+      </ng-container>
+
+      <!-- Columna Fecha -->
+      <ng-container matColumnDef="fecha">
+        <th mat-header-cell *matHeaderCellDef>Fecha</th>
+        <td mat-cell *matCellDef="let dato">
+          <span [class.error]="tieneError(dato)">{{ dato.fecha }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Columna Descripción -->
+      <ng-container matColumnDef="descripcion">
+        <th mat-header-cell *matHeaderCellDef>Descripción</th>
+        <td mat-cell *matCellDef="let dato">
+          <span [class.error]="tieneError(dato)">{{ dato.descripcion }}</span>
+          <mat-chip *ngIf="dato.proveedorDetectado" class="proveedor-chip">
+            {{ dato.proveedorDetectado }}
+          </mat-chip>
+        </td>
+      </ng-container>
+
+      <!-- Columna Monto -->
+      <ng-container matColumnDef="monto">
+        <th mat-header-cell *matHeaderCellDef>Monto</th>
+        <td mat-cell *matCellDef="let dato">
+          <span [class.error]="tieneError(dato)">${{ dato.monto | number:'1.0-0' }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Columna Categoría -->
+      <ng-container matColumnDef="categoria">
+        <th mat-header-cell *matHeaderCellDef>Categoría</th>
+        <td mat-cell *matCellDef="let dato">
+          <span [class.warning]="tieneAdvertencia(dato)">
+            {{ getNombreCategoria(dato.categoriaId) }}
+          </span>
+        </td>
+      </ng-container>
+
+      <!-- Columna Tarjeta -->
+      <ng-container matColumnDef="tarjeta">
+        <th mat-header-cell *matHeaderCellDef>Tarjeta</th>
+        <td mat-cell *matCellDef="let dato">
+          {{ getNombreTarjeta(dato.tarjetaId) }}
+        </td>
+      </ng-container>
+
+      <!-- Columna Estado -->
+      <ng-container matColumnDef="estado">
+        <th mat-header-cell *matHeaderCellDef>Estado</th>
+        <td mat-cell *matCellDef="let dato">
+          <mat-chip [class]="'estado-' + getEstado(dato)">
+            <mat-icon *ngIf="getEstado(dato) === 'error'">error</mat-icon>
+            <mat-icon *ngIf="getEstado(dato) === 'advertencia'">warning</mat-icon>
+            <mat-icon *ngIf="getEstado(dato) === 'duplicado'">content_copy</mat-icon>
+            <mat-icon *ngIf="getEstado(dato) === 'ok'">check_circle</mat-icon>
+            <mat-icon *ngIf="getEstado(dato) === 'excluido'">block</mat-icon>
+            <span>{{ getEstado(dato) | titlecase }}</span>
+          </mat-chip>
+          <div *ngIf="dato.confianzaExtraccion" class="confianza-badge" [style.color]="getConfianzaColor(dato.confianzaExtraccion)">
+            {{ dato.confianzaExtraccion }}% confianza
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Columna Acciones -->
+      <ng-container matColumnDef="acciones">
+        <th mat-header-cell *matHeaderCellDef>Acciones</th>
+        <td mat-cell *matCellDef="let dato; let i = index">
+          <button mat-icon-button (click)="onEditar(i)" matTooltip="Editar">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button (click)="onExcluir(i)" [color]="dato.excluir ? 'primary' : 'warn'" matTooltip="Excluir/Incluir">
+            <mat-icon>{{ dato.excluir ? 'undo' : 'delete' }}</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;" 
+          [class.fila-error]="tieneError(row)"
+          [class.fila-advertencia]="tieneAdvertencia(row)"
+          [class.fila-excluida]="row.excluir"></tr>
+    </table>
+
+    <mat-paginator
+      [length]="datos.length"
+      [pageSize]="pageSize"
+      [pageSizeOptions]="[5, 10, 25, 50]"
+      (page)="onPageChange($event)">
+    </mat-paginator>
+  </div>
+
+  <div class="acciones-section">
+    <button mat-raised-button color="primary" (click)="onImportar()" [disabled]="getResumen().exitosos === 0">
+      <mat-icon>file_download</mat-icon>
+      Importar {{ getResumen().exitosos }} gasto(s)
+    </button>
+    <button mat-button (click)="onCancelar()">
+      <mat-icon>cancel</mat-icon>
+      Cancelar
+    </button>
+  </div>
+</div>
+

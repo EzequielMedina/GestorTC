@@ -56,4 +56,13 @@ export interface Gasto {
    * ID de la nota asociada al gasto (opcional).
    */
   notaId?: string;
+  /**
+   * Indica si el gasto ya fue pagado (opcional).
+   * Útil para gastos recurrentes de servicios.
+   */
+  pagado?: boolean;
+  /**
+   * ID de la serie recurrente a la que pertenece este gasto (opcional).
+   */
+  serieRecurrenteId?: string;
 }

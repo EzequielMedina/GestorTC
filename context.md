@@ -1210,3 +1210,411 @@ Se ha completado exitosamente la implementación de la Fase 3 del plan de mejora
 
 El proyecto está completamente funcional con todas las mejoras de la Fase 3 implementadas y listo para uso en producción.
 
+---
+
+## Implementación: Sistema de Gastos Recurrentes de Servicios (2025-01-27)
+
+### Resumen Ejecutivo
+
+Se implementó un sistema completo de gestión de gastos recurrentes de servicios (luz, gas, internet, suscripciones, etc.) que permite crear series de gastos que se repiten automáticamente, generar instancias para los próximos meses, marcar pagos y visualizar todo en el calendario financiero.
+
+**Nota:** Esta funcionalidad reemplazó la propuesta inicial de importación de archivos (CSV, Excel, JSON, PDF) que fue cancelada debido a complejidades técnicas.
+
+---
+
+### 1. Sistema de Gastos Recurrentes ✅
+
+**Archivos Creados:**
+- `src/app/models/gasto-recurrente.model.ts` - Modelos de series e instancias de gastos recurrentes
+- `src/app/services/gastos-recurrentes.service.ts` - Servicio completo de gestión de gastos recurrentes
+- `src/app/pages/gastos-servicios/gastos-servicios.component.ts` - Página principal de gestión
+- `src/app/pages/gastos-servicios/gastos-servicios.component.html`
+- `src/app/pages/gastos-servicios/gastos-servicios.component.css`
+
+**Archivos Modificados:**
+- `src/app/models/gasto.model.ts` - Agregados campos `pagado?: boolean` y `serieRecurrenteId?: string`
+- `src/app/services/calendario-financiero.service.ts` - Integración de eventos de servicios recurrentes
+- `src/app/services/backup.service.ts` - Inclusión de gastos recurrentes en backups
+- `src/app/models/backup.model.ts` - Agregados campos para gastos recurrentes
+- `src/app/models/evento-financiero.model.ts` - Agregado tipo `VENCIMIENTO_SERVICIO`
+- `src/app/app.routes.ts` - Agregada ruta `/gastos-servicios`
+- `src/app/app.html` - Agregado enlace en menú lateral y menú "Más"
+
+**Funcionalidades Implementadas:**
+
+#### Gestión de Series de Gastos Recurrentes:
+- **Crear series**: Nombre, descripción, monto, día de vencimiento, frecuencia
+- **Frecuencias soportadas**: Mensual, Bimestral, Trimestral, Semestral, Anual
+- **Configuración**: Tarjeta asociada, categoría opcional, proveedor (EDENOR, EDESUR, etc.)
+- **Fechas**: Fecha de inicio y fecha de fin opcional
+- **Estado**: Activar/desactivar series
+- **Edición y eliminación**: CRUD completo de series
+
+#### Generación Automática de Instancias:
+- **Generación automática**: Crea instancias para los próximos 12 meses automáticamente
+- **Cálculo de fechas**: Calcula fechas de vencimiento según frecuencia y día del mes
+- **Sin duplicados**: Evita crear instancias duplicadas para la misma fecha
+- **Actualización dinámica**: Se regeneran instancias cuando se crean o modifican series
+
+#### Gestión de Instancias:
+- **Marcar como pagado**: Checkbox para marcar instancias como pagadas
+- **Crear gasto real**: Al marcar como pagado, opcionalmente crear un gasto real en el sistema
+- **Visualización agrupada**: Instancias agrupadas por mes para mejor organización
+- **Filtros**: Ver solo pendientes o todas las instancias
+
+#### Integración con Calendario Financiero:
+- **Eventos automáticos**: Las instancias pendientes aparecen como eventos en el calendario
+- **Tipo de evento**: `VENCIMIENTO_SERVICIO` con información completa
+- **Prioridades**: Cálculo automático de prioridad según proximidad de vencimiento
+- **Estado de pago**: Indica si el servicio ya fue pagado
+
+#### Integración con Sistema de Backup:
+- **Inclusión en backups**: Series e instancias se incluyen en los backups
+- **Restauración**: Restauración completa de gastos recurrentes desde backups
+- **Metadatos**: Resumen incluye cantidad de series e instancias
+
+**Modelos de Datos:**
+
+```typescript
+// Serie de gasto recurrente
+interface GastoRecurrente {
+  id: string;
+  nombre: string;
+  descripcion: string;
+  monto: number;
+  diaVencimiento: number; // 1-31
+  frecuencia: 'MENSUAL' | 'BIMESTRAL' | 'TRIMESTRAL' | 'SEMESTRAL' | 'ANUAL';
+  fechaInicio: string; // YYYY-MM-DD
+  fechaFin?: string; // YYYY-MM-DD (opcional)
+  tarjetaId: string;
+  categoriaId?: string;
+  proveedor?: string; // EDENOR, EDESUR, etc.
+  notas?: string;
+  activo: boolean;
+  fechaCreacion: string;
+  fechaActualizacion?: string;
+}
+
+// Instancia generada
+interface InstanciaGastoRecurrente {
+  id: string;
+  serieRecurrenteId: string;
+  fechaVencimiento: string; // YYYY-MM-DD
+  monto: number;
+  pagado: boolean;
+  fechaPago?: string; // YYYY-MM-DD
+  fechaCreacion: string;
+}
+```
+
+**Características de la Interfaz:**
+- **Formulario intuitivo**: Crear/editar series con validación
+- **Lista de series**: Visualización de todas las series activas/inactivas
+- **Tabla de instancias**: Tabla con todas las instancias pendientes
+- **Agrupación por mes**: Instancias agrupadas por mes para mejor visualización
+- **Proveedores predefinidos**: Lista de proveedores comunes (EDENOR, EDESUR, Metrogas, etc.)
+- **Diseño responsive**: Optimizado para móviles y tablets
+
+**Persistencia:**
+- Almacenamiento en `localStorage` con claves:
+  - `gestor_tc_gastos_recurrentes` - Series de gastos recurrentes
+  - `gestor_tc_instancias_gastos_recurrentes` - Instancias generadas
+
+**Flujo de Trabajo:**
+1. Usuario crea una serie de gasto recurrente (ej: "Luz EDENOR")
+2. Sistema genera automáticamente instancias para los próximos 12 meses
+3. Instancias aparecen en el calendario financiero como eventos
+4. Usuario marca instancias como pagadas cuando realiza el pago
+5. Opcionalmente, se crea un gasto real en el sistema al marcar como pagado
+
+---
+
+## Archivos Totales - Sistema de Gastos Recurrentes
+
+### Creados: 4 archivos
+- 1 modelo (gasto-recurrente.model.ts)
+- 1 servicio (gastos-recurrentes.service.ts)
+- 1 página completa (gastos-servicios con TS, HTML, CSS)
+
+### Modificados: 6 archivos
+- Modelos existentes (gasto.model.ts, backup.model.ts, evento-financiero.model.ts)
+- Servicios existentes (calendario-financiero.service.ts, backup.service.ts)
+- Rutas (app.routes.ts)
+- Layout principal (app.html)
+
+---
+
+## Estado Final del Proyecto (Actualizado)
+
+✅ **Fase 1 Completada al 100%**
+✅ **Fase 2 Completada al 100%**
+✅ **Fase 3 Completada al 100%**
+✅ **Sistema de Gastos Recurrentes Completado al 100%**
+✅ **Tour Guiado Completado al 100%**
+
+**Funcionalidades Adicionales Implementadas:**
+1. ✅ **Sistema de Gastos Recurrentes**: Gestión completa de servicios recurrentes con generación automática de instancias
+2. ✅ **Tour Guiado**: Sistema de recorrido guiado para nuevos usuarios
+
+**Integración Completa:**
+- Gastos recurrentes integrados con calendario financiero
+- Instancias aparecen como eventos en el calendario
+- Sistema de backup incluye gastos recurrentes
+- Tour guiado disponible desde el toolbar
+- Todas las rutas y navegación actualizadas
+
+El proyecto está completamente funcional con todas las funcionalidades implementadas y listo para uso en producción.
+
+---
+
+## Implementación: Sistema de Registro Rápido de Gastos (2025-01-27)
+
+### Resumen Ejecutivo
+
+Se implementó un sistema completo de registro rápido de gastos diseñado para facilitar el registro inmediato después de cada compra y crear un hábito constante. El sistema incluye un botón flotante de acceso rápido, formulario simplificado, plantillas de gastos frecuentes y un servicio de preferencias que aprende de los hábitos del usuario.
+
+**Objetivo:** Reducir la fricción al mínimo para que el usuario registre gastos en menos de 10 segundos, creando un hábito natural y evitando olvidos.
+
+---
+
+### 1. Botón Flotante de Acceso Rápido (FAB) ✅
+
+**Archivos Creados:**
+- `src/app/components/gasto-rapido-fab/gasto-rapido-fab.component.ts` - Componente del botón flotante
+- `src/app/components/gasto-rapido-fab/gasto-rapido-fab.component.html`
+- `src/app/components/gasto-rapido-fab/gasto-rapido-fab.component.css`
+
+**Archivos Modificados:**
+- `src/app/app.html` - Agregado componente FAB fuera del sidenav-container
+- `src/app/app.ts` - Importado GastoRapidoFabComponent
+
+**Funcionalidades:**
+- **Botón flotante siempre visible**: Posición fija en esquina inferior derecha
+- **Accesible desde cualquier página**: No requiere navegar a sección específica
+- **Diseño destacado**: Color primary (teal) con sombra y animaciones
+- **Responsive**: Ajusta posición en móviles
+- **Tooltip informativo**: "Agregar gasto rápido" al hacer hover
+- **Abre formulario rápido**: Al hacer clic, abre diálogo con formulario simplificado
+
+**Características Técnicas:**
+- `position: fixed` con `z-index: 1000`
+- Animaciones suaves en hover y click
+- Diseño Material Design (mat-fab)
+- No interfiere con otros elementos de la UI
+
+---
+
+### 2. Formulario Rápido Simplificado ✅
+
+**Archivos Creados:**
+- `src/app/components/gasto-rapido-dialog/gasto-rapido-dialog.component.ts` - Componente del diálogo rápido
+- `src/app/components/gasto-rapido-dialog/gasto-rapido-dialog.component.html`
+- `src/app/components/gasto-rapido-dialog/gasto-rapido-dialog.component.css`
+
+**Funcionalidades:**
+- **Solo campos esenciales**: Monto, Descripción, Tarjeta
+- **Autocompletado inteligente**: Sugerencias basadas en gastos frecuentes
+- **Valores por defecto inteligentes**:
+  - Última tarjeta usada (o primera disponible)
+  - Fecha de hoy (automático)
+  - Categoría detectada automáticamente (si aplica)
+- **Autocompletado de descripciones**: 
+  - Muestra descripciones frecuentes mientras escribes
+  - Indica monto promedio y veces usada
+  - Al seleccionar, prellena monto y categoría si están disponibles
+- **Más opciones colapsable**: Expandir para ver fecha y otros campos
+- **Botón "Formulario Completo"**: Navega a página de gastos para formulario completo
+- **Validación en tiempo real**: Mensajes claros de error
+- **Guardado rápido**: Un solo clic para guardar
+
+**Características de UX:**
+- Foco automático en campo "Monto" al abrir
+- Teclado numérico en móviles para campo monto
+- Diseño limpio y minimalista
+- Animaciones suaves
+- Feedback visual inmediato
+
+---
+
+### 3. Servicio de Preferencias de Usuario ✅
+
+**Archivos Creados:**
+- `src/app/services/preferencias-usuario.service.ts` - Servicio completo de preferencias
+
+**Funcionalidades:**
+- **Última tarjeta usada**: Recuerda y sugiere la última tarjeta utilizada
+- **Última categoría usada**: Recuerda preferencias de categorización
+- **Descripciones frecuentes**: 
+  - Rastrea descripciones más usadas
+  - Calcula monto promedio por descripción
+  - Asocia categorías automáticamente
+  - Ordena por frecuencia y última fecha de uso
+  - Mantiene top 20 descripciones más frecuentes
+- **Persistencia**: Almacenamiento en localStorage
+- **Observables**: Actualización reactiva de preferencias
+
+**Modelos de Datos:**
+
+```typescript
+interface PreferenciasUsuario {
+  ultimaTarjetaId?: string;
+  ultimaCategoriaId?: string;
+  modoRapidoActivo?: boolean;
+}
+
+interface DescripcionFrecuente {
+  texto: string;
+  vecesUsada: number;
+  ultimaUso: string; // ISO string
+  montoPromedio?: number;
+  categoriaId?: string;
+}
+```
+
+**Almacenamiento:**
+- `gestor_tc_preferencias_usuario` - Preferencias del usuario
+- `gestor_tc_descripciones_frecuentes` - Descripciones frecuentes
+
+---
+
+### 4. Plantillas de Gastos Frecuentes ✅
+
+**Archivos Modificados:**
+- `src/app/pages/gastos/gastos.component.ts` - Agregada lógica de plantillas
+- `src/app/pages/gastos/gastos.component.html` - Agregada sección de plantillas
+- `src/app/pages/gastos/gastos.component.css` - Estilos para plantillas
+
+**Funcionalidades:**
+- **Panel de gastos rápidos**: Sección visible en página de gastos
+- **Botones de plantillas**: Botones con iconos y nombres de gastos frecuentes
+- **Información contextual**: 
+  - Icono según categoría
+  - Monto promedio (si está disponible)
+  - Contador de veces usada (tooltip)
+- **Un clic para usar**: Al hacer clic, abre formulario completo prellenado
+- **Aprendizaje automático**: Se generan automáticamente de descripciones frecuentes
+- **Top 8 plantillas**: Muestra las 8 descripciones más frecuentes
+- **Diseño responsive**: Grid adaptativo para móviles y desktop
+
+**Iconos por Categoría:**
+- Alimentación: 🍔
+- Transporte: 🚗
+- Entretenimiento: 🎬
+- Salud: 💊
+- Educación: 📚
+- Ropa: 👕
+- Servicios: 💡
+- Compras: 🛒
+- Otros: 📦
+
+---
+
+### 5. Integración con Sistema de Gastos ✅
+
+**Archivos Modificados:**
+- `src/app/pages/gastos/gastos.ts` - Integración de preferencias y plantillas
+- `src/app/services/gasto.ts` - (No modificado, pero se usa desde formulario rápido)
+
+**Funcionalidades:**
+- **Registro automático de preferencias**: Al guardar un gasto, se actualizan preferencias
+- **Registro de descripciones frecuentes**: Cada gasto guardado se registra para aprendizaje
+- **Sincronización**: Preferencias se actualizan en tiempo real
+- **Integración transparente**: Funciona con el sistema de gastos existente
+
+---
+
+## Archivos Totales - Sistema de Registro Rápido
+
+### Creados: 7 archivos
+- 1 servicio (preferencias-usuario.service.ts)
+- 2 componentes (gasto-rapido-fab, gasto-rapido-dialog) con TS, HTML, CSS
+
+### Modificados: 4 archivos
+- Layout principal (app.html, app.ts)
+- Página de gastos (gastos.ts, gastos.component.html, gastos.component.css)
+
+---
+
+## Flujo de Trabajo del Usuario
+
+### Registro Rápido desde FAB:
+1. Usuario hace una compra
+2. Usuario hace clic en botón flotante (FAB) desde cualquier página
+3. Se abre formulario rápido con:
+   - Última tarjeta usada pre-seleccionada
+   - Campo monto con foco automático
+   - Campo descripción con autocompletado
+4. Usuario ingresa monto y descripción (o selecciona de sugerencias)
+5. Usuario hace clic en "Guardar"
+6. Gasto se registra y se actualizan preferencias
+7. Formulario se cierra automáticamente
+
+**Tiempo estimado: 5-10 segundos**
+
+### Registro desde Plantillas:
+1. Usuario va a página de gastos
+2. Ve panel de "Gastos Rápidos" con botones de plantillas
+3. Usuario hace clic en plantilla (ej: "Café")
+4. Se abre formulario completo prellenado con:
+   - Descripción: "Café"
+   - Monto: Monto promedio (si está disponible)
+   - Categoría: Categoría asociada (si está disponible)
+   - Tarjeta: Última usada
+5. Usuario ajusta monto si es necesario
+6. Usuario hace clic en "Guardar"
+
+**Tiempo estimado: 3-5 segundos**
+
+---
+
+## Características de Aprendizaje
+
+### Sistema Inteligente:
+- **Aprende de tus hábitos**: Cuanto más uses una descripción, más arriba aparece
+- **Calcula promedios**: Monto promedio se calcula automáticamente
+- **Asocia categorías**: Aprende qué categoría usar para cada descripción
+- **Prioriza recientes**: Descripciones recientes tienen prioridad
+- **Mantiene top 20**: Solo guarda las 20 más frecuentes para optimizar rendimiento
+
+### Beneficios:
+- ✅ Menos escritura: Autocompletado inteligente
+- ✅ Menos errores: Valores prellenados correctos
+- ✅ Más rápido: Menos campos a completar
+- ✅ Personalizado: Se adapta a tus hábitos
+
+---
+
+## Métricas de Éxito Esperadas
+
+- **Tiempo de registro**: < 10 segundos (objetivo: 5-7 segundos)
+- **Tasa de uso del FAB**: > 60% de los gastos registrados desde FAB
+- **Uso de plantillas**: > 30% de gastos comunes registrados desde plantillas
+- **Reducción de olvidos**: > 50% menos gastos olvidados
+- **Satisfacción del usuario**: Registro percibido como "fácil" y "rápido"
+
+---
+
+## Estado Final del Proyecto (Actualizado)
+
+✅ **Fase 1 Completada al 100%**
+✅ **Fase 2 Completada al 100%**
+✅ **Fase 3 Completada al 100%**
+✅ **Sistema de Gastos Recurrentes Completado al 100%**
+✅ **Tour Guiado Completado al 100%**
+✅ **Sistema de Registro Rápido Completado al 100%**
+
+**Funcionalidades Adicionales Implementadas:**
+1. ✅ **Sistema de Gastos Recurrentes**: Gestión completa de servicios recurrentes
+2. ✅ **Tour Guiado**: Sistema de recorrido guiado para nuevos usuarios
+3. ✅ **Registro Rápido de Gastos**: Botón flotante, formulario rápido y plantillas
+
+**Integración Completa:**
+- Botón flotante accesible desde cualquier página
+- Formulario rápido con autocompletado inteligente
+- Plantillas de gastos frecuentes en página de gastos
+- Sistema de preferencias que aprende de hábitos
+- Integración completa con sistema de gastos existente
+- Todas las rutas y navegación actualizadas
+
+El proyecto está completamente funcional con todas las funcionalidades implementadas, incluyendo el sistema de registro rápido diseñado para crear hábitos y facilitar el registro de gastos. Listo para uso en producción.
+

@@ -46,6 +46,11 @@
         <mat-icon>file_upload</mat-icon>
         <span>Importar/Exportar</span>
       </a>
+      <a mat-list-item class="nav-item" routerLink="/gastos-servicios" routerLinkActive="active"
+        (click)="drawer.close()">
+        <mat-icon>receipt</mat-icon>
+        <span>Gastos de Servicios</span>
+      </a>
       <a mat-list-item class="nav-item" routerLink="/reportes-whatsapp" routerLinkActive="active"
         (click)="drawer.close()">
         <mat-icon>chat</mat-icon>
@@ -92,6 +97,9 @@
       <span class="toolbar-spacer"></span>
       <app-global-search class="toolbar-search"></app-global-search>
       <app-theme-toggle></app-theme-toggle>
+      <button mat-icon-button (click)="iniciarTour()" matTooltip="Repetir Tour Guiado" class="tour-button">
+        <mat-icon>help_outline</mat-icon>
+      </button>
       <nav class="desktop-nav">
         <a mat-button routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
         <a mat-button routerLink="/tarjetas" routerLinkActive="active">Tarjetas</a>
@@ -123,6 +131,10 @@
           <a mat-menu-item routerLink="/importar-exportar" routerLinkActive="active">
             <mat-icon>file_upload</mat-icon>
             <span>Importar/Exportar</span>
+          </a>
+          <a mat-menu-item routerLink="/gastos-servicios" routerLinkActive="active">
+            <mat-icon>receipt</mat-icon>
+            <span>Gastos de Servicios</span>
           </a>
           <a mat-menu-item routerLink="/reportes-whatsapp" routerLinkActive="active">
             <mat-icon>chat</mat-icon>
@@ -163,3 +175,9 @@
     </footer>
   </mat-sidenav-content>
 </mat-sidenav-container>
+
+<!-- Tour Guiado - Fuera del sidenav-container para mejor posicionamiento -->
+<app-tour-guiado></app-tour-guiado>
+
+<!-- Botón Flotante de Acceso Rápido -->
+<app-gasto-rapido-fab></app-gasto-rapido-fab>

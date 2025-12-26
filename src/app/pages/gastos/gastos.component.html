@@ -10,6 +10,30 @@
     </button>
   </div>
 
+  <!-- Plantillas de Gastos Frecuentes -->
+  <section class="content-card plantillas-section" *ngIf="plantillasFrecuentes.length > 0">
+    <h3 class="card-title">
+      <mat-icon>flash_on</mat-icon>
+      Gastos Rápidos
+    </h3>
+    <p class="card-subtitle">Haz clic para usar un gasto frecuente</p>
+    <div class="plantillas-grid">
+      <button 
+        *ngFor="let plantilla of plantillasFrecuentes" 
+        class="plantilla-btn"
+        (click)="usarPlantilla(plantilla)"
+        [matTooltip]="'Usado ' + plantilla.vecesUsada + ' veces'">
+        <span class="plantilla-icon">{{ plantilla.icono }}</span>
+        <div class="plantilla-content">
+          <span class="plantilla-nombre">{{ plantilla.nombre }}</span>
+          <span class="plantilla-monto" *ngIf="plantilla.montoPromedio">
+            ~${{ plantilla.montoPromedio | number:'1.0-0' }}
+          </span>
+        </div>
+      </button>
+    </div>
+  </section>
+
   <!-- Filtros Avanzados -->
   <app-filtros-avanzados
     [tarjetas]="tarjetas"

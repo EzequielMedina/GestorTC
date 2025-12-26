@@ -25,6 +25,8 @@ export interface BackupDatos {
   filtrosGuardados: any[]; // Filtros avanzados guardados
   etiquetas?: any[]; // Etiquetas (opcional para compatibilidad)
   notas?: any[]; // Notas (opcional para compatibilidad)
+  gastosRecurrentes?: any[]; // Series de gastos recurrentes (opcional para compatibilidad)
+  instanciasGastosRecurrentes?: any[]; // Instancias de gastos recurrentes (opcional para compatibilidad)
 }
 
 /**
@@ -44,6 +46,8 @@ export interface BackupMetadata {
     cantidadFiltrosGuardados: number;
     cantidadEtiquetas?: number;
     cantidadNotas?: number;
+    cantidadGastosRecurrentes?: number;
+    cantidadInstanciasGastosRecurrentes?: number;
   };
 }
 

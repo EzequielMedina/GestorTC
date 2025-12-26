@@ -102,6 +102,11 @@ export const routes: Routes = [
     title: 'Reportes Personalizados - Gestor de Tarjetas de Crédito'
   },
   {
+    path: 'gastos-servicios',
+    loadComponent: () => import('./pages/gastos-servicios/gastos-servicios.component').then(m => m.GastosServiciosComponent),
+    title: 'Gastos de Servicios - Gestor de Tarjetas de Crédito'
+  },
+  {
     path: '**',
     redirectTo: 'dashboard'
   }

@@ -865,3 +865,94 @@
     font-size: 13px;
   }
 }
+
+/* Plantillas de Gastos Frecuentes */
+.plantillas-section {
+  margin-bottom: var(--spacing-lg);
+}
+
+.plantillas-section .card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.plantillas-section .card-subtitle {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.plantillas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+}
+
+.plantilla-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-md);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 100px;
+  gap: var(--spacing-xs);
+}
+
+.plantilla-btn:hover {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.plantilla-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.plantilla-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.plantilla-nombre {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  text-align: center;
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+.plantilla-monto {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .plantillas-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: var(--spacing-xs);
+  }
+
+  .plantilla-btn {
+    min-height: 80px;
+    padding: var(--spacing-sm);
+  }
+
+  .plantilla-icon {
+    font-size: 1.5rem;
+  }
+}
