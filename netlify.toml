@@ -2,7 +2,8 @@
 
 [build]
   # Comando para construir la aplicación
-  command = "npm run build"
+  # El archivo .npmrc ya configura legacy-peer-deps automáticamente
+  command = "npm install && npm run build"
   # Directorio donde se genera el build
   publish = "dist/gestor-tc/browser"
 
