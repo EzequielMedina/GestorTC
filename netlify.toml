@@ -1,21 +1,20 @@
 # Configuración de Netlify para Angular PWA
 
+# Configuración de Netlify para Angular PWA
+
 [build]
   # Comando para construir la aplicación
-  # El archivo .npmrc ya configura legacy-peer-deps automáticamente
-  command = "npm install && npm run build"
+  command = "npm run build"
   # Directorio donde se genera el build
   publish = "dist/gestor-tc/browser"
 
 # Redirecciones para SPA (Single Page Application)
-# IMPORTANTE: Esta redirección debe estar al final
-# Netlify automáticamente excluye archivos estáticos que existen físicamente
-# Solo redirige rutas que no corresponden a archivos reales
+# Redirigir todas las rutas a index.html EXCEPTO archivos estáticos
+# Netlify automáticamente excluye archivos que existen físicamente
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-  force = false
 
 # Headers para PWA y seguridad
 [[headers]]
