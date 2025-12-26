@@ -58,19 +58,23 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# Headers específicos para Service Worker
+# Headers específicos para Service Worker - NO cachear para permitir actualizaciones
 [[headers]]
   for = "/ngsw-worker.js"
   [headers.values]
     Content-Type = "application/javascript; charset=utf-8"
-    Cache-Control = "public, max-age=0, must-revalidate"
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Pragma = "no-cache"
+    Expires = "0"
     Service-Worker-Allowed = "/"
 
 [[headers]]
   for = "/ngsw.json"
   [headers.values]
-    Content-Type = "application/json"
-    Cache-Control = "public, max-age=0, must-revalidate"
+    Content-Type = "application/json; charset=utf-8"
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Pragma = "no-cache"
+    Expires = "0"
 
 # Headers para Manifest
 [[headers]]
