@@ -2,6 +2,11 @@ import { Injectable } from '@angular/core';
 import { Observable, combineLatest, map, shareReplay } from 'rxjs';
 import { Gasto } from '../models/gasto.model';
 import { Tarjeta } from '../models/tarjeta.model';
+import { ModoResumen } from '../models/resumen/modo-resumen';
+import { ComparacionMeses } from '../models/resumen/modo-resumen';
+import { MesNaturalPeriodoResolver } from './resumen/mes-natural-periodo.resolver';
+import { PeriodoCierrePeriodoResolver } from './resumen/periodo-cierre-periodo.resolver';
+import { gastoImpactaEnRango } from './resumen/gasto-impacto-calculator';
 import { GastoService } from './gasto';
 import { TarjetaService } from './tarjeta';
 import { GastosCompartidosService } from './gastos-compartidos.service';
@@ -28,6 +33,9 @@ export interface ResumenPersona {
   providedIn: 'root'
 })
 export class ResumenService {
+  private readonly mesNaturalResolver = new MesNaturalPeriodoResolver();
+  private readonly periodoCierreResolver = new PeriodoCierrePeriodoResolver();
+
   constructor(
     private gastoService: GastoService,
     private tarjetaService: TarjetaService,
@@ -39,6 +47,21 @@ export class ResumenService {
   // ==========================
   private monthKeyFromDate(d: Date): string {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  }
+
+  /** Fecha del gasto a YYYY-MM-DD en fecha local (evita desfase por timezone). */
+  private fechaGastoToYYYYMMDD(fecha: string | Date | any): string {
+    if (typeof fecha === 'string' && /^\d{4}-\d{2}/.test(fecha)) {
+      return fecha.slice(0, 10);
+    }
+    if (fecha instanceof Date) {
+      const y = fecha.getFullYear();
+      const m = String(fecha.getMonth() + 1).padStart(2, '0');
+      const d = String(fecha.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+    const fallback = new Date();
+    return `${fallback.getFullYear()}-${String(fallback.getMonth() + 1).padStart(2, '0')}-${String(fallback.getDate()).padStart(2, '0')}`;
   }
 
   private monthKeyFromISO(isoDate: string | Date | any): string {
@@ -163,6 +186,204 @@ export class ResumenService {
         });
       })
       // NO usar shareReplay aquí - cada vez que se llama debe crear un nuevo observable
+    );
+  }
+
+  /**
+   * Resumen por tarjeta según modo: mes natural (calendario) o período de cierre por tarjeta.
+   */
+  getResumenPorTarjetaConModo$(monthKey: string, modo: ModoResumen): Observable<Array<ResumenTarjeta & { totalMes: number }>> {
+    if (modo === 'mesNatural') {
+      return this.getResumenPorTarjetaDelMes$(monthKey);
+    }
+    return combineLatest([
+      this.tarjetaService.getTarjetas$(),
+      this.gastoService.getGastos$()
+    ]).pipe(
+      map(([tarjetas, gastos]) => {
+        return tarjetas.map(tarjeta => {
+          const rango = this.periodoCierreResolver.getRangoParaTarjeta(tarjeta, monthKey);
+          const gastosTarjeta = gastos.filter(g => g.tarjetaId === tarjeta.id);
+          const totalMes = gastosTarjeta.reduce((acc, g) => acc + gastoImpactaEnRango(g, rango), 0);
+          const totalGastos = gastosTarjeta.reduce((sum, g) => sum + g.monto, 0);
+          const porcentajeUsoMes = tarjeta.limite > 0 ? (totalMes / tarjeta.limite) * 100 : 0;
+          return {
+            ...tarjeta,
+            totalGastos,
+            porcentajeUso: Math.min(100, Math.max(0, porcentajeUsoMes)),
+            saldoDisponible: Math.max(0, tarjeta.limite - totalMes),
+            totalMes
+          };
+        });
+      })
+    );
+  }
+
+  /**
+   * Etiqueta del rango de fechas del período de cierre para mostrar en UI (ej. "16 feb - 15 mar").
+   * Usa diaCierreEjemplo (por defecto 15) para calcular el rango.
+   */
+  getRangoPeriodoCierreLabel(monthKey: string, diaCierreEjemplo: number = 15): string {
+    const rango = this.periodoCierreResolver.getRangoParaDiaCierre(monthKey, diaCierreEjemplo);
+    const fmt = (s: string) => {
+      const [y, m, d] = s.split('-').map(Number);
+      const date = new Date(y, m - 1, d);
+      return date.toLocaleDateString('es', { day: 'numeric', month: 'short' });
+    };
+    return `${fmt(rango.fechaInicio)} - ${fmt(rango.fechaFin)}`;
+  }
+
+  /**
+   * Total del período según modo (mes natural o período de cierre).
+   */
+  getTotalEnPeriodoConModo$(monthKey: string, modo: ModoResumen): Observable<number> {
+    if (modo === 'mesNatural') {
+      return this.getTotalDelMes$(monthKey);
+    }
+    return this.getResumenPorTarjetaConModo$(monthKey, modo).pipe(
+      map(tarjetas => tarjetas.reduce((sum, t) => sum + t.totalMes, 0))
+    );
+  }
+
+  /**
+   * Porcentaje de uso total del período (total / límite * 100) según modo.
+   */
+  getPorcentajeUsoTotalConModo$(monthKey: string, modo: ModoResumen): Observable<number> {
+    return combineLatest([
+      this.getTotalEnPeriodoConModo$(monthKey, modo),
+      this.getLimiteTotal$()
+    ]).pipe(
+      map(([totalPeriodo, limiteTotal]) => limiteTotal > 0 ? Math.min(100, (totalPeriodo / limiteTotal) * 100) : 0)
+    );
+  }
+
+  /**
+   * Detalle de gastos agrupados por tarjeta según modo.
+   */
+  getDetalleGastosAgrupadosPorTarjetaConModo$(monthKey: string, modo: ModoResumen): Observable<Array<{
+    nombreTarjeta: string;
+    totalTarjeta: number;
+    cantidadGastos: number;
+    gastosUltimaCuota: number;
+    gastos: Array<{
+      descripcion: string;
+      montoOriginal: number;
+      cuotaActual: number;
+      cantidadCuotas: number;
+      montoCuota: number;
+      compartidoCon?: string;
+      porcentajeCompartido?: number;
+    }>;
+  }>> {
+    if (modo === 'mesNatural') {
+      return this.getDetalleGastosAgrupadosPorTarjeta$(monthKey);
+    }
+    return combineLatest([
+      this.tarjetaService.getTarjetas$(),
+      this.gastoService.getGastos$()
+    ]).pipe(
+      map(([tarjetas, gastos]) => {
+        const tarjetasMap = new Map(tarjetas.map(t => [t.id, t.nombre] as const));
+        const gastosPorTarjeta = new Map<string, Array<{
+          descripcion: string;
+          montoOriginal: number;
+          cuotaActual: number;
+          cantidadCuotas: number;
+          montoCuota: number;
+          compartidoCon?: string;
+          porcentajeCompartido?: number;
+        }>>();
+        tarjetas.forEach(tarjeta => {
+          const rango = this.periodoCierreResolver.getRangoParaTarjeta(tarjeta, monthKey);
+          const gastosDeTarjeta = gastos.filter(g => g.tarjetaId === tarjeta.id);
+          const nombreTarjeta = tarjeta.nombre;
+          gastosDeTarjeta.forEach(gasto => {
+            const cuotas = Math.max(1, gasto.cantidadCuotas || 1);
+            const montoCuota = gasto.montoPorCuota ?? Math.round((gasto.monto / cuotas) * 100) / 100;
+            if (cuotas <= 1) {
+              const fechaStr = this.fechaGastoToYYYYMMDD(gasto.fecha);
+              if (rango.incluye(fechaStr)) {
+                if (!gastosPorTarjeta.has(nombreTarjeta)) gastosPorTarjeta.set(nombreTarjeta, []);
+                gastosPorTarjeta.get(nombreTarjeta)!.push({
+                  descripcion: gasto.descripcion,
+                  montoOriginal: gasto.monto,
+                  cuotaActual: 1,
+                  cantidadCuotas: 1,
+                  montoCuota: gasto.monto,
+                  compartidoCon: gasto.compartidoCon,
+                  porcentajeCompartido: gasto.porcentajeCompartido
+                });
+              }
+            } else {
+              const firstISO = this.firstMonthISOFromGasto(gasto);
+              for (let i = 0; i < cuotas; i++) {
+                const iso = this.addMonths(firstISO, i);
+                if (rango.incluye(iso)) {
+                  if (!gastosPorTarjeta.has(nombreTarjeta)) gastosPorTarjeta.set(nombreTarjeta, []);
+                  gastosPorTarjeta.get(nombreTarjeta)!.push({
+                    descripcion: gasto.descripcion,
+                    montoOriginal: gasto.monto,
+                    cuotaActual: i + 1,
+                    cantidadCuotas: cuotas,
+                    montoCuota: montoCuota,
+                    compartidoCon: gasto.compartidoCon,
+                    porcentajeCompartido: gasto.porcentajeCompartido
+                  });
+                }
+              }
+            }
+          });
+        });
+        return Array.from(gastosPorTarjeta.entries()).map(([nombreTarjeta, gastosLista]) => {
+          const totalTarjeta = gastosLista.reduce((sum, g) => sum + g.montoCuota, 0);
+          const cantidadGastos = gastosLista.length;
+          const gastosUltimaCuota = gastosLista.filter(g => g.cuotaActual === g.cantidadCuotas).length;
+          return {
+            nombreTarjeta,
+            totalTarjeta,
+            cantidadGastos,
+            gastosUltimaCuota,
+            gastos: gastosLista.sort((a, b) => a.descripcion.localeCompare(b.descripcion))
+          };
+        }).sort((a, b) => a.nombreTarjeta.localeCompare(b.nombreTarjeta));
+      })
+    );
+  }
+
+  /**
+   * Comparación de dos meses (totales y por tarjeta). Solo mes natural.
+   */
+  getComparacionMeses$(monthKeyA: string, monthKeyB: string): Observable<ComparacionMeses> {
+    return combineLatest([
+      this.getResumenPorTarjetaDelMes$(monthKeyA),
+      this.getResumenPorTarjetaDelMes$(monthKeyB)
+    ]).pipe(
+      map(([tarjetasA, tarjetasB]) => {
+        const totalA = tarjetasA.reduce((s, t) => s + t.totalMes, 0);
+        const totalB = tarjetasB.reduce((s, t) => s + t.totalMes, 0);
+        const diferenciaAbs = totalA - totalB;
+        const diferenciaPorc = totalB !== 0 ? (diferenciaAbs / totalB) * 100 : 0;
+        const porTarjetaMap = new Map<string, { totalA: number; totalB: number }>();
+        tarjetasA.forEach(t => porTarjetaMap.set(t.nombre, { totalA: t.totalMes, totalB: 0 }));
+        tarjetasB.forEach(t => {
+          const prev = porTarjetaMap.get(t.nombre) ?? { totalA: 0, totalB: 0 };
+          porTarjetaMap.set(t.nombre, { ...prev, totalB: t.totalMes });
+        });
+        const porTarjeta = Array.from(porTarjetaMap.entries()).map(([nombre, { totalA: ta, totalB: tb }]) => ({
+          nombre,
+          totalA: ta,
+          totalB: tb,
+          diferenciaAbs: ta - tb,
+          diferenciaPorc: tb !== 0 ? ((ta - tb) / tb) * 100 : 0
+        }));
+        return {
+          totalA,
+          totalB,
+          diferenciaAbs,
+          diferenciaPorc,
+          porTarjeta
+        };
+      })
     );
   }
 

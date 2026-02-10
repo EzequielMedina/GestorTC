@@ -170,6 +170,9 @@
       <mat-card class="instancias-card">
         <mat-card-header>
           <mat-card-title>Próximos Vencimientos</mat-card-title>
+          <button mat-icon-button color="warn" (click)="limpiarDuplicados()" matTooltip="Limpiar instancias duplicadas">
+            <mat-icon>delete_sweep</mat-icon>
+          </button>
         </mat-card-header>
         <mat-card-content>
           <div *ngIf="instanciasAgrupadasPorMes.length > 0; else sinVencimientos">

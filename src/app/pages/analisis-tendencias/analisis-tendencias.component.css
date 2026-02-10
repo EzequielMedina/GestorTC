@@ -322,16 +322,37 @@
 
   .metrics-grid {
     grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
   }
 
   .picos-valles-grid {
     grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
   }
 
   .comparacion-header,
   .comparacion-row {
     grid-template-columns: 1fr;
     gap: var(--spacing-xs);
+  }
+
+  .card-content {
+    padding: var(--spacing-md);
+  }
+}
+
+@media (max-width: 480px) {
+  .page {
+    padding: var(--spacing-sm);
+  }
+
+  .metrics-grid,
+  .picos-valles-grid {
+    gap: var(--spacing-xs);
+  }
+
+  .card-content {
+    padding: var(--spacing-sm);
   }
 }
 

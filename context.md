@@ -1909,4 +1909,3 @@ provideServiceWorker('ngsw-worker.js', {
 - Todas las rutas y navegación actualizadas
 
 El proyecto está completamente funcional como Progressive Web App, instalable en dispositivos móviles y desktop, con funcionalidad offline completa y actualizaciones automáticas. Listo para uso en producción con HTTPS.
-

@@ -114,20 +114,27 @@ export class GastosRecurrentesService {
       this.instancias$
     ]).subscribe(([series, instanciasExistentes]) => {
       const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0); // Normalizar a inicio del día
+      const hoyISO = hoy.toISOString().split('T')[0];
       const nuevasInstancias: InstanciaGastoRecurrente[] = [];
+      const fechasGeneradas = new Set<string>(); // Para evitar duplicados en esta ejecución
 
       series.filter(s => s.activo).forEach(serie => {
         // Generar instancias para los próximos 12 meses
         for (let i = 0; i < 12; i++) {
           const fechaVencimiento = this.calcularFechaVencimiento(serie, i);
+          const claveInstancia = `${serie.id}-${fechaVencimiento}`;
           
-          // Verificar si ya existe una instancia para esta fecha
-          const existe = instanciasExistentes.some(
+          // Verificar si ya existe una instancia para esta fecha (en almacenamiento)
+          const existeEnStorage = instanciasExistentes.some(
             inst => inst.serieRecurrenteId === serie.id && 
                     inst.fechaVencimiento === fechaVencimiento
           );
 
-          if (!existe && fechaVencimiento >= hoy.toISOString().split('T')[0]) {
+          // Verificar si ya se generó en esta ejecución
+          const existeEnEstaEjecucion = fechasGeneradas.has(claveInstancia);
+
+          if (!existeEnStorage && !existeEnEstaEjecucion && fechaVencimiento >= hoyISO) {
             nuevasInstancias.push({
               id: uuidv4(),
               serieRecurrenteId: serie.id,
@@ -136,6 +143,7 @@ export class GastosRecurrentesService {
               pagado: false,
               fechaCreacion: new Date().toISOString()
             });
+            fechasGeneradas.add(claveInstancia);
           }
         }
       });
@@ -155,19 +163,25 @@ export class GastosRecurrentesService {
     if (!serie.activo) return;
 
     const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0); // Normalizar a inicio del día
+    const hoyISO = hoy.toISOString().split('T')[0];
     const instanciasExistentes = this.instanciasSubject.value;
     const nuevasInstancias: InstanciaGastoRecurrente[] = [];
+    const fechasGeneradas = new Set<string>(); // Para evitar duplicados
 
     // Generar instancias para los próximos 12 meses
     for (let i = 0; i < 12; i++) {
       const fechaVencimiento = this.calcularFechaVencimiento(serie, i);
+      const claveInstancia = `${serie.id}-${fechaVencimiento}`;
       
       const existe = instanciasExistentes.some(
         inst => inst.serieRecurrenteId === serie.id && 
                 inst.fechaVencimiento === fechaVencimiento
       );
 
-      if (!existe && fechaVencimiento >= hoy.toISOString().split('T')[0]) {
+      const existeEnEstaEjecucion = fechasGeneradas.has(claveInstancia);
+
+      if (!existe && !existeEnEstaEjecucion && fechaVencimiento >= hoyISO) {
         nuevasInstancias.push({
           id: uuidv4(),
           serieRecurrenteId: serie.id,
@@ -176,6 +190,7 @@ export class GastosRecurrentesService {
           pagado: false,
           fechaCreacion: new Date().toISOString()
         });
+        fechasGeneradas.add(claveInstancia);
       }
     }
 
@@ -193,11 +208,18 @@ export class GastosRecurrentesService {
     const fechaInicio = new Date(serie.fechaInicio);
     const mesesPorFrecuencia = this.getMesesPorFrecuencia(serie.frecuencia);
     
-    const fechaVencimiento = new Date(
-      fechaInicio.getFullYear(),
-      fechaInicio.getMonth() + (mesesPorFrecuencia * mesesAdelante),
-      serie.diaVencimiento
-    );
+    // Calcular el mes y año objetivo
+    const mesObjetivo = fechaInicio.getMonth() + (mesesPorFrecuencia * mesesAdelante);
+    const añoObjetivo = fechaInicio.getFullYear() + Math.floor(mesObjetivo / 12);
+    const mesFinal = mesObjetivo % 12;
+    
+    // Obtener el último día del mes objetivo para validar el día de vencimiento
+    const ultimoDiaDelMes = new Date(añoObjetivo, mesFinal + 1, 0).getDate();
+    
+    // Ajustar el día si es mayor que los días disponibles en el mes
+    const diaVencimiento = Math.min(serie.diaVencimiento, ultimoDiaDelMes);
+    
+    const fechaVencimiento = new Date(añoObjetivo, mesFinal, diaVencimiento);
 
     return fechaVencimiento.toISOString().split('T')[0];
   }
@@ -315,6 +337,45 @@ export class GastosRecurrentesService {
       localStorage.setItem(STORAGE_KEY_INSTANCIAS, JSON.stringify(instancias));
     } catch (error) {
       console.error('Error al guardar instancias:', error);
+    }
+  }
+
+  /**
+   * Limpia instancias duplicadas (misma serie y misma fecha)
+   * Útil para corregir duplicados existentes
+   */
+  limpiarDuplicados(): void {
+    const instancias = this.instanciasSubject.value;
+    const instanciasUnicas = new Map<string, InstanciaGastoRecurrente>();
+    
+    // Mantener solo la primera instancia de cada combinación serie-fecha
+    instancias.forEach(inst => {
+      const clave = `${inst.serieRecurrenteId}-${inst.fechaVencimiento}`;
+      if (!instanciasUnicas.has(clave)) {
+        instanciasUnicas.set(clave, inst);
+      } else {
+        // Si hay duplicado, mantener la más antigua (o la pagada si una está pagada)
+        const existente = instanciasUnicas.get(clave)!;
+        if (inst.pagado && !existente.pagado) {
+          // Si la nueva está pagada y la existente no, reemplazar
+          instanciasUnicas.set(clave, inst);
+        } else if (!inst.pagado && existente.pagado) {
+          // Si la existente está pagada y la nueva no, mantener la existente
+          // No hacer nada, ya está la correcta
+        } else if (inst.fechaCreacion < existente.fechaCreacion) {
+          // Si ninguna está pagada o ambas están pagadas, mantener la más antigua
+          instanciasUnicas.set(clave, inst);
+        }
+      }
+    });
+    
+    const instanciasLimpias = Array.from(instanciasUnicas.values());
+    const duplicadosEliminados = instancias.length - instanciasLimpias.length;
+    
+    if (duplicadosEliminados > 0) {
+      this.saveInstanciasToStorage(instanciasLimpias);
+      this.instanciasSubject.next(instanciasLimpias);
+      console.log(`Se eliminaron ${duplicadosEliminados} instancias duplicadas`);
     }
   }
 }

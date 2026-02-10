@@ -1,84 +1,81 @@
 import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ResumenService, ResumenPersona, ResumenTarjeta } from '../../services/resumen.service';
 import { Observable, Subscription, combineLatest } from 'rxjs';
 import { TarjetaService } from '../../services/tarjeta';
 import { GastoService } from '../../services/gasto';
+import { ModoResumen } from '../../models/resumen/modo-resumen';
+import { ComparacionMeses } from '../../models/resumen/modo-resumen';
 
 @Component({
   selector: 'app-resumen',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   template: `
     <div class="page">
       <div class="header">
         <div class="header-content">
-          <h2>📊 Resumen</h2>
-          <p class="subtitle">Vista general de tus gastos y tarjetas</p>
+          <h2>Resumen</h2>
         </div>
-        <!-- Navegación mensual -->
-        <div class="month-nav">
-          <button class="btn-nav" (click)="prevMonth()" aria-label="Mes anterior">
-            <span class="nav-icon">◀</span>
-          </button>
-          <div class="month-label">{{ monthLabel }}</div>
-          <button class="btn-nav" (click)="nextMonth()" aria-label="Mes siguiente">
-            <span class="nav-icon">▶</span>
-          </button>
+        <div class="header-actions">
+          <div class="mode-selector">
+            <label class="mode-option"><input type="radio" name="modoResumen" value="mesNatural" [(ngModel)]="modoResumen" (change)="onModoChange()"> Mes natural</label>
+            <label class="mode-option"><input type="radio" name="modoResumen" value="periodoCierre" [(ngModel)]="modoResumen" (change)="onModoChange()"> Por cierre</label>
+          </div>
+          <div class="month-nav">
+            <button class="btn-nav" (click)="prevMonth()" aria-label="Mes anterior"><span class="nav-icon">◀</span></button>
+            <div class="month-label">{{ monthLabel }}</div>
+            <button class="btn-nav" (click)="nextMonth()" aria-label="Mes siguiente"><span class="nav-icon">▶</span></button>
+          </div>
         </div>
       </div>
 
-      <!-- Totales del mes seleccionado -->
       <section class="stats-grid">
         <div class="stat-card">
           <div class="stat-icon">💰</div>
           <div class="stat-content">
-          <div class="stat-label">Total del mes</div>
-          <div class="stat-value">{{ ((totalDelMes$ | async) ?? 0) | number:'1.2-2' }}</div>
-        </div>
+            <div class="stat-label">Total</div>
+            <div class="stat-value">{{ ((totalDelMes$ | async) ?? 0) | number:'1.2-2' }}</div>
+          </div>
         </div>
         <div class="stat-card">
           <div class="stat-icon">💳</div>
           <div class="stat-content">
-          <div class="stat-label">Límite Total</div>
-          <div class="stat-value">{{ ((limiteTotal$ | async) ?? 0) | number:'1.0-0' }}</div>
-        </div>
+            <div class="stat-label">Límite</div>
+            <div class="stat-value">{{ ((limiteTotal$ | async) ?? 0) | number:'1.0-0' }}</div>
+          </div>
         </div>
         <div class="stat-card">
           <div class="stat-icon">📊</div>
           <div class="stat-content">
-          <div class="stat-label">Uso del mes</div>
-          <div class="stat-value">{{ ((porcentajeUsoTotalMes$ | async) ?? 0) | number:'1.0-2' }}%</div>
+            <div class="stat-label">Uso</div>
+            <div class="stat-value">{{ ((porcentajeUsoTotalMes$ | async) ?? 0) | number:'1.0-2' }}%</div>
           </div>
         </div>
       </section>
 
-      <!-- Resumen por tarjeta del mes -->
       <section class="content-card">
         <div class="card-header">
-          <h3 class="card-title">Por Tarjeta - {{ monthLabel }}</h3>
+          <h3 class="card-title">Tarjetas</h3>
           <button class="section-toggle-btn" (click)="toggleSeccionCompleta('resumenTarjetas')" 
                   [attr.aria-label]="isSeccionExpandida('resumenTarjetas') ? 'Colapsar sección' : 'Expandir sección'">
             <span class="expand-icon" [class.expanded]="isSeccionExpandida('resumenTarjetas')">▼</span>
           </button>
         </div>
-        <div class="mobile-table" *ngIf="isSeccionExpandida('resumenTarjetas') && (resumenTarjetasMes$ | async) as tarjetas; else resumenTarjetas">
+        <div class="mobile-table tarjetas-grid" *ngIf="isSeccionExpandida('resumenTarjetas') && (resumenTarjetasMes$ | async) as tarjetas; else resumenTarjetas">
           <div class="mobile-row" *ngFor="let t of tarjetas">
             <div class="row-header">
               <div class="card-name">{{ t.nombre }}</div>
               <div class="card-limit">Límite: {{ t.limite | number:'1.0-0' }}</div>
             </div>
             <div class="row-stats">
-              <div class="stat-item">
-                <span class="stat-label">Total General:</span>
-                <span class="stat-value">{{ t.totalGastos | number:'1.2-2' }}</span>
-              </div>
               <div class="stat-item highlight">
-                <span class="stat-label">Este Mes:</span>
+                <span class="stat-label">Período:</span>
                 <span class="stat-value">{{ t.totalMes | number:'1.2-2' }}</span>
               </div>
               <div class="stat-item">
-                <span class="stat-label">Uso del Mes:</span>
+                <span class="stat-label">Uso:</span>
                 <span class="stat-value">{{ t.porcentajeUso | number:'1.0-2' }}%</span>
               </div>
               <div class="stat-item">
@@ -94,21 +91,15 @@ import { GastoService } from '../../services/gasto';
         </div>
       </section>
 
-      <!-- Detalle de gastos agrupados por tarjeta del mes -->
       <section class="content-card">
         <div class="card-header">
-          <h3 class="card-title">Detalle de Gastos - {{ monthLabel }}</h3>
+          <h3 class="card-title">Gastos</h3>
           <div class="card-controls">
             <div class="tarjeta-controls" *ngIf="isSeccionExpandida('detalleGastos')">
-              <button class="control-btn" (click)="expandirTodasTarjetas()" title="Expandir todas las tarjetas">
-                <span class="control-icon">📂</span>
-              </button>
-              <button class="control-btn" (click)="colapsarTodasTarjetas()" title="Colapsar todas las tarjetas">
-                <span class="control-icon">📁</span>
-              </button>
+              <button class="control-btn" (click)="expandirTodasTarjetas()" title="Expandir todas">📂</button>
+              <button class="control-btn" (click)="colapsarTodasTarjetas()" title="Colapsar todas">📁</button>
             </div>
-            <button class="section-toggle-btn" (click)="toggleSeccionCompleta('detalleGastos')" 
-                    [attr.aria-label]="isSeccionExpandida('detalleGastos') ? 'Colapsar sección' : 'Expandir sección'">
+            <button class="section-toggle-btn" (click)="toggleSeccionCompleta('detalleGastos')" aria-label="Expandir o colapsar">
               <span class="expand-icon" [class.expanded]="isSeccionExpandida('detalleGastos')">▼</span>
             </button>
           </div>
@@ -134,8 +125,8 @@ import { GastoService } from '../../services/gasto';
                </div>
              </div>
             
-            <!-- Gastos de la tarjeta (colapsables) -->
-            <div class="tarjeta-gastos" *ngIf="isTarjetaExpandida(grupo.nombreTarjeta)">
+            <!-- Gastos de la tarjeta: en grilla (varias por fila) para menos scroll -->
+            <div class="tarjeta-gastos gastos-grid" *ngIf="isTarjetaExpandida(grupo.nombreTarjeta)">
               <div class="mobile-row gasto-item" *ngFor="let gasto of grupo.gastos">
                 <div class="row-header">
                   <div class="gasto-descripcion">{{ gasto.descripcion }}</div>
@@ -143,17 +134,11 @@ import { GastoService } from '../../services/gasto';
                 </div>
                 <div class="row-content">
                   <div class="gasto-stats">
-                    <div class="stat-item">
-                      <span class="stat-label">Monto Original:</span>
-                      <span class="stat-value">{{ gasto.montoOriginal | number:'1.2-2' }}</span>
-                    </div>
                     <div class="stat-item highlight">
-                      <span class="stat-label">Monto Cuota:</span>
                       <span class="stat-value">{{ gasto.montoCuota | number:'1.2-2' }}</span>
                     </div>
                     <div class="stat-item" *ngIf="gasto.compartidoCon">
-                      <span class="stat-label">Compartido:</span>
-                      <span class="stat-value compartido">{{ gasto.compartidoCon }} ({{ gasto.porcentajeCompartido }}%)</span>
+                      <span class="stat-value compartido">{{ gasto.compartidoCon }} {{ gasto.porcentajeCompartido }}%</span>
                     </div>
                   </div>
                 </div>
@@ -167,10 +152,9 @@ import { GastoService } from '../../services/gasto';
         </div>
       </section>
 
-      <!-- Detalle de gastos compartidos del mes -->
       <section class="content-card">
         <div class="card-header">
-          <h3 class="card-title">Gastos Compartidos - {{ monthLabel }}</h3>
+          <h3 class="card-title">Compartidos</h3>
           <button class="section-toggle-btn" (click)="toggleSeccionCompleta('gastosCompartidos')" 
                   [attr.aria-label]="isSeccionExpandida('gastosCompartidos') ? 'Colapsar sección' : 'Expandir sección'">
             <span class="expand-icon" [class.expanded]="isSeccionExpandida('gastosCompartidos')">▼</span>
@@ -184,18 +168,8 @@ import { GastoService } from '../../services/gasto';
             </div>
             <div class="row-content">
               <div class="compartido-stats">
-                <div class="stat-item">
-                  <span class="stat-label">Cuota del Mes:</span>
-                  <span class="stat-value highlight">{{ item.montoCuota | number:'1.2-2' }}</span>
-                </div>
-                <div class="stat-item pos">
-                  <span class="stat-label">Te Debe:</span>
-                  <span class="stat-value">{{ item.montoCompartido | number:'1.2-2' }}</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-label">Porcentaje:</span>
-                  <span class="stat-value">{{ item.porcentajeCompartido }}%</span>
-                </div>
+                <div class="stat-item highlight"><span class="stat-value">{{ item.montoCuota | number:'1.2-2' }}</span></div>
+                <div class="stat-item pos"><span class="stat-value">Te debe {{ item.montoCompartido | number:'1.2-2' }}</span></div>
               </div>
             </div>
           </div>
@@ -205,20 +179,8 @@ import { GastoService } from '../../services/gasto';
           </div>
         </div>
         
-        <!-- Resumen simple -->
-        <div class="resumen-simple" *ngIf="isSeccionExpandida('gastosCompartidos') && (detalleGastosCompartidosMes$ | async) as detalle">
-          <h4 class="resumen-title">Resumen por gasto:</h4>
-          <div class="resumen-item" *ngFor="let item of detalle">
-            <div class="resumen-texto">
-              <strong>{{ item.descripcion }}</strong>: La cuota es de <strong>{{ item.montoCuota | number:'1.2-2' }}</strong> 
-              y <strong>{{ item.compartidoCon }}</strong> te debe <strong>{{ item.montoCompartido | number:'1.2-2' }}</strong>
-            </div>
-          </div>
-        </div>
-
-        <!-- Total por persona -->
         <div class="total-por-persona" *ngIf="isSeccionExpandida('gastosCompartidos') && (totalPorPersona$ | async) as totales">
-          <h4 class="total-title">Total que te debe cada persona:</h4>
+          <h4 class="total-title">Te deben</h4>
           <div class="total-item" *ngFor="let total of totales">
             <span class="total-nombre">{{ total.persona }}</span>
             <span class="total-monto pos">{{ total.total | number:'1.2-2' }}</span>
@@ -230,10 +192,9 @@ import { GastoService } from '../../services/gasto';
         </div>
       </section>
 
-      <!-- Resumen general (totales históricos) -->
-      <section class="content-card">
+      <section class="content-card" *ngIf="false">
         <div class="card-header">
-          <h3 class="card-title">Resumen General (Todos los Gastos)</h3>
+          <h3 class="card-title">Resumen general</h3>
           <button class="section-toggle-btn" (click)="toggleSeccionCompleta('resumenGeneral')" 
                   [attr.aria-label]="isSeccionExpandida('resumenGeneral') ? 'Colapsar sección' : 'Expandir sección'">
             <span class="expand-icon" [class.expanded]="isSeccionExpandida('resumenGeneral')">▼</span>
@@ -246,23 +207,57 @@ import { GastoService } from '../../services/gasto';
               <div class="card-limit">Límite: {{ t.limite | number:'1.0-0' }}</div>
             </div>
             <div class="row-stats">
-              <div class="stat-item">
-                <span class="stat-label">Total Gastos:</span>
-                <span class="stat-value">{{ t.totalGastos | number:'1.2-2' }}</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">Uso Total:</span>
-                <span class="stat-value">{{ t.porcentajeUso | number:'1.0-2' }}%</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">Disponible:</span>
-                <span class="stat-value">{{ t.saldoDisponible | number:'1.2-2' }}</span>
-              </div>
+              <div class="stat-item"><span class="stat-label">Total:</span> <span class="stat-value">{{ t.totalGastos | number:'1.2-2' }}</span></div>
+              <div class="stat-item"><span class="stat-label">Uso:</span> <span class="stat-value">{{ t.porcentajeUso | number:'1.0-2' }}%</span></div>
+              <div class="stat-item"><span class="stat-label">Disponible:</span> <span class="stat-value">{{ t.saldoDisponible | number:'1.2-2' }}</span></div>
             </div>
           </div>
           <div *ngIf="tarjetas.length === 0" class="empty-state">
             <div class="empty-icon">💳</div>
             <div class="empty-text">Sin datos de tarjetas</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="content-card">
+        <div class="card-header">
+          <h3 class="card-title">Comparar meses</h3>
+          <button class="section-toggle-btn" (click)="toggleSeccionCompleta('compararMeses')" 
+                  [attr.aria-label]="isSeccionExpandida('compararMeses') ? 'Colapsar sección' : 'Expandir sección'">
+            <span class="expand-icon" [class.expanded]="isSeccionExpandida('compararMeses')">▼</span>
+          </button>
+        </div>
+        <div *ngIf="isSeccionExpandida('compararMeses')">
+          <div class="comparacion-nav">
+            <div class="comparacion-selector">
+              <span class="comparacion-label">Mes A:</span>
+              <button class="btn-nav" (click)="prevComparacionA()" aria-label="Mes A anterior">◀</button>
+              <span class="month-label">{{ formatMonthLabel(comparacionMonthKeyA) }}</span>
+              <button class="btn-nav" (click)="nextComparacionA()" aria-label="Mes A siguiente">▶</button>
+            </div>
+            <div class="comparacion-selector">
+              <span class="comparacion-label">Mes B:</span>
+              <button class="btn-nav" (click)="prevComparacionB()" aria-label="Mes B anterior">◀</button>
+              <span class="month-label">{{ formatMonthLabel(comparacionMonthKeyB) }}</span>
+              <button class="btn-nav" (click)="nextComparacionB()" aria-label="Mes B siguiente">▶</button>
+            </div>
+          </div>
+          <div class="comparacion-resultado" *ngIf="comparacionMeses$ | async as comp">
+            <div class="comparacion-totales">
+              <div class="comp-total"><span class="comp-label">Total Mes A:</span> {{ comp.totalA | number:'1.2-2' }}</div>
+              <div class="comp-total"><span class="comp-label">Total Mes B:</span> {{ comp.totalB | number:'1.2-2' }}</div>
+              <div class="comp-diferencia">
+                Diferencia: {{ comp.diferenciaAbs | number:'1.2-2' }} ({{ comp.diferenciaPorc >= 0 ? '+' : '' }}{{ comp.diferenciaPorc | number:'1.1-2' }}%)
+              </div>
+            </div>
+            <div class="comparacion-tarjetas" *ngIf="comp.porTarjeta.length">
+              <div class="comp-tarjeta-row" *ngFor="let row of comp.porTarjeta">
+                <span class="comp-tarjeta-nombre">{{ row.nombre }}</span>
+                <span class="comp-tarjeta-val">A: {{ row.totalA | number:'1.2-2' }}</span>
+                <span class="comp-tarjeta-val">B: {{ row.totalB | number:'1.2-2' }}</span>
+                <span class="comp-tarjeta-diff">{{ row.diferenciaAbs >= 0 ? '+' : '' }}{{ row.diferenciaAbs | number:'1.2-2' }}</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -398,13 +393,19 @@ import { GastoService } from '../../services/gasto';
       text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
 
+    .header-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--spacing-lg);
+      position: relative;
+      z-index: 1;
+    }
     .month-nav {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: var(--spacing-md);
-      position: relative;
-      z-index: 1;
     }
 
     .btn-nav {
@@ -440,10 +441,10 @@ import { GastoService } from '../../services/gasto';
     }
 
     .month-label {
-      font-size: var(--font-size-xl);
-      font-weight: var(--font-weight-bold);
+      font-size: var(--font-size-lg);
+      font-weight: var(--font-weight-semibold);
       color: var(--text-inverse);
-      min-width: 200px;
+      min-width: 140px;
       text-align: center;
       text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       padding: var(--spacing-sm) var(--spacing-md);
@@ -451,6 +452,204 @@ import { GastoService } from '../../services/gasto';
       backdrop-filter: blur(10px);
       border-radius: var(--radius-sm);
       border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .mode-selector {
+      display: flex;
+      gap: var(--spacing-md);
+      align-items: center;
+    }
+    .mode-option {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+      cursor: pointer;
+      color: rgba(255,255,255,0.95);
+      font-size: var(--font-size-sm);
+    }
+    .mode-option input { margin-right: 4px; }
+    .comparacion-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-xl);
+      margin-bottom: var(--spacing-lg);
+    }
+    .comparacion-selector {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+    }
+    .comparacion-label {
+      font-weight: var(--font-weight-medium);
+    }
+    .comparacion-resultado {
+      margin-top: var(--spacing-md);
+    }
+    .comparacion-totales {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-lg);
+      margin-bottom: var(--spacing-lg);
+    }
+    .comp-total, .comp-diferencia {
+      padding: var(--spacing-sm) var(--spacing-md);
+      background: var(--surface);
+      border-radius: var(--radius-sm);
+    }
+    /* Estilos específicos para "Comparar meses" dentro de la tarjeta (fondo claro) */
+    .content-card .comparacion-selector .month-label {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      text-shadow: none;
+      backdrop-filter: none;
+      min-width: auto;
+      padding: 4px 8px;
+      font-weight: var(--font-weight-medium);
+    }
+
+    .content-card .comparacion-selector .btn-nav {
+      width: 32px;
+      height: 32px;
+      border-radius: 4px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      box-shadow: none;
+      transform: none;
+    }
+
+    .content-card .comparacion-selector .btn-nav:hover {
+      background: var(--primary-light);
+      color: #fff;
+      border-color: var(--primary);
+    }
+    .comp-tarjeta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-md);
+      padding: var(--spacing-xs) 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .comp-tarjeta-nombre { flex: 1; font-weight: var(--font-weight-medium); }
+    .comp-tarjeta-val, .comp-tarjeta-diff { min-width: 80px; }
+
+    @media (max-width: 768px) {
+      .page {
+        padding: 12px;
+      }
+
+      .header {
+        padding: var(--spacing-md);
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-md);
+      }
+
+      .header h2 {
+        font-size: var(--font-size-2xl);
+      }
+
+      .subtitle {
+        font-size: var(--font-size-base);
+      }
+
+      .month-nav {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .month-label {
+        min-width: auto;
+        flex: 1;
+        font-size: var(--font-size-lg);
+        padding: var(--spacing-xs) var(--spacing-sm);
+      }
+
+      .btn-nav {
+        width: 40px;
+        height: 40px;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .stat-card {
+        padding: 16px;
+      }
+
+      .stat-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
+      }
+
+      .stat-value {
+        font-size: 20px;
+      }
+
+      .content-card {
+        padding: 16px;
+      }
+
+      .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-sm);
+      }
+
+      .mobile-table {
+        font-size: var(--font-size-sm);
+      }
+
+      .mobile-row {
+        padding: var(--spacing-sm);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .page {
+        padding: 8px;
+      }
+
+      .header {
+        padding: var(--spacing-sm);
+      }
+
+      .header h2 {
+        font-size: var(--font-size-xl);
+      }
+
+      .month-label {
+        font-size: var(--font-size-base);
+      }
+
+      .btn-nav {
+        width: 36px;
+        height: 36px;
+      }
+
+      .stat-card {
+        padding: 12px;
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .stat-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+      }
+
+      .stat-value {
+        font-size: 18px;
+      }
+
+      .content-card {
+        padding: 12px;
+      }
     }
 
     .stats-grid {
@@ -603,6 +802,16 @@ import { GastoService } from '../../services/gasto';
       gap: 12px;
     }
 
+    /* Grid compacto de tarjetas (varias por fila en pantallas anchas) */
+    .tarjetas-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+    }
+    .tarjetas-grid .mobile-row {
+      height: 100%;
+    }
+
     .mobile-row {
       background: var(--bg);
       border-radius: var(--radius-sm);
@@ -650,6 +859,17 @@ import { GastoService } from '../../services/gasto';
       background: rgba(25, 118, 210, 0.1);
       padding: 4px 8px;
       border-radius: 4px;
+    }
+
+    /* Grilla de gastos dentro del drill-down de tarjeta: varias columnas, menos scroll */
+    .gastos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 10px;
+    }
+    .gastos-grid .mobile-row {
+      margin: 0;
+      height: 100%;
     }
 
     .compartido-badge {
@@ -1450,8 +1670,12 @@ export class ResumenComponent implements OnInit, OnDestroy {
     'resumenTarjetas': true,
     'detalleGastos': false,
     'gastosCompartidos': false,
-    'resumenGeneral': false
+    'resumenGeneral': false,
+    'compararMeses': false
   };
+  comparacionMonthKeyA: string = '';
+  comparacionMonthKeyB: string = '';
+  comparacionMeses$!: Observable<ComparacionMeses>;
   detalleGastosCompartidosMes$!: Observable<Array<{
     descripcion: string;
     montoCuota: number;
@@ -1466,6 +1690,7 @@ export class ResumenComponent implements OnInit, OnDestroy {
 
   currentMonthKey: string = this.monthKeyFromDate(new Date()); // YYYY-MM
   monthLabel: string = this.formatMonthLabel(this.currentMonthKey);
+  modoResumen: ModoResumen = 'mesNatural';
   private subscriptions = new Subscription();
 
   constructor(
@@ -1478,6 +1703,9 @@ export class ResumenComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.comparacionMonthKeyA = this.addMonths(this.currentMonthKey, -1);
+    this.comparacionMonthKeyB = this.currentMonthKey;
+    this.refreshComparacion();
     // Refrescar todos los streams cuando el componente se inicializa
     // Esto asegura que los datos se actualicen cuando vuelves a la página
     this.refreshAllStreams();
@@ -1543,7 +1771,7 @@ export class ResumenComponent implements OnInit, OnDestroy {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
   }
 
-  private formatMonthLabel(key: string): string {
+  formatMonthLabel(key: string): string {
     const [y, m] = key.split('-').map(Number);
     const date = new Date(y, m - 1, 1);
     return date.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
@@ -1561,6 +1789,31 @@ export class ResumenComponent implements OnInit, OnDestroy {
     this.refreshAllStreams();
   }
 
+  prevComparacionA(): void {
+    this.comparacionMonthKeyA = this.addMonths(this.comparacionMonthKeyA, -1);
+    this.refreshComparacion();
+  }
+  nextComparacionA(): void {
+    this.comparacionMonthKeyA = this.addMonths(this.comparacionMonthKeyA, 1);
+    this.refreshComparacion();
+  }
+  prevComparacionB(): void {
+    this.comparacionMonthKeyB = this.addMonths(this.comparacionMonthKeyB, -1);
+    this.refreshComparacion();
+  }
+  nextComparacionB(): void {
+    this.comparacionMonthKeyB = this.addMonths(this.comparacionMonthKeyB, 1);
+    this.refreshComparacion();
+  }
+  private refreshComparacion(): void {
+    this.comparacionMeses$ = this.resumenService.getComparacionMeses$(this.comparacionMonthKeyA, this.comparacionMonthKeyB);
+    this.cdr.markForCheck();
+  }
+
+  onModoChange(): void {
+    this.refreshAllStreams();
+  }
+
   private refreshAllStreams(): void {
     // Forzar la creación de nuevos observables para evitar problemas de caché
     // Esto asegura que los observables se actualicen correctamente cuando vuelves a la página
@@ -1569,16 +1822,16 @@ export class ResumenComponent implements OnInit, OnDestroy {
     // Recrear todos los observables para forzar la actualización
     // Esto es crítico: cada vez que se llama este método, se crean nuevos observables
     // que se suscribirán a los BehaviorSubjects actualizados
-    this.resumenTarjetasMes$ = this.resumenService.getResumenPorTarjetaDelMes$(currentKey);
+    this.resumenTarjetasMes$ = this.resumenService.getResumenPorTarjetaConModo$(currentKey, this.modoResumen);
     this.resumenTarjetasGeneral$ = this.resumenService.getResumenPorTarjeta$();
     this.resumenPersonas$ = this.resumenService.getResumenPorPersona$();
     this.resumenPersonasMes$ = this.resumenService.getResumenPorPersonaDelMes$(currentKey);
     this.detalleGastosMes$ = this.resumenService.getDetalleGastosDelMes$(currentKey);
-    this.detalleGastosAgrupadosMes$ = this.resumenService.getDetalleGastosAgrupadosPorTarjeta$(currentKey);
+    this.detalleGastosAgrupadosMes$ = this.resumenService.getDetalleGastosAgrupadosPorTarjetaConModo$(currentKey, this.modoResumen);
     this.detalleGastosCompartidosMes$ = this.resumenService.getDetalleGastosCompartidosDelMes$(currentKey);
     this.limiteTotal$ = this.resumenService.getLimiteTotal$();
-    this.totalDelMes$ = this.resumenService.getTotalDelMes$(currentKey);
-    this.porcentajeUsoTotalMes$ = this.resumenService.getPorcentajeUsoTotalDelMes$(currentKey);
+    this.totalDelMes$ = this.resumenService.getTotalEnPeriodoConModo$(currentKey, this.modoResumen);
+    this.porcentajeUsoTotalMes$ = this.resumenService.getPorcentajeUsoTotalConModo$(currentKey, this.modoResumen);
     this.totalPorPersona$ = this.resumenService.getTotalPorPersona$(currentKey);
     
     // Forzar detección de cambios después de actualizar los observables

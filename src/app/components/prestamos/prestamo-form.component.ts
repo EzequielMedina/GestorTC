@@ -104,6 +104,17 @@ import { PrestamoService } from '../../services/prestamo.service';
     mat-form-field {
       width: 100%;
     }
+    @media (max-width: 600px) {
+      .form-container {
+        min-width: 100%;
+        gap: 12px;
+      }
+      ::ng-deep .mat-mdc-dialog-container {
+        width: 95vw !important;
+        max-width: 95vw !important;
+        margin: 10px !important;
+      }
+    }
   `]
 })
 export class PrestamoFormComponent implements OnInit {

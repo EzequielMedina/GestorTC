@@ -289,5 +289,12 @@ export class GastosServiciosComponent implements OnInit, OnDestroy {
   getFrecuenciaLabel(frecuencia: FrecuenciaRecurrencia): string {
     return this.frecuencias.find(f => f.value === frecuencia)?.label || frecuencia;
   }
+
+  limpiarDuplicados(): void {
+    if (confirm('¿Estás seguro de limpiar instancias duplicadas? Esto eliminará las instancias con la misma fecha y serie.')) {
+      this.gastosRecurrentesService.limpiarDuplicados();
+      this.notificationService.success('Duplicados eliminados correctamente');
+    }
+  }
 }
 

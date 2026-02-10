@@ -186,10 +186,30 @@
 
   .presupuestos-grid {
     grid-template-columns: 1fr;
+    gap: var(--spacing-md);
   }
 
   .form-row {
     grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .form-actions button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .page {
+    padding: var(--spacing-sm);
+  }
+
+  .presupuestos-grid {
+    gap: var(--spacing-sm);
   }
 }
 

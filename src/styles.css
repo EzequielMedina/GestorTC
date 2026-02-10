@@ -1248,6 +1248,19 @@ body {
    MEJORAS PARA IMPRESIÓN
    ============================================ */
 
+/* Barra de navegación principal: forzar visibilidad en tablet/notebook/desktop */
+@media (min-width: 768px) {
+  .sidenav-content .toolbar {
+    display: flex !important;
+    min-height: 64px;
+  }
+  .sidenav-content .toolbar .desktop-nav {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+}
+
 @media print {
   .toolbar,
   .sidenav,

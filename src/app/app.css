@@ -8,12 +8,13 @@
   background-color: var(--background);
 }
 
-/* Barra de herramientas - Mejorada para móviles */
+/* Barra de herramientas: menú | título | [espacio] | secciones (centro) | [espacio] | búsqueda | tema | tour */
 .toolbar {
   position: sticky;
   top: 0;
   z-index: var(--z-sticky);
   display: flex;
+  flex-wrap: nowrap;
   align-items: center;
   padding: 0 var(--spacing-md);
   height: 64px;
@@ -21,18 +22,55 @@
   background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
   color: var(--text-inverse);
   border-bottom: none;
+  overflow: visible;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  gap: 0;
 }
 
-.toolbar span {
+.toolbar span,
+.toolbar-title {
   color: var(--text-inverse);
   font-weight: var(--font-weight-semibold);
   font-size: var(--font-size-lg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+  max-width: 200px;
 }
 
 @media (max-width: 768px) {
   .toolbar {
-    height: 56px;
-    padding: 0 var(--spacing-sm);
+    height: auto;
+    min-height: 56px;
+    padding: 8px var(--spacing-sm);
+    overflow: visible;
+    flex-wrap: wrap;
+    gap: 4px 0;
+  }
+  
+  .toolbar-title {
+    max-width: 120px;
+    font-size: var(--font-size-base);
+    flex-shrink: 0;
+  }
+  
+  .toolbar > * {
+    flex-shrink: 0;
+  }
+  
+  /* En móvil: segunda fila = nav a ancho completo */
+  .desktop-nav {
+    flex-basis: 100%;
+    width: 100%;
+    order: 10;
+    margin: 4px -4px 0;
+    padding: 4px 4px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    flex-shrink: 0;
+    min-width: 0;
   }
 }
 
@@ -43,6 +81,8 @@
 
 .toolbar-spacer {
   flex: 1 1 auto;
+  min-width: 8px;
+  overflow: hidden;
 }
 
 .tour-button {
@@ -53,16 +93,22 @@
   margin: 0 12px;
   flex: 0 1 350px;
   min-width: 200px;
+  max-width: 350px;
   height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 1;
 }
 
+.toolbar-icon-btn {
+  flex-shrink: 0;
+  margin-left: var(--spacing-xs);
+}
+
+/* Ocultar "Más" en toolbar: el menú hamburguesa ya ofrece todas las secciones */
 .more-menu-btn {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  display: none !important;
 }
 
 .more-menu-btn mat-icon {
@@ -77,22 +123,159 @@
   }
 }
 
-/* Navegación en toolbar (desktop) y botón menú (mobile) */
-.desktop-nav {
-  display: none;
-  gap: 4px;
+/* Solo aplicar estos estilos en desktop, NO en móviles */
+@media (min-width: 960px) and (max-width: 1200px) {
+  .desktop-nav {
+    gap: var(--spacing-xs);
+    flex-wrap: nowrap;
+  }
+
+  .desktop-nav a,
+  .desktop-nav button.more-menu-btn {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-xs);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
 }
+
+/* Barra de secciones: siempre visible (menú | título | nav | espaciador | búsqueda | tema | tour) */
+.desktop-nav {
+  display: flex !important;
+  visibility: visible !important;
+  align-items: center;
+  gap: 0;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 0 4px;
+  margin: 0 4px;
+}
+.desktop-nav::-webkit-scrollbar {
+  display: none;
+}
+
 
 .menu-button {
   margin-right: 8px;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 10;
+  flex-shrink: 0;
+  color: var(--text-inverse) !important;
 }
 
-/* Estado activo en toolbar */
-.desktop-nav a.active {
-  color: var(--primary-color);
-  font-weight: 600;
-  border-bottom: 2px solid var(--primary-color);
+/* Asegurar que el botón de menú sea visible en móviles */
+@media (max-width: 959px) {
+  .menu-button {
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    color: var(--text-inverse) !important;
+  }
+}
+
+/* Links de navegación desktop */
+.desktop-nav .nav-link {
+  min-height: 44px;
+  padding: 0 var(--spacing-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: rgba(255, 255, 255, 0.9);
+  text-transform: none;
+  letter-spacing: 0;
   border-radius: 0;
+  transition: all 0.2s ease;
+  position: relative;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.desktop-nav .nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.desktop-nav .nav-link.active {
+  color: white;
+  font-weight: var(--font-weight-semibold);
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.desktop-nav .nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: white;
+  border-radius: 3px 3px 0 0;
+}
+
+.desktop-nav .more-menu-btn mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  margin-left: 4px;
+}
+
+/* Menú desplegable mejorado */
+.nav-dropdown-menu {
+  margin-top: 8px;
+  min-width: 260px;
+  max-height: 600px;
+  overflow-y: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.nav-dropdown-menu .menu-section {
+  padding: 4px 0;
+}
+
+.nav-dropdown-menu .menu-section:first-child {
+  padding-top: 8px;
+}
+
+.nav-dropdown-menu .menu-section:last-child {
+  padding-bottom: 8px;
+}
+
+.nav-dropdown-menu .menu-section-title {
+  padding: 8px 16px 4px;
+  font-size: 11px;
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-hint);
+  background: var(--surface);
+}
+
+.nav-dropdown-menu mat-divider {
+  margin: 4px 0;
+}
+
+.nav-dropdown-menu .mat-mdc-menu-item {
+  min-height: 40px;
+  padding: 8px 16px;
+}
+
+.nav-dropdown-menu .mat-mdc-menu-item mat-icon {
+  margin-right: 12px;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
 }
 
 /* Contenido principal */
@@ -144,50 +327,68 @@
 
 /* Enlaces de navegación - Optimizados para móviles */
 .nav-list {
-  padding-top: 0;
+  padding-top: var(--spacing-sm);
+  padding-bottom: var(--spacing-md);
+}
+
+/* Secciones de navegación */
+.nav-section {
+  margin-bottom: var(--spacing-md);
+  margin-top: var(--spacing-sm);
+}
+
+.nav-divider {
+  margin: var(--spacing-sm) 0;
+}
+
+.nav-section-title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 12px;
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-hint);
+  margin-bottom: var(--spacing-xs);
+}
+
+.nav-section-title .section-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: var(--primary);
 }
 
 .nav-item {
   display: flex;
   align-items: center;
-  padding: 0 var(--spacing-md);
-  min-height: 48px; /* Tamaño táctil mínimo */
+  padding: var(--spacing-sm) var(--spacing-md);
+  min-height: 48px;
   color: var(--text-secondary);
   text-decoration: none;
-  transition: all var(--transition-base);
-  border-left: 4px solid transparent;
+  transition: all 0.2s ease;
+  border-radius: 0;
+  margin: 0;
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-medium);
   -webkit-tap-highlight-color: transparent;
   position: relative;
-}
-
-.nav-item::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 4px;
-  background: var(--primary-gradient);
-  transform: scaleY(0);
-  transform-origin: top;
-  transition: transform var(--transition-base);
+  border-left: 3px solid transparent;
 }
 
 .nav-item:hover {
   background: var(--surface-hover);
   color: var(--primary);
+  border-left-color: var(--primary);
 }
 
 .nav-item.active {
-  background: linear-gradient(90deg, rgba(13, 115, 119, 0.1) 0%, rgba(20, 160, 133, 0.05) 100%);
+  background: linear-gradient(90deg, rgba(20, 184, 166, 0.1) 0%, rgba(20, 184, 166, 0.05) 100%);
   color: var(--primary);
   font-weight: var(--font-weight-semibold);
-}
-
-.nav-item.active::before {
-  transform: scaleY(1);
+  border-left-color: var(--primary);
 }
 
 .nav-item mat-icon {
@@ -196,6 +397,25 @@
   font-size: 24px;
   width: 24px;
   height: 24px;
+}
+
+
+/* Responsive para secciones */
+@media (max-width: 768px) {
+  .nav-section {
+    margin-bottom: var(--spacing-sm);
+    margin-top: var(--spacing-xs);
+  }
+
+  .nav-section-title {
+    padding: var(--spacing-xs) var(--spacing-md);
+    font-size: 11px;
+  }
+
+  .nav-item {
+    padding: var(--spacing-sm) var(--spacing-md);
+    min-height: 48px;
+  }
 }
 
 /* Mejoras para móviles */
@@ -212,6 +432,63 @@
     width: 26px;
     height: 26px;
   }
+
+  /* Expansion panels en móvil */
+  .nav-expansion .mat-expansion-panel-header {
+    padding: 0 var(--spacing-lg) !important;
+    min-height: 52px !important;
+  }
+
+  .nav-expansion .mat-expansion-panel-header-title {
+    font-size: var(--font-size-base);
+  }
+
+  .nav-expansion .mat-expansion-panel-header-title mat-icon {
+    font-size: 26px;
+    width: 26px;
+    height: 26px;
+  }
+
+  .nav-sub-item {
+    padding: 0 var(--spacing-xl) 0 calc(var(--spacing-xl) + 26px + var(--spacing-md)) !important;
+    min-height: 48px !important;
+    font-size: var(--font-size-base);
+  }
+
+  .nav-sub-item mat-icon {
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-expansion .mat-expansion-panel-header {
+    padding: 0 var(--spacing-md) !important;
+    min-height: 48px !important;
+  }
+
+  .nav-expansion .mat-expansion-panel-header-title {
+    font-size: var(--font-size-sm);
+  }
+
+  .nav-expansion .mat-expansion-panel-header-title mat-icon {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+  }
+
+  .nav-sub-item {
+    padding: 0 var(--spacing-lg) 0 calc(var(--spacing-lg) + 24px + var(--spacing-sm)) !important;
+    min-height: 44px !important;
+    font-size: var(--font-size-sm);
+  }
+
+  .nav-sub-item mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
 }
 
 /* Footer */
@@ -226,36 +503,84 @@
 
 /* Estilos responsivos mejorados */
 @media (max-width: 959px) {
-  /* En móviles ocultar navegación de la toolbar */
+  /* Nav más compacta con scroll horizontal si no cabe */
   .desktop-nav {
-    display: none !important;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 2px;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    flex-shrink: 0;
+    min-width: 0;
   }
   
-  /* Mostrar botón de menú */
+  .desktop-nav::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
+  }
+  
+  .desktop-nav .nav-link {
+    padding: 0 var(--spacing-xs);
+    font-size: var(--font-size-xs);
+    white-space: nowrap;
+    flex-shrink: 0;
+    min-width: auto;
+  }
+  
+  /* Mostrar botón de menú también */
   .menu-button {
     display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
     min-width: 44px;
     min-height: 44px;
+    margin-right: 8px;
+    color: var(--text-inverse) !important;
   }
 }
 
-/* En escritorio mostrar navegación en toolbar y ocultar botón menú */
+/* Ajustes para tablets */
+@media (min-width: 768px) and (max-width: 959px) {
+  .sidenav {
+    width: 300px;
+  }
+
+  .nav-expansion .mat-expansion-panel-header {
+    padding: 0 var(--spacing-md) !important;
+  }
+
+  .nav-sub-item {
+    padding: 0 var(--spacing-md) 0 calc(var(--spacing-md) + 24px + var(--spacing-md)) !important;
+  }
+}
+
+/* Desktop/notebook: barra siempre visible */
+@media (min-width: 769px) {
+  .toolbar .desktop-nav {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    flex-shrink: 0;
+    width: auto !important;
+    max-width: none !important;
+  }
+}
+
 @media (min-width: 960px) {
-  .desktop-nav {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--spacing-sm);
+  .toolbar-title {
+    max-width: 280px;
   }
-  
-  .desktop-nav a {
-    min-height: 44px;
-    padding: var(--spacing-sm) var(--spacing-md);
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-medium);
-  }
-  
-  .menu-button {
-    display: none !important;
+}
+
+
+/* Ajustes para pantallas medianas */
+@media (min-width: 960px) and (max-width: 1200px) {
+  .desktop-nav .nav-link {
+    padding: 0 var(--spacing-sm);
+    font-size: var(--font-size-xs);
   }
 }
 
@@ -303,6 +628,19 @@
   
   .nav-item.active {
     background-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .nav-section-title {
+    border-bottom-color: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .nav-item:hover {
+    background-color: rgba(255, 255, 255, 0.06);
+  }
+
+  .nav-item.active {
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.06) 100%);
   }
   
   .footer {
@@ -438,11 +776,51 @@
   border-top: 1px solid rgba(0, 0, 0, 0.12);
 }
 
-/* Ajustes para pantallas pequeñas */
+/* Ajustes para pantallas pequeñas: misma lógica de dos filas que 768px */
 @media (max-width: 599px) {
   .toolbar {
-    height: 56px;
-    padding: 0 8px;
+    height: auto;
+    min-height: 56px;
+    padding: 8px;
+    overflow: visible;
+    width: 100%;
+    max-width: 100%;
+    flex-wrap: wrap;
+    gap: 4px 0;
+  }
+  
+  .toolbar-title {
+    max-width: 100px;
+    font-size: var(--font-size-sm);
+  }
+  
+  .desktop-nav {
+    display: flex !important;
+    flex-wrap: nowrap;
+    gap: 2px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    min-width: 0;
+    flex-basis: 100%;
+    width: 100%;
+    order: 10;
+    margin-top: 4px;
+    padding-top: 4px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  .desktop-nav::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .desktop-nav .nav-link {
+    padding: 0 var(--spacing-xs);
+    font-size: var(--font-size-xs);
+    white-space: nowrap;
+    flex-shrink: 0;
   }
   
   .main-content {
