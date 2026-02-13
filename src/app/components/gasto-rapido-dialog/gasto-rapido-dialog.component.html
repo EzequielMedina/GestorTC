@@ -11,12 +11,22 @@
 
   <mat-dialog-content>
     <form (ngSubmit)="guardar()" #gastoForm="ngForm">
-      <!-- OCR: Escanear ticket (arriba para no interrumpir el flujo del formulario) -->
+      <!-- OCR y Voz: escanear ticket o registrar por voz -->
       <div class="ocr-section">
         <app-ocr-ticket-button
           (ocrCompletado)="onOcrCompletado($event)"
           (ocrError)="onOcrError()">
         </app-ocr-ticket-button>
+        <div class="voice-section">
+          <app-voice-input-button
+            [tarjetas]="tarjetas"
+            (vozCompletado)="onVozCompletado($event)"
+            (vozError)="onVozError($event)">
+          </app-voice-input-button>
+          @if (mensajeVozError) {
+            <p class="voice-error-msg" role="alert">{{ mensajeVozError }}</p>
+          }
+        </div>
       </div>
 
       <!-- Monto -->
@@ -31,7 +41,6 @@
           min="0.01"
           step="0.01"
           required
-          autofocus
           #montoInput="ngModel">
         <mat-icon matPrefix>attach_money</mat-icon>
         <mat-error *ngIf="montoInput.invalid && montoInput.touched">

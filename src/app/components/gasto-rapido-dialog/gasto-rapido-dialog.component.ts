@@ -18,7 +18,9 @@ import { CategoriaService } from '../../services/categoria.service';
 import { PreferenciasUsuarioService, DescripcionFrecuente } from '../../services/preferencias-usuario.service';
 import { NotificationService } from '../../services/notification.service';
 import { OcrTicketResult } from '../../models/ocr-ticket.model';
+import { VoiceGastoParsed } from '../../models/voice-gasto.model';
 import { OcrTicketButtonComponent } from '../ocr-ticket-button/ocr-ticket-button.component';
+import { VoiceInputButtonComponent } from '../voice-input-button/voice-input-button.component';
 import { combineLatest, Subscription } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -37,7 +39,8 @@ import { v4 as uuidv4 } from 'uuid';
     MatChipsModule,
     MatAutocompleteModule,
     MatTooltipModule,
-    OcrTicketButtonComponent
+    OcrTicketButtonComponent,
+    VoiceInputButtonComponent
   ],
   templateUrl: './gasto-rapido-dialog.component.html',
   styleUrls: ['./gasto-rapido-dialog.component.css']
@@ -55,6 +58,8 @@ export class GastoRapidoDialogComponent implements OnInit, OnDestroy {
   descripcionesFrecuentes: DescripcionFrecuente[] = [];
   descripcionesFiltradas: DescripcionFrecuente[] = [];
   mostrarMasOpciones = false;
+  /** Mensaje de error de voz visible dentro del diálogo (el snackbar puede quedar detrás) */
+  mensajeVozError: string | null = null;
 
   get esConCuotas(): boolean {
     return !!this.gasto.cantidadCuotas && this.gasto.cantidadCuotas > 1;
@@ -118,6 +123,61 @@ export class GastoRapidoDialogComponent implements OnInit, OnDestroy {
     this.notificationService.warning(
       'No pudimos leer el ticket. Podés ingresar los datos manualmente.'
     );
+  }
+
+  onVozCompletado(resultado: VoiceGastoParsed): void {
+    this.mensajeVozError = null;
+    if (resultado.monto != null && resultado.monto > 0) {
+      this.gasto.monto = resultado.monto;
+    }
+    if (resultado.descripcion) {
+      this.gasto.descripcion = resultado.descripcion;
+    }
+    if (resultado.tarjetaId) {
+      this.gasto.tarjetaId = resultado.tarjetaId;
+    }
+    if (resultado.cantidadCuotas != null && resultado.cantidadCuotas >= 1) {
+      this.gasto.cantidadCuotas = resultado.cantidadCuotas;
+      this.onCantidadCuotasChange(resultado.cantidadCuotas);
+    }
+    if (resultado.fecha) {
+      this.gasto.fecha = resultado.fecha;
+    }
+  }
+
+  onVozError(payload?: { code?: string } | void): void {
+    const code = (payload && 'code' in payload ? payload.code : undefined) ?? '';
+    console.warn('[Voz] Diálogo recibió error, code:', code);
+    let mensaje: string;
+    switch (code) {
+      case 'no-speech':
+        mensaje = 'No se detectó voz. Pulsá el botón y hablá enseguida (ej: "Gasté 5000 en supermercado"). Revisá que el micrófono esté permitido.';
+        break;
+      case 'not-allowed':
+      case 'service-not-allowed':
+        mensaje = 'Permiso de micrófono denegado. Habilitá el micrófono en el navegador para usar la voz.';
+        break;
+      case 'network':
+        mensaje = 'Error de red: Chrome usa los servidores de Google para la voz y no pudo conectarse. Revisá tu internet, desactivá VPN/proxy si usás, e intentá de nuevo.';
+        break;
+      case 'audio-capture':
+        mensaje = 'No se pudo acceder al micrófono. Comprobá que esté conectado y permitido.';
+        break;
+      case 'secure-context-required':
+        mensaje = 'El reconocimiento de voz solo funciona en HTTPS o en localhost. Abrí la app desde https:// o desde localhost.';
+        break;
+      case 'not-supported':
+        mensaje = 'Tu navegador no soporta reconocimiento de voz. Probá con Chrome o Edge.';
+        break;
+      case 'aborted':
+        return; // Usuario canceló o se cerró; no mostrar mensaje
+      default:
+        mensaje = code
+          ? `No se pudo reconocer la voz. (Error: ${code}) Hablá después de pulsar el botón, revisá el micrófono e internet.`
+          : 'No se pudo reconocer la voz. Hablá después de pulsar el botón, revisá el micrófono e internet.';
+    }
+    this.mensajeVozError = mensaje;
+    this.notificationService.warning(mensaje);
   }
 
   onDescripcionChange(): void {

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, OnInit, OnDestroy } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, Output, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Gasto } from '../../models/gasto.model';
@@ -6,8 +6,11 @@ import { Tarjeta } from '../../models/tarjeta.model';
 import { CategoriaSelectorComponent } from '../categoria-selector/categoria-selector.component';
 import { EtiquetasSelectorComponent } from '../etiquetas-selector/etiquetas-selector.component';
 import { NotaService } from '../../services/nota.service';
+import { NotificationService } from '../../services/notification.service';
 import { OcrTicketResult } from '../../models/ocr-ticket.model';
+import { VoiceGastoParsed } from '../../models/voice-gasto.model';
 import { OcrTicketButtonComponent } from '../ocr-ticket-button/ocr-ticket-button.component';
+import { VoiceInputButtonComponent } from '../voice-input-button/voice-input-button.component';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -18,7 +21,8 @@ import { Subscription } from 'rxjs';
     FormsModule,
     CategoriaSelectorComponent,
     EtiquetasSelectorComponent,
-    OcrTicketButtonComponent
+    OcrTicketButtonComponent,
+    VoiceInputButtonComponent
   ],
   templateUrl: './gasto-dialog.component.html',
   styleUrls: ['./gasto-dialog.component.css']
@@ -41,7 +45,11 @@ export class GastoDialogComponent implements OnInit, OnDestroy {
   notaContenido: string = '';
   private subscriptions = new Subscription();
 
-  constructor(private notaService: NotaService) {}
+  constructor(
+    private notaService: NotaService,
+    private notificationService: NotificationService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     // Cargar nota existente si estamos editando
@@ -125,9 +133,64 @@ export class GastoDialogComponent implements OnInit, OnDestroy {
   }
 
   onOcrError(): void {
-    // En el formulario completo delegamos el mensaje al contenedor (página),
-    // pero dejamos el hook por si queremos extenderlo luego.
-    // Por ahora no hacemos nada específico aquí.
+    this.notificationService.warning(
+      'No pudimos leer el ticket. Podés ingresar los datos manualmente.'
+    );
+  }
+
+  onVozCompletado(resultado: VoiceGastoParsed): void {
+    // Asignar cada campo al que corresponde en el formulario (descripción, monto, tarjeta, fecha, cuotas)
+    if (resultado.monto != null && resultado.monto > 0) {
+      this.gasto.monto = resultado.monto;
+    }
+    if (resultado.descripcion != null && resultado.descripcion.trim() !== '') {
+      this.gasto.descripcion = resultado.descripcion.trim();
+    }
+    if (resultado.tarjetaId) {
+      this.gasto.tarjetaId = resultado.tarjetaId;
+    }
+    if (resultado.fecha) {
+      this.gasto.fecha = resultado.fecha;
+      this.onFechaChange(resultado.fecha);
+    }
+    if (resultado.cantidadCuotas != null && resultado.cantidadCuotas >= 1) {
+      this.gasto.cantidadCuotas = resultado.cantidadCuotas;
+      this.onCantidadCuotasChange(resultado.cantidadCuotas);
+    }
+    this.cdr.detectChanges();
+  }
+
+  onVozError(payload?: { code?: string } | void): void {
+    const code = (payload && 'code' in payload ? payload.code : undefined) ?? '';
+    let mensaje: string;
+    switch (code) {
+      case 'no-speech':
+        mensaje = 'No se detectó voz. Pulsá el botón y hablá enseguida (ej: "Gasté 5000 en supermercado"). Revisá que el micrófono esté permitido.';
+        break;
+      case 'not-allowed':
+      case 'service-not-allowed':
+        mensaje = 'Permiso de micrófono denegado. Habilitá el micrófono en el navegador para usar la voz.';
+        break;
+      case 'network':
+        mensaje = 'Error de red: Chrome usa los servidores de Google para la voz y no pudo conectarse. Revisá tu internet, desactivá VPN/proxy si usás, e intentá de nuevo.';
+        break;
+      case 'audio-capture':
+        mensaje = 'No se pudo acceder al micrófono. Comprobá que esté conectado y permitido.';
+        break;
+      case 'secure-context-required':
+        mensaje = 'El reconocimiento de voz solo funciona en HTTPS o en localhost. Abrí la app desde https:// o desde localhost.';
+        break;
+      case 'not-supported':
+        mensaje = 'Tu navegador no soporta reconocimiento de voz. Probá con Chrome o Edge.';
+        break;
+      case 'aborted':
+        return;
+      default:
+        mensaje = code
+          ? `No se pudo reconocer la voz. (Error: ${code}) Hablá después de pulsar el botón, revisá el micrófono e internet.`
+          : 'No se pudo reconocer la voz. Hablá después de pulsar el botón, revisá el micrófono e internet.';
+    }
+    this.notificationService.warning(mensaje);
   }
 
   guardar(): void {
