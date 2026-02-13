@@ -110,7 +110,6 @@
   font-size: var(--font-size-sm);
 }
 .mode-option input { margin-right: 4px; }
-/* Comparar meses */
 .comparacion-wrap {
   padding-top: var(--spacing-sm);
 }
@@ -567,8 +566,6 @@
   flex-direction: column;
   gap: 12px;
 }
-
-/* Grid de cards de tarjetas */
 .tarjetas-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -1082,8 +1079,6 @@
   color: var(--primary);
   font-weight: bold;
 }
-
-/* Responsive Design */
 @media (max-width: 768px) {
   .page {
     padding: 12px;
