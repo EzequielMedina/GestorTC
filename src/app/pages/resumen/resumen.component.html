@@ -1,0 +1,322 @@
+<div class="page">
+  <div class="header">
+    <div class="header-content">
+      <h2>Resumen</h2>
+    </div>
+    <div class="header-actions">
+      <div class="mode-selector">
+        <label class="mode-option"><input type="radio" name="modoResumen" value="mesNatural" [(ngModel)]="modoResumen" (change)="onModoChange()"> Mes natural</label>
+        <label class="mode-option"><input type="radio" name="modoResumen" value="periodoCierre" [(ngModel)]="modoResumen" (change)="onModoChange()"> Por cierre</label>
+      </div>
+      <div class="month-nav">
+        <button class="btn-nav" (click)="prevMonth()" aria-label="Mes anterior"><span class="nav-icon">◀</span></button>
+        <div class="month-label">{{ monthLabel }}</div>
+        <button class="btn-nav" (click)="nextMonth()" aria-label="Mes siguiente"><span class="nav-icon">▶</span></button>
+      </div>
+    </div>
+  </div>
+
+  <section class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">💰</div>
+      <div class="stat-content">
+        <div class="stat-label">Total</div>
+        <div class="stat-value">{{ ((totalDelMes$ | async) ?? 0) | number:'1.2-2' }}</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">💳</div>
+      <div class="stat-content">
+        <div class="stat-label">Límite</div>
+        <div class="stat-value">{{ ((limiteTotal$ | async) ?? 0) | number:'1.0-0' }}</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📊</div>
+      <div class="stat-content">
+        <div class="stat-label">Uso</div>
+        <div class="stat-value">{{ ((porcentajeUsoTotalMes$ | async) ?? 0) | number:'1.0-2' }}%</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="content-card">
+    <div class="card-header">
+      <h3 class="card-title">Tarjetas</h3>
+      <button class="section-toggle-btn" (click)="toggleSeccionCompleta('resumenTarjetas')" 
+              [attr.aria-label]="isSeccionExpandida('resumenTarjetas') ? 'Colapsar sección' : 'Expandir sección'">
+        <span class="expand-icon" [class.expanded]="isSeccionExpandida('resumenTarjetas')">▼</span>
+      </button>
+    </div>
+    <div class="mobile-table tarjetas-grid" *ngIf="isSeccionExpandida('resumenTarjetas') && (resumenTarjetasMes$ | async) as tarjetas; else resumenTarjetas">
+      <div class="tarjeta-card" *ngFor="let t of tarjetas">
+        <div class="tarjeta-card-header">
+          <span class="card-name">{{ t.nombre }}</span>
+          <span class="card-limit">Límite {{ t.limite | number:'1.0-0' }}</span>
+        </div>
+        <div class="tarjeta-metrics">
+          <div class="metric-box metric-gastado">
+            <span class="metric-label">Gastado</span>
+            <span class="metric-value">{{ t.totalMes | number:'1.2-2' }}</span>
+          </div>
+          <div class="metric-box metric-uso">
+            <span class="metric-label">Uso</span>
+            <span class="metric-value">{{ t.porcentajeUso | number:'1.0-1' }}%</span>
+            <div class="uso-bar"><div class="uso-bar-fill" [style.width.%]="(t.porcentajeUso > 100 ? 100 : t.porcentajeUso)"></div></div>
+          </div>
+          <div class="metric-box metric-disponible">
+            <span class="metric-label">Disponible</span>
+            <span class="metric-value">{{ t.saldoDisponible | number:'1.2-2' }}</span>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="tarjetas.length === 0" class="empty-state">
+        <div class="empty-icon">💳</div>
+        <div class="empty-text">Sin datos de tarjetas</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="content-card">
+    <div class="card-header">
+      <h3 class="card-title">Gastos</h3>
+      <div class="card-controls">
+        <div class="tarjeta-controls" *ngIf="isSeccionExpandida('detalleGastos')">
+          <button class="control-btn" (click)="expandirTodasTarjetas()" title="Expandir todas">📂</button>
+          <button class="control-btn" (click)="colapsarTodasTarjetas()" title="Colapsar todas">📁</button>
+        </div>
+        <button class="section-toggle-btn" (click)="toggleSeccionCompleta('detalleGastos')" aria-label="Expandir o colapsar">
+          <span class="expand-icon" [class.expanded]="isSeccionExpandida('detalleGastos')">▼</span>
+        </button>
+      </div>
+    </div>
+    <div class="mobile-table" *ngIf="isSeccionExpandida('detalleGastos') && (detalleGastosAgrupadosMes$ | async) as detalleAgrupado; else resumenDetalleGastos">
+      <div class="tarjeta-group" *ngFor="let grupo of detalleAgrupado">
+        <!-- Header de la tarjeta -->
+         <div class="tarjeta-header" (click)="toggleTarjetaExpansion(grupo.nombreTarjeta)">
+           <div class="tarjeta-info">
+             <div class="card-name">{{ grupo.nombreTarjeta }}</div>
+             <div class="tarjeta-stats">
+               <div class="tarjeta-total">Total: {{ grupo.totalTarjeta | number:'1.2-2' }}</div>
+               <div class="tarjeta-contadores">
+                 <span class="contador-gastos">{{ grupo.cantidadGastos }} gastos</span>
+                 <span class="contador-ultimas" *ngIf="grupo.gastosUltimaCuota > 0">
+                   • {{ grupo.gastosUltimaCuota }} última{{ grupo.gastosUltimaCuota > 1 ? 's' : '' }} cuota{{ grupo.gastosUltimaCuota > 1 ? 's' : '' }}
+                 </span>
+               </div>
+             </div>
+           </div>
+           <div class="expand-icon" [class.expanded]="isTarjetaExpandida(grupo.nombreTarjeta)">
+             ▼
+           </div>
+         </div>
+        
+        <!-- Gastos de la tarjeta: en grilla (varias por fila) para menos scroll -->
+        <div class="tarjeta-gastos gastos-grid" *ngIf="isTarjetaExpandida(grupo.nombreTarjeta)">
+          <div class="gasto-mini-card" *ngFor="let gasto of grupo.gastos">
+            <div class="gasto-mini-desc">{{ gasto.descripcion }}</div>
+            <div class="gasto-mini-cuota">
+              <span class="gasto-mini-label">Cuota</span>
+              <span class="gasto-mini-valor">{{ gasto.montoCuota | number:'1.2-2' }}</span>
+            </div>
+            <div class="gasto-mini-meta">
+              <span class="gasto-mini-progreso" *ngIf="gasto.cantidadCuotas > 1">{{ gasto.cuotaActual }}/{{ gasto.cantidadCuotas }}</span>
+              <span class="gasto-mini-compartido" *ngIf="gasto.compartidoCon">{{ gasto.compartidoCon }} {{ gasto.porcentajeCompartido }}%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="detalleAgrupado.length === 0" class="empty-state">
+        <div class="empty-icon">📝</div>
+        <div class="empty-text">No hay gastos para este mes</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="content-card">
+    <div class="card-header">
+      <h3 class="card-title">Compartidos</h3>
+      <button class="section-toggle-btn" (click)="toggleSeccionCompleta('gastosCompartidos')" 
+              [attr.aria-label]="isSeccionExpandida('gastosCompartidos') ? 'Colapsar sección' : 'Expandir sección'">
+        <span class="expand-icon" [class.expanded]="isSeccionExpandida('gastosCompartidos')">▼</span>
+      </button>
+    </div>
+    <div class="mobile-table" *ngIf="isSeccionExpandida('gastosCompartidos') && (detalleGastosCompartidosMes$ | async) as detalle; else resumenGastosCompartidos">
+      <div class="mobile-row compartido-row" *ngFor="let item of detalle">
+        <div class="row-header">
+          <div class="gasto-descripcion">{{ item.descripcion }}</div>
+          <div class="compartido-badge">{{ item.compartidoCon }}</div>
+        </div>
+        <div class="row-content">
+          <div class="compartido-stats">
+            <div class="stat-item highlight"><span class="stat-value">{{ item.montoCuota | number:'1.2-2' }}</span></div>
+            <div class="stat-item pos"><span class="stat-value">Te debe {{ item.montoCompartido | number:'1.2-2' }}</span></div>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="detalle.length === 0" class="empty-state">
+        <div class="empty-icon">🤝</div>
+        <div class="empty-text">No hay gastos compartidos este mes</div>
+      </div>
+    </div>
+    
+    <div class="total-por-persona" *ngIf="isSeccionExpandida('gastosCompartidos') && (totalPorPersona$ | async) as totales">
+      <h4 class="total-title">Te deben</h4>
+      <div class="total-item" *ngFor="let total of totales">
+        <span class="total-nombre">{{ total.persona }}</span>
+        <span class="total-monto pos">{{ total.total | number:'1.2-2' }}</span>
+      </div>
+      <div *ngIf="totales.length === 0" class="empty-state">
+        <div class="empty-icon">✅</div>
+        <div class="empty-text">No hay deudas pendientes este mes</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="content-card" *ngIf="false">
+    <div class="card-header">
+      <h3 class="card-title">Resumen general</h3>
+      <button class="section-toggle-btn" (click)="toggleSeccionCompleta('resumenGeneral')" 
+              [attr.aria-label]="isSeccionExpandida('resumenGeneral') ? 'Colapsar sección' : 'Expandir sección'">
+        <span class="expand-icon" [class.expanded]="isSeccionExpandida('resumenGeneral')">▼</span>
+      </button>
+    </div>
+    <div class="mobile-table" *ngIf="isSeccionExpandida('resumenGeneral') && (resumenTarjetasGeneral$ | async) as tarjetas; else resumenGeneral">
+      <div class="mobile-row" *ngFor="let t of tarjetas">
+        <div class="row-header">
+          <div class="card-name">{{ t.nombre }}</div>
+          <div class="card-limit">Límite: {{ t.limite | number:'1.0-0' }}</div>
+        </div>
+        <div class="row-stats">
+          <div class="stat-item"><span class="stat-label">Total:</span> <span class="stat-value">{{ t.totalGastos | number:'1.2-2' }}</span></div>
+          <div class="stat-item"><span class="stat-label">Uso:</span> <span class="stat-value">{{ t.porcentajeUso | number:'1.0-2' }}%</span></div>
+          <div class="stat-item"><span class="stat-label">Disponible:</span> <span class="stat-value">{{ t.saldoDisponible | number:'1.2-2' }}</span></div>
+        </div>
+      </div>
+      <div *ngIf="tarjetas.length === 0" class="empty-state">
+        <div class="empty-icon">💳</div>
+        <div class="empty-text">Sin datos de tarjetas</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="content-card">
+    <div class="card-header">
+      <h3 class="card-title">Comparar meses</h3>
+      <button class="section-toggle-btn" (click)="toggleSeccionCompleta('compararMeses')" 
+              [attr.aria-label]="isSeccionExpandida('compararMeses') ? 'Colapsar sección' : 'Expandir sección'">
+        <span class="expand-icon" [class.expanded]="isSeccionExpandida('compararMeses')">▼</span>
+      </button>
+    </div>
+    <div class="comparacion-wrap" *ngIf="isSeccionExpandida('compararMeses')">
+      <div class="comparacion-selectores">
+        <div class="comparacion-card comparacion-mes-a">
+          <span class="comparacion-card-label">Mes A</span>
+          <div class="comparacion-card-nav">
+            <button type="button" class="comparacion-btn" (click)="prevComparacionA()" aria-label="Mes A anterior">‹</button>
+            <span class="comparacion-mes-nombre">{{ formatMonthLabel(comparacionMonthKeyA) }}</span>
+            <button type="button" class="comparacion-btn" (click)="nextComparacionA()" aria-label="Mes A siguiente">›</button>
+          </div>
+        </div>
+        <div class="comparacion-card comparacion-mes-b">
+          <span class="comparacion-card-label">Mes B</span>
+          <div class="comparacion-card-nav">
+            <button type="button" class="comparacion-btn" (click)="prevComparacionB()" aria-label="Mes B anterior">‹</button>
+            <span class="comparacion-mes-nombre">{{ formatMonthLabel(comparacionMonthKeyB) }}</span>
+            <button type="button" class="comparacion-btn" (click)="nextComparacionB()" aria-label="Mes B siguiente">›</button>
+          </div>
+        </div>
+      </div>
+      <div class="comparacion-resultado" *ngIf="comparacionMeses$ | async as comp">
+        <div class="comparacion-totales">
+          <div class="comparacion-metric comparacion-total-a">
+            <span class="comparacion-metric-label">Total Mes A</span>
+            <span class="comparacion-metric-value">{{ comp.totalA | number:'1.2-2' }}</span>
+          </div>
+          <div class="comparacion-metric comparacion-total-b">
+            <span class="comparacion-metric-label">Total Mes B</span>
+            <span class="comparacion-metric-value">{{ comp.totalB | number:'1.2-2' }}</span>
+          </div>
+          <div class="comparacion-metric comparacion-diferencia" [class.positiva]="comp.diferenciaPorc > 0" [class.negativa]="comp.diferenciaPorc < 0">
+            <span class="comparacion-metric-label">Diferencia</span>
+            <span class="comparacion-metric-value">{{ comp.diferenciaAbs >= 0 ? '+' : '' }}{{ comp.diferenciaAbs | number:'1.2-2' }}</span>
+            <span class="comparacion-metric-porc">({{ comp.diferenciaPorc >= 0 ? '+' : '' }}{{ comp.diferenciaPorc | number:'1.1-2' }}%)</span>
+          </div>
+        </div>
+        <div class="comparacion-tarjetas" *ngIf="comp.porTarjeta.length">
+          <div class="comparacion-tarjetas-header">
+            <span class="comp-col-nombre">Tarjeta</span>
+            <span class="comp-col-val">Mes A</span>
+            <span class="comp-col-val">Mes B</span>
+            <span class="comp-col-diff">Diff</span>
+          </div>
+          <div class="comp-tarjeta-row" *ngFor="let row of comp.porTarjeta">
+            <span class="comp-tarjeta-nombre">{{ row.nombre }}</span>
+            <span class="comp-tarjeta-val">{{ row.totalA | number:'1.2-2' }}</span>
+            <span class="comp-tarjeta-val">{{ row.totalB | number:'1.2-2' }}</span>
+            <span class="comp-tarjeta-diff" [class.positiva]="row.diferenciaAbs > 0" [class.negativa]="row.diferenciaAbs < 0">{{ row.diferenciaAbs >= 0 ? '+' : '' }}{{ row.diferenciaAbs | number:'1.2-2' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <ng-template #cargando>
+    <div class="loading-state">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Cargando...</div>
+    </div>
+  </ng-template>
+
+  <ng-template #resumenTarjetas>
+    <div class="summary-preview">
+      <div class="summary-icon">💳</div>
+      <div class="summary-text">
+        <div class="summary-title">Vista rápida de tarjetas</div>
+        <div class="summary-stats">
+          <span class="summary-stat">Total del mes: {{ ((totalDelMes$ | async) ?? 0) | number:'1.2-2' }}</span>
+          <span class="summary-stat">Uso: {{ ((porcentajeUsoTotalMes$ | async) ?? 0) | number:'1.0-2' }}%</span>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+
+  <ng-template #resumenDetalleGastos>
+    <div class="summary-preview">
+      <div class="summary-icon">📝</div>
+      <div class="summary-text">
+        <div class="summary-title">Gastos detallados del mes</div>
+        <div class="summary-stats" *ngIf="(detalleGastosAgrupadosMes$ | async) as detalle">
+          <span class="summary-stat">{{ detalle.length }} tarjetas con gastos</span>
+          <span class="summary-stat">Total: {{ ((totalDelMes$ | async) ?? 0) | number:'1.2-2' }}</span>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+
+  <ng-template #resumenGastosCompartidos>
+    <div class="summary-preview">
+      <div class="summary-icon">🤝</div>
+      <div class="summary-text">
+        <div class="summary-title">Gastos compartidos</div>
+        <div class="summary-stats" *ngIf="(detalleGastosCompartidosMes$ | async) as detalle">
+          <span class="summary-stat">{{ detalle.length }} gastos compartidos</span>
+          <span class="summary-stat" *ngIf="(totalPorPersona$ | async) as totales">{{ totales.length }} personas te deben</span>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+
+  <ng-template #resumenGeneral>
+    <div class="summary-preview">
+      <div class="summary-icon">📊</div>
+      <div class="summary-text">
+        <div class="summary-title">Resumen histórico</div>
+        <div class="summary-stats" *ngIf="(resumenTarjetasGeneral$ | async) as tarjetas">
+          <span class="summary-stat">{{ tarjetas.length }} tarjetas registradas</span>
+          <span class="summary-stat">Límite total: {{ ((limiteTotal$ | async) ?? 0) | number:'1.0-0' }}</span>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+</div>

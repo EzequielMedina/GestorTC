@@ -361,8 +361,9 @@ export class ResumenService {
       map(([tarjetasA, tarjetasB]) => {
         const totalA = tarjetasA.reduce((s, t) => s + t.totalMes, 0);
         const totalB = tarjetasB.reduce((s, t) => s + t.totalMes, 0);
-        const diferenciaAbs = totalA - totalB;
-        const diferenciaPorc = totalB !== 0 ? (diferenciaAbs / totalB) * 100 : 0;
+        // Diferencia = mes actual (B) - mes antiguo (A): negativo = gastaste menos en el actual (verde), positivo = gastaste más (rojo)
+        const diferenciaAbs = totalB - totalA;
+        const diferenciaPorc = totalA !== 0 ? (diferenciaAbs / totalA) * 100 : 0;
         const porTarjetaMap = new Map<string, { totalA: number; totalB: number }>();
         tarjetasA.forEach(t => porTarjetaMap.set(t.nombre, { totalA: t.totalMes, totalB: 0 }));
         tarjetasB.forEach(t => {
@@ -373,8 +374,8 @@ export class ResumenService {
           nombre,
           totalA: ta,
           totalB: tb,
-          diferenciaAbs: ta - tb,
-          diferenciaPorc: tb !== 0 ? ((ta - tb) / tb) * 100 : 0
+          diferenciaAbs: tb - ta,
+          diferenciaPorc: ta !== 0 ? ((tb - ta) / ta) * 100 : 0
         }));
         return {
           totalA,
