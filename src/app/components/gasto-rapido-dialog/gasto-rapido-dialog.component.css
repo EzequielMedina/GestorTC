@@ -38,15 +38,38 @@ mat-dialog-content {
 .ocr-section {
   width: 100%;
   margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-/* Botón OCR a ancho completo y alineado al estilo del diálogo */
-.ocr-section ::ng-deep button {
+/* Botones OCR y voz a ancho completo y alineados al estilo del diálogo */
+.ocr-section ::ng-deep button,
+.voice-section ::ng-deep button {
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+}
+
+.voice-section {
+  width: 100%;
+}
+
+.voice-section .voice-not-supported {
+  display: block;
+  padding: 8px 0;
+}
+
+.voice-error-msg {
+  margin: 8px 0 0;
+  padding: 8px 12px;
+  font-size: 0.875rem;
+  color: var(--warn, #b45309);
+  background: rgba(180, 83, 9, 0.1);
+  border-radius: 8px;
+  border-left: 3px solid var(--warn, #b45309);
 }
 
 .full-width {

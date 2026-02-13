@@ -29,7 +29,8 @@ export class GastoRapidoFabComponent implements OnInit {
       width: '90%',
       maxWidth: '500px',
       disableClose: false,
-      panelClass: 'gasto-rapido-dialog'
+      panelClass: 'gasto-rapido-dialog',
+      autoFocus: false
     });
 
     dialogRef.afterClosed().subscribe(result => {
