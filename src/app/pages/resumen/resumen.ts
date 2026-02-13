@@ -64,23 +64,24 @@ import { ComparacionMeses } from '../../models/resumen/modo-resumen';
           </button>
         </div>
         <div class="mobile-table tarjetas-grid" *ngIf="isSeccionExpandida('resumenTarjetas') && (resumenTarjetasMes$ | async) as tarjetas; else resumenTarjetas">
-          <div class="mobile-row" *ngFor="let t of tarjetas">
-            <div class="row-header">
-              <div class="card-name">{{ t.nombre }}</div>
-              <div class="card-limit">Límite: {{ t.limite | number:'1.0-0' }}</div>
+          <div class="tarjeta-card" *ngFor="let t of tarjetas">
+            <div class="tarjeta-card-header">
+              <span class="card-name">{{ t.nombre }}</span>
+              <span class="card-limit">Límite {{ t.limite | number:'1.0-0' }}</span>
             </div>
-            <div class="row-stats">
-              <div class="stat-item highlight">
-                <span class="stat-label">Período:</span>
-                <span class="stat-value">{{ t.totalMes | number:'1.2-2' }}</span>
+            <div class="tarjeta-metrics">
+              <div class="metric-box metric-gastado">
+                <span class="metric-label">Gastado</span>
+                <span class="metric-value">{{ t.totalMes | number:'1.2-2' }}</span>
               </div>
-              <div class="stat-item">
-                <span class="stat-label">Uso:</span>
-                <span class="stat-value">{{ t.porcentajeUso | number:'1.0-2' }}%</span>
+              <div class="metric-box metric-uso">
+                <span class="metric-label">Uso</span>
+                <span class="metric-value">{{ t.porcentajeUso | number:'1.0-1' }}%</span>
+                <div class="uso-bar"><div class="uso-bar-fill" [style.width.%]="(t.porcentajeUso > 100 ? 100 : t.porcentajeUso)"></div></div>
               </div>
-              <div class="stat-item">
-                <span class="stat-label">Disponible:</span>
-                <span class="stat-value">{{ t.saldoDisponible | number:'1.2-2' }}</span>
+              <div class="metric-box metric-disponible">
+                <span class="metric-label">Disponible</span>
+                <span class="metric-value">{{ t.saldoDisponible | number:'1.2-2' }}</span>
               </div>
             </div>
           </div>
@@ -127,20 +128,15 @@ import { ComparacionMeses } from '../../models/resumen/modo-resumen';
             
             <!-- Gastos de la tarjeta: en grilla (varias por fila) para menos scroll -->
             <div class="tarjeta-gastos gastos-grid" *ngIf="isTarjetaExpandida(grupo.nombreTarjeta)">
-              <div class="mobile-row gasto-item" *ngFor="let gasto of grupo.gastos">
-                <div class="row-header">
-                  <div class="gasto-descripcion">{{ gasto.descripcion }}</div>
-                  <div class="cuota-info">{{ gasto.cuotaActual }}/{{ gasto.cantidadCuotas }}</div>
+              <div class="gasto-mini-card" *ngFor="let gasto of grupo.gastos">
+                <div class="gasto-mini-desc">{{ gasto.descripcion }}</div>
+                <div class="gasto-mini-cuota">
+                  <span class="gasto-mini-label">Cuota</span>
+                  <span class="gasto-mini-valor">{{ gasto.montoCuota | number:'1.2-2' }}</span>
                 </div>
-                <div class="row-content">
-                  <div class="gasto-stats">
-                    <div class="stat-item highlight">
-                      <span class="stat-value">{{ gasto.montoCuota | number:'1.2-2' }}</span>
-                    </div>
-                    <div class="stat-item" *ngIf="gasto.compartidoCon">
-                      <span class="stat-value compartido">{{ gasto.compartidoCon }} {{ gasto.porcentajeCompartido }}%</span>
-                    </div>
-                  </div>
+                <div class="gasto-mini-meta">
+                  <span class="gasto-mini-progreso" *ngIf="gasto.cantidadCuotas > 1">{{ gasto.cuotaActual }}/{{ gasto.cantidadCuotas }}</span>
+                  <span class="gasto-mini-compartido" *ngIf="gasto.compartidoCon">{{ gasto.compartidoCon }} {{ gasto.porcentajeCompartido }}%</span>
                 </div>
               </div>
             </div>
@@ -328,13 +324,12 @@ import { ComparacionMeses } from '../../models/resumen/modo-resumen';
       --surface: var(--color2);
       --primary: var(--color3);
       --border: var(--color5);
-      --pos: #1b5e20;
-      --neg: #b71c1c;
-      --highlight: #1976d2;
-      --shadow-sm: 0 1px 2px rgba(0,0,0,0.08);
-      --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
-      --radius: 12px;
-      --radius-sm: 8px;
+      --pos: var(--success-dark);
+      --neg: var(--danger-dark);
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.06);
+      --shadow-md: 0 2px 6px rgba(0,0,0,0.08);
+      --radius: var(--radius-sm);
+      --radius-sm: 6px;
     }
 
     .page {
@@ -346,112 +341,80 @@ import { ComparacionMeses } from '../../models/resumen/modo-resumen';
     }
 
     .header {
-      margin-bottom: var(--spacing-xl);
-      padding: var(--spacing-xl);
-      background: var(--primary-gradient);
-      border-radius: var(--radius-md);
-      box-shadow: var(--shadow-lg);
-      position: relative;
-      overflow: hidden;
+      margin-bottom: var(--spacing-lg);
+      padding: var(--spacing-lg);
+      background: var(--primary);
+      border-radius: var(--radius-sm);
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: var(--spacing-lg);
     }
 
-    .header::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
-      pointer-events: none;
-    }
-
     .header-content {
       flex: 1;
       text-align: left;
-      position: relative;
-      z-index: 1;
     }
 
     .header h2 {
-      margin: 0 0 var(--spacing-sm) 0;
-      font-size: var(--font-size-4xl);
+      margin: 0 0 var(--spacing-xs) 0;
+      font-size: var(--font-size-2xl);
       font-weight: var(--font-weight-bold);
       color: var(--text-inverse);
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     .subtitle {
       margin: 0;
-      color: rgba(255, 255, 255, 0.95);
-      font-size: var(--font-size-lg);
+      color: rgba(255, 255, 255, 0.9);
+      font-size: var(--font-size-base);
       font-weight: var(--font-weight-medium);
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
 
     .header-actions {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: var(--spacing-lg);
-      position: relative;
-      z-index: 1;
+      gap: var(--spacing-md);
     }
     .month-nav {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: var(--spacing-md);
+      gap: var(--spacing-sm);
     }
 
     .btn-nav {
-      width: 48px;
-      height: 48px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.2);
-      backdrop-filter: blur(10px);
+      width: 40px;
+      height: 40px;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      border-radius: var(--radius-sm);
+      background: rgba(255, 255, 255, 0.15);
       color: var(--text-inverse);
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all var(--transition-base);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      transition: background-color 0.15s ease;
     }
 
     .btn-nav:hover {
-      background: rgba(255, 255, 255, 0.3);
-      border-color: rgba(255, 255, 255, 0.5);
-      transform: scale(1.1);
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
-    }
-
-    .btn-nav:active {
-      transform: scale(0.95);
+      background: rgba(255, 255, 255, 0.25);
     }
 
     .nav-icon {
-      font-size: 18px;
+      font-size: 16px;
       font-weight: bold;
     }
 
     .month-label {
-      font-size: var(--font-size-lg);
+      font-size: var(--font-size-base);
       font-weight: var(--font-weight-semibold);
       color: var(--text-inverse);
-      min-width: 140px;
+      min-width: 120px;
       text-align: center;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      padding: var(--spacing-sm) var(--spacing-md);
+      padding: var(--spacing-xs) var(--spacing-sm);
       background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(10px);
-      border-radius: var(--radius-sm);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: var(--radius-xs);
     }
 
     .mode-selector {
@@ -662,30 +625,24 @@ import { ComparacionMeses } from '../../models/resumen/modo-resumen';
     .stat-card {
       background: var(--surface);
       border-radius: var(--radius);
-      padding: 20px;
-      box-shadow: var(--shadow-sm);
-      border: 1px solid var(--border);
+      padding: var(--spacing-lg);
+      box-shadow: var(--shadow-xs);
+      border: 1px solid var(--border-light);
       display: flex;
       align-items: center;
-      gap: 16px;
-      transition: transform 0.2s ease;
-    }
-
-    .stat-card:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
+      gap: var(--spacing-md);
     }
 
     .stat-icon {
-      font-size: 32px;
-      width: 60px;
-      height: 60px;
+      font-size: 24px;
+      width: 48px;
+      height: 48px;
       display: flex;
       align-items: center;
       justify-content: center;
       background: var(--primary);
-      color: white;
-      border-radius: 50%;
+      color: var(--text-inverse);
+      border-radius: var(--radius-sm);
     }
 
     .stat-content {
@@ -693,24 +650,24 @@ import { ComparacionMeses } from '../../models/resumen/modo-resumen';
     }
 
     .stat-label {
-      color: #666;
-      font-size: 14px;
+      color: var(--text-secondary);
+      font-size: var(--font-size-sm);
       margin-bottom: 4px;
     }
 
     .stat-value {
       font-size: 24px;
       font-weight: 700;
-      color: #333;
+      color: var(--text-primary);
     }
 
     .content-card {
        background: var(--surface);
        border-radius: var(--radius);
-       padding: 20px;
-       margin-bottom: 20px;
-       box-shadow: var(--shadow-sm);
-       border: 1px solid var(--border);
+       padding: var(--spacing-lg);
+       margin-bottom: var(--spacing-lg);
+       box-shadow: var(--shadow-xs);
+       border: 1px solid var(--border-light);
      }
 
      .card-header {
@@ -788,12 +745,12 @@ import { ComparacionMeses } from '../../models/resumen/modo-resumen';
      }
 
     .card-title {
-      margin: 0 0 20px 0;
-      font-size: 20px;
+      margin: 0 0 var(--spacing-md) 0;
+      font-size: var(--font-size-xl);
       font-weight: 600;
-      color: #333;
-      border-bottom: 2px solid var(--primary);
-      padding-bottom: 8px;
+      color: var(--text-primary);
+      border-bottom: 1px solid var(--border-light);
+      padding-bottom: var(--spacing-sm);
     }
 
     .mobile-table {
@@ -802,82 +759,235 @@ import { ComparacionMeses } from '../../models/resumen/modo-resumen';
       gap: 12px;
     }
 
-    /* Grid compacto de tarjetas (varias por fila en pantallas anchas) */
+    /* Grid de cards de tarjetas */
     .tarjetas-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: var(--spacing-md);
     }
-    .tarjetas-grid .mobile-row {
+
+    .tarjeta-card {
+      background: var(--surface);
+      border-radius: var(--radius-sm);
+      padding: 0;
+      border: 1px solid var(--border-light);
+      overflow: hidden;
+      position: relative;
+      border-left: 4px solid var(--primary);
+    }
+
+    .tarjeta-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--spacing-md) var(--spacing-lg);
+      background: var(--surface-hover);
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .tarjeta-card-header .card-name {
+      font-size: var(--font-size-base);
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .tarjeta-card-header .card-limit {
+      font-size: var(--font-size-xs);
+      color: var(--text-secondary);
+      padding: 4px 8px;
+      border-radius: var(--radius-xs);
+      background: var(--surface);
+      border: 1px solid var(--border-light);
+    }
+
+    .tarjeta-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1px;
+      background: var(--border-light);
+    }
+
+    .metric-box {
+      background: var(--surface);
+      padding: var(--spacing-md);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      text-align: center;
+    }
+
+    .metric-label {
+      font-size: var(--font-size-xs);
+      color: var(--text-secondary);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    .metric-value {
+      font-size: var(--font-size-base);
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .metric-gastado .metric-value {
+      color: var(--primary);
+    }
+
+    .metric-uso {
+      grid-column: span 1;
+    }
+
+    .metric-uso .metric-value {
+      font-size: var(--font-size-sm);
+    }
+
+    .uso-bar {
+      width: 100%;
+      height: 4px;
+      background: var(--surface-hover);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      margin-top: 4px;
+    }
+
+    .uso-bar-fill {
       height: 100%;
+      background: var(--primary);
+      border-radius: var(--radius-full);
+      transition: width 0.3s ease;
+    }
+
+    .metric-disponible .metric-value {
+      color: var(--success);
     }
 
     .mobile-row {
-      background: var(--bg);
+      background: var(--surface);
       border-radius: var(--radius-sm);
-      padding: 10px 14px;
-      border: 1px solid var(--border);
-      transition: transform 0.2s ease;
-    }
-
-    .mobile-row:hover {
-      transform: translateY(-1px);
-      box-shadow: var(--shadow-sm);
+      padding: var(--spacing-md) var(--spacing-lg);
+      border: 1px solid var(--border-light);
     }
 
     .compartido-row {
-      border-left: 4px solid var(--primary);
+      border-left: 3px solid var(--primary);
     }
 
     .row-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 12px;
+      margin-bottom: var(--spacing-sm);
       flex-wrap: wrap;
-      gap: 8px;
+      gap: var(--spacing-sm);
     }
 
     .card-name {
       font-weight: 600;
-      font-size: 16px;
-      color: #333;
+      font-size: var(--font-size-base);
+      color: var(--text-primary);
     }
 
     .card-limit {
-      font-size: 14px;
-      color: #666;
-      background: var(--surface);
-      padding: 4px 8px;
-      border-radius: 4px;
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary);
+      padding: 2px 8px;
+      border-radius: var(--radius-xs);
+      background: var(--surface-hover);
     }
 
     .cuota-info {
-      font-size: 14px;
+      font-size: var(--font-size-sm);
       color: var(--primary);
       font-weight: 600;
-      background: rgba(25, 118, 210, 0.1);
-      padding: 4px 8px;
-      border-radius: 4px;
+      background: var(--surface-hover);
+      padding: 2px 8px;
+      border-radius: var(--radius-xs);
     }
 
-    /* Grilla de gastos dentro del drill-down de tarjeta: varias columnas, menos scroll */
+    /* Grilla de gastos dentro del drill-down de tarjeta */
     .gastos-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 10px;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: var(--spacing-md);
     }
-    .gastos-grid .mobile-row {
-      margin: 0;
-      height: 100%;
+
+    .gasto-mini-card {
+      background: var(--surface);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-sm);
+      padding: var(--spacing-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-sm);
+      transition: background-color 0.15s ease;
+    }
+
+    .gasto-mini-card:hover {
+      background: var(--surface-hover);
+    }
+
+    .gasto-mini-desc {
+      font-size: var(--font-size-sm);
+      font-weight: 500;
+      color: var(--text-primary);
+      line-height: 1.3;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .gasto-mini-cuota {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: var(--spacing-xs) 0;
+      border-top: 1px solid var(--border-light);
+    }
+
+    .gasto-mini-label {
+      font-size: var(--font-size-xs);
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .gasto-mini-valor {
+      font-size: var(--font-size-lg);
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .gasto-mini-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--spacing-sm);
+      margin-top: auto;
+    }
+
+    .gasto-mini-progreso {
+      font-size: var(--font-size-xs);
+      color: var(--text-secondary);
+      padding: 2px 6px;
+      background: var(--surface-hover);
+      border-radius: var(--radius-xs);
+    }
+
+    .gasto-mini-compartido {
+      font-size: var(--font-size-xs);
+      color: var(--primary);
+      font-weight: 500;
     }
 
     .compartido-badge {
-      font-size: 12px;
-      color: white;
+      font-size: var(--font-size-xs);
+      color: var(--text-inverse);
       background: var(--primary);
-      padding: 4px 8px;
-      border-radius: 12px;
+      padding: 2px 8px;
+      border-radius: var(--radius-xs);
       font-weight: 500;
     }
 
@@ -889,8 +999,8 @@ import { ComparacionMeses } from '../../models/resumen/modo-resumen';
 
     .gasto-descripcion {
       font-weight: 500;
-      color: #333;
-      font-size: 15px;
+      color: var(--text-primary);
+      font-size: var(--font-size-sm);
     }
 
     .gasto-stats, .compartido-stats, .row-stats {
@@ -903,28 +1013,24 @@ import { ComparacionMeses } from '../../models/resumen/modo-resumen';
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 8px 0;
-      border-bottom: 1px solid rgba(0,0,0,0.05);
-    }
-
-    .stat-item:last-child {
-      border-bottom: none;
+      padding: var(--spacing-xs) 0;
+      gap: var(--spacing-sm);
     }
 
     .stat-item .stat-label {
-      font-size: 14px;
-      color: #666;
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary);
       font-weight: 500;
     }
 
     .stat-item .stat-value {
-      font-size: 15px;
+      font-size: var(--font-size-sm);
       font-weight: 600;
-      color: #333;
+      color: var(--text-primary);
     }
 
     .stat-item.highlight .stat-value {
-      color: var(--highlight);
+      color: var(--primary);
       font-weight: 700;
     }
 
@@ -939,39 +1045,38 @@ import { ComparacionMeses } from '../../models/resumen/modo-resumen';
      }
 
      .tarjeta-group {
-        margin-bottom: 12px;
-        border: 1px solid var(--border);
+        margin-bottom: var(--spacing-md);
+        border: 1px solid var(--border-light);
         border-radius: var(--radius-sm);
         overflow: hidden;
-        background: var(--bg);
-        box-shadow: var(--shadow-sm);
+        background: var(--surface);
       }
 
      .tarjeta-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 12px 16px;
-        background: var(--surface);
+        padding: var(--spacing-md) var(--spacing-lg);
+        background: var(--surface-hover);
         cursor: pointer;
-        transition: background-color 0.2s ease;
-        border-bottom: 1px solid var(--border);
-        min-height: 60px;
+        transition: background-color 0.15s ease;
+        border-bottom: 1px solid var(--border-light);
+        min-height: 52px;
       }
 
      .tarjeta-header:hover {
        background: var(--primary);
-       color: white;
+       color: var(--text-inverse);
      }
 
      .tarjeta-header:hover .card-name,
       .tarjeta-header:hover .tarjeta-total,
       .tarjeta-header:hover .tarjeta-contadores {
-        color: white;
+        color: var(--text-inverse);
       }
 
       .tarjeta-header:hover .contador-ultimas {
-        color: #c8e6c9;
+        color: rgba(255,255,255,0.9);
       }
 
      .tarjeta-info {
@@ -988,17 +1093,17 @@ import { ComparacionMeses } from '../../models/resumen/modo-resumen';
       }
 
       .tarjeta-total {
-        font-size: 14px;
+        font-size: var(--font-size-sm);
         font-weight: 600;
-        color: var(--highlight);
+        color: var(--primary);
       }
 
       .tarjeta-contadores {
         display: flex;
         align-items: center;
-        gap: 8px;
-        font-size: 12px;
-        color: #666;
+        gap: var(--spacing-sm);
+        font-size: var(--font-size-xs);
+        color: var(--text-secondary);
       }
 
       .contador-gastos {
@@ -1026,41 +1131,12 @@ import { ComparacionMeses } from '../../models/resumen/modo-resumen';
      }
 
      .tarjeta-gastos {
-       padding: 0;
-       background: var(--bg);
+       padding: var(--spacing-sm);
+       background: var(--surface);
      }
 
-     .gasto-item {
-        margin: 0;
-        border-radius: 0;
-        border: none;
-        border-bottom: 1px solid var(--border);
-        background: var(--surface);
-        padding: 10px 16px;
-      }
-
-      .gasto-item:last-child {
-        border-bottom: none;
-      }
-
-      .gasto-item:hover {
-        transform: none;
-        box-shadow: none;
-        background: var(--bg);
-      }
-
-      .gasto-item .row-header {
-        margin-bottom: 8px;
-      }
-
-      .gasto-item .gasto-stats {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-        gap: 8px;
-      }
-
-      .gasto-item .stat-item {
-        margin-bottom: 0;
+     .gasto-mini-card {
+        padding: var(--spacing-sm);
       }
 
      .empty-state {
@@ -1275,6 +1351,26 @@ import { ComparacionMeses } from '../../models/resumen/modo-resumen';
          margin-bottom: 8px;
        }
 
+      .tarjeta-card-header {
+        padding: var(--spacing-sm) var(--spacing-md);
+      }
+
+      .tarjeta-metrics {
+        grid-template-columns: 1fr 1fr 1fr;
+      }
+
+      .metric-box {
+        padding: var(--spacing-sm);
+      }
+
+      .metric-value {
+        font-size: var(--font-size-sm);
+      }
+
+      .gastos-grid {
+        grid-template-columns: 1fr;
+      }
+
       .row-header {
         flex-direction: column;
         align-items: flex-start;
@@ -1314,13 +1410,8 @@ import { ComparacionMeses } from '../../models/resumen/modo-resumen';
           gap: 2px;
         }
 
-        .gasto-item {
-          padding: 8px 12px;
-        }
-
-        .gasto-item .gasto-stats {
-          grid-template-columns: 1fr;
-          gap: 6px;
+        .gasto-mini-card {
+          padding: var(--spacing-sm);
         }
 
        .tarjeta-total {
@@ -1589,8 +1680,8 @@ import { ComparacionMeses } from '../../models/resumen/modo-resumen';
           min-height: 40px;
         }
 
-        .gasto-item {
-          padding: 6px 8px;
+        .gasto-mini-card {
+          padding: var(--spacing-xs) var(--spacing-sm);
         }
 
         .stat-item {

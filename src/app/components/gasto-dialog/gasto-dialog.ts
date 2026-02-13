@@ -6,6 +6,8 @@ import { Tarjeta } from '../../models/tarjeta.model';
 import { CategoriaSelectorComponent } from '../categoria-selector/categoria-selector.component';
 import { EtiquetasSelectorComponent } from '../etiquetas-selector/etiquetas-selector.component';
 import { NotaService } from '../../services/nota.service';
+import { OcrTicketResult } from '../../models/ocr-ticket.model';
+import { OcrTicketButtonComponent } from '../ocr-ticket-button/ocr-ticket-button.component';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -15,7 +17,8 @@ import { Subscription } from 'rxjs';
     CommonModule,
     FormsModule,
     CategoriaSelectorComponent,
-    EtiquetasSelectorComponent
+    EtiquetasSelectorComponent,
+    OcrTicketButtonComponent
   ],
   templateUrl: './gasto-dialog.component.html',
   styleUrls: ['./gasto-dialog.component.css']
@@ -102,6 +105,29 @@ export class GastoDialogComponent implements OnInit, OnDestroy {
 
   onEtiquetasChange(etiquetasIds: string[]): void {
     this.gasto.etiquetasIds = etiquetasIds;
+  }
+
+  onOcrCompletado(resultado: OcrTicketResult): void {
+    if (resultado.descripcion && !this.gasto.descripcion) {
+      this.gasto.descripcion = resultado.descripcion;
+    }
+    if (resultado.monto && (!this.gasto.monto || this.gasto.monto <= 0)) {
+      this.gasto.monto = resultado.monto;
+    }
+    if (resultado.fecha && !this.gasto.fecha) {
+      this.gasto.fecha = resultado.fecha;
+    }
+
+    if (resultado.cuotas && (!this.gasto.cantidadCuotas || this.gasto.cantidadCuotas <= 1)) {
+      this.gasto.cantidadCuotas = resultado.cuotas;
+      this.onCantidadCuotasChange(this.gasto.cantidadCuotas);
+    }
+  }
+
+  onOcrError(): void {
+    // En el formulario completo delegamos el mensaje al contenedor (página),
+    // pero dejamos el hook por si queremos extenderlo luego.
+    // Por ahora no hacemos nada específico aquí.
   }
 
   guardar(): void {

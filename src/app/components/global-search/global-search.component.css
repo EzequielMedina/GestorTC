@@ -164,10 +164,11 @@
   flex-shrink: 0;
 }
 
-/* Responsive */
+/* Responsive: en toolbar móvil/tablet el ancho lo controla el padre */
 @media (max-width: 768px) {
   .global-search-container {
     max-width: 100%;
+    min-width: 0;
   }
 
   .search-results {

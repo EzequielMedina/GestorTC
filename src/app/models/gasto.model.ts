@@ -65,4 +65,11 @@ export interface Gasto {
    * ID de la serie recurrente a la que pertenece este gasto (opcional).
    */
   serieRecurrenteId?: string;
+
+  /**
+   * Imagen asociada al ticket o comprobante del gasto (opcional).
+   * Se almacena como string en formato base64 o data URL para permitir
+   * mostrar una miniatura en la UI sin requerir backend.
+   */
+  imagenBase64?: string;
 }

@@ -126,17 +126,19 @@
 
   <mat-sidenav-content class="sidenav-content">
     <mat-toolbar class="toolbar" color="primary">
+      <!-- Izquierda: menú hamburguesa + título -->
       <button mat-icon-button class="menu-button" aria-label="Abrir menú" (click)="drawer.toggle()">
         <mat-icon>menu</mat-icon>
       </button>
-      <span class="toolbar-title">{{ title() }}</span>
+      <a routerLink="/dashboard" class="toolbar-title toolbar-title-link">{{ title() }}</a>
+
+      <!-- Centro (solo desktop): enlaces de navegación -->
       <nav class="desktop-nav">
         <a mat-button routerLink="/dashboard" routerLinkActive="active" class="nav-link">Dashboard</a>
         <a mat-button routerLink="/tarjetas" routerLinkActive="active" class="nav-link">Tarjetas</a>
         <a mat-button routerLink="/gastos" routerLinkActive="active" class="nav-link">Gastos</a>
         <a mat-button routerLink="/resumen" routerLinkActive="active" class="nav-link">Resumen</a>
         <a mat-button routerLink="/presupuestos" routerLinkActive="active" class="nav-link">Presupuestos</a>
-        
         <button mat-button [matMenuTriggerFor]="moreMenu" class="nav-link more-menu-btn">
           Más
           <mat-icon>arrow_drop_down</mat-icon>
@@ -153,9 +155,7 @@
               <span>Cuotas</span>
             </a>
           </div>
-          
           <mat-divider></mat-divider>
-          
           <div class="menu-section">
             <div class="menu-section-title">Análisis</div>
             <a mat-menu-item routerLink="/graficos" routerLinkActive="active">
@@ -167,7 +167,6 @@
               <span>Análisis de Tendencias</span>
             </a>
           </div>
-          
           <div class="menu-section">
             <div class="menu-section-title">Reportes</div>
             <a mat-menu-item routerLink="/reportes-whatsapp" routerLinkActive="active">
@@ -179,9 +178,7 @@
               <span>Reportes Personalizados</span>
             </a>
           </div>
-          
           <mat-divider></mat-divider>
-          
           <div class="menu-section">
             <div class="menu-section-title">Herramientas</div>
             <a mat-menu-item routerLink="/simulacion-compra" routerLinkActive="active">
@@ -197,9 +194,7 @@
               <span>Calendario Financiero</span>
             </a>
           </div>
-          
           <mat-divider></mat-divider>
-          
           <div class="menu-section">
             <div class="menu-section-title">Gestión</div>
             <a mat-menu-item routerLink="/prestamos" routerLinkActive="active">
@@ -221,12 +216,19 @@
           </div>
         </mat-menu>
       </nav>
+
       <span class="toolbar-spacer"></span>
-      <app-global-search class="toolbar-search"></app-global-search>
-      <app-theme-toggle class="toolbar-icon-btn"></app-theme-toggle>
-      <button mat-icon-button (click)="iniciarTour()" matTooltip="Repetir Tour Guiado" class="tour-button toolbar-icon-btn">
-        <mat-icon>help_outline</mat-icon>
-      </button>
+
+      <!-- Derecha: búsqueda + gestor (tema + tour) -->
+      <div class="toolbar-right">
+        <app-global-search class="toolbar-search"></app-global-search>
+        <div class="toolbar-actions" aria-label="Gestor de cuenta y opciones">
+          <app-theme-toggle class="toolbar-icon-btn"></app-theme-toggle>
+          <button mat-icon-button (click)="iniciarTour()" matTooltip="Repetir Tour Guiado" class="tour-button toolbar-icon-btn">
+            <mat-icon>help_outline</mat-icon>
+          </button>
+        </div>
+      </div>
     </mat-toolbar>
 
     <main class="main-content">

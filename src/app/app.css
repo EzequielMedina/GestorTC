@@ -41,36 +41,76 @@
   max-width: 200px;
 }
 
+.toolbar-title-link {
+  text-decoration: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 4px;
+  padding: 4px 8px;
+  margin: 0 -4px;
+  transition: background-color 0.2s ease;
+}
+.toolbar-title-link:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: var(--text-inverse);
+}
+
+/* Tablet y móvil: una sola fila, nav por menú hamburguesa, búsqueda y gestor visibles */
+@media (max-width: 959px) {
+  .toolbar .desktop-nav,
+  .desktop-nav {
+    display: none !important;
+  }
+
+  .toolbar {
+    flex-wrap: nowrap;
+    gap: 0;
+    padding: 0 var(--spacing-sm);
+    min-height: 56px;
+    height: 56px;
+  }
+
+  .toolbar-title {
+    max-width: 140px;
+    font-size: var(--font-size-base);
+  }
+
+  .toolbar-spacer {
+    flex: 1 1 auto;
+    min-width: 8px;
+  }
+
+  .toolbar-right {
+    flex: 0 1 auto;
+    min-width: 0;
+    margin-left: 0;
+  }
+
+  .toolbar-search {
+    flex: 1 1 120px;
+    min-width: 80px;
+    max-width: 220px;
+    margin: 0 6px;
+  }
+}
+
 @media (max-width: 768px) {
   .toolbar {
-    height: auto;
+    padding: 0 var(--spacing-sm);
     min-height: 56px;
-    padding: 8px var(--spacing-sm);
-    overflow: visible;
-    flex-wrap: wrap;
-    gap: 4px 0;
+    height: 56px;
   }
-  
+
   .toolbar-title {
     max-width: 120px;
     font-size: var(--font-size-base);
     flex-shrink: 0;
   }
-  
-  .toolbar > * {
-    flex-shrink: 0;
-  }
-  
-  /* En móvil: segunda fila = nav a ancho completo */
-  .desktop-nav {
-    flex-basis: 100%;
-    width: 100%;
-    order: 10;
-    margin: 4px -4px 0;
-    padding: 4px 4px 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
-    flex-shrink: 0;
-    min-width: 0;
+
+  .toolbar-search {
+    min-width: 60px;
+    max-width: 160px;
   }
 }
 
@@ -87,6 +127,22 @@
 
 .tour-button {
   margin-left: var(--spacing-sm);
+}
+
+/* Contenedor derecha: búsqueda + acciones (tema, tour) */
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
 }
 
 .toolbar-search {
@@ -115,12 +171,6 @@
   font-size: 18px;
   width: 18px;
   height: 18px;
-}
-
-@media (max-width: 959px) {
-  .toolbar-search {
-    display: none;
-  }
 }
 
 /* Solo aplicar estos estilos en desktop, NO en móviles */
@@ -501,36 +551,8 @@
   border-top: 1px solid var(--border-light);
 }
 
-/* Estilos responsivos mejorados */
+/* Estilos responsivos: en tablet/móvil el menú hamburguesa es la navegación */
 @media (max-width: 959px) {
-  /* Nav más compacta con scroll horizontal si no cabe */
-  .desktop-nav {
-    display: flex;
-    flex-wrap: nowrap;
-    gap: 2px;
-    max-width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    flex-shrink: 0;
-    min-width: 0;
-  }
-  
-  .desktop-nav::-webkit-scrollbar {
-    display: none; /* Chrome/Safari */
-  }
-  
-  .desktop-nav .nav-link {
-    padding: 0 var(--spacing-xs);
-    font-size: var(--font-size-xs);
-    white-space: nowrap;
-    flex-shrink: 0;
-    min-width: auto;
-  }
-  
-  /* Mostrar botón de menú también */
   .menu-button {
     display: inline-flex !important;
     visibility: visible !important;
@@ -776,61 +798,37 @@
   border-top: 1px solid rgba(0, 0, 0, 0.12);
 }
 
-/* Ajustes para pantallas pequeñas: misma lógica de dos filas que 768px */
+/* Celular: barra más compacta, mismo orden (hamburger | título | búsqueda | tema | tour) */
 @media (max-width: 599px) {
   .toolbar {
-    height: auto;
-    min-height: 56px;
-    padding: 8px;
-    overflow: visible;
-    width: 100%;
-    max-width: 100%;
-    flex-wrap: wrap;
-    gap: 4px 0;
+    padding: 0 var(--spacing-xs);
+    min-height: 52px;
+    height: 52px;
   }
-  
+
   .toolbar-title {
     max-width: 100px;
     font-size: var(--font-size-sm);
   }
-  
-  .desktop-nav {
-    display: flex !important;
-    flex-wrap: nowrap;
-    gap: 2px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    min-width: 0;
-    flex-basis: 100%;
-    width: 100%;
-    order: 10;
-    margin-top: 4px;
-    padding-top: 4px;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
+
+  .toolbar-search {
+    min-width: 50px;
+    max-width: 120px;
+    margin: 0 4px;
   }
-  
-  .desktop-nav::-webkit-scrollbar {
-    display: none;
+
+  .toolbar-right {
+    gap: 0;
   }
-  
-  .desktop-nav .nav-link {
-    padding: 0 var(--spacing-xs);
-    font-size: var(--font-size-xs);
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-  
+
   .main-content {
     padding: 12px;
   }
-  
+
   .dialog-content {
     padding: 16px;
   }
-  
+
   .dialog-actions {
     padding: 8px 16px 16px;
   }

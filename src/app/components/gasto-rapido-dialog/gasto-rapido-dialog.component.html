@@ -11,6 +11,14 @@
 
   <mat-dialog-content>
     <form (ngSubmit)="guardar()" #gastoForm="ngForm">
+      <!-- OCR: Escanear ticket (arriba para no interrumpir el flujo del formulario) -->
+      <div class="ocr-section">
+        <app-ocr-ticket-button
+          (ocrCompletado)="onOcrCompletado($event)"
+          (ocrError)="onOcrError()">
+        </app-ocr-ticket-button>
+      </div>
+
       <!-- Monto -->
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Monto *</mat-label>

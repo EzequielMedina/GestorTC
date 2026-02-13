@@ -17,6 +17,8 @@ import { TarjetaService } from '../../services/tarjeta';
 import { CategoriaService } from '../../services/categoria.service';
 import { PreferenciasUsuarioService, DescripcionFrecuente } from '../../services/preferencias-usuario.service';
 import { NotificationService } from '../../services/notification.service';
+import { OcrTicketResult } from '../../models/ocr-ticket.model';
+import { OcrTicketButtonComponent } from '../ocr-ticket-button/ocr-ticket-button.component';
 import { combineLatest, Subscription } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -34,7 +36,8 @@ import { v4 as uuidv4 } from 'uuid';
     MatIconModule,
     MatChipsModule,
     MatAutocompleteModule,
-    MatTooltipModule
+    MatTooltipModule,
+    OcrTicketButtonComponent
   ],
   templateUrl: './gasto-rapido-dialog.component.html',
   styleUrls: ['./gasto-rapido-dialog.component.css']
@@ -92,6 +95,29 @@ export class GastoRapidoDialogComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
+  }
+
+  onOcrCompletado(resultado: OcrTicketResult): void {
+    if (resultado.descripcion && !this.gasto.descripcion) {
+      this.gasto.descripcion = resultado.descripcion;
+    }
+    if (resultado.monto && (!this.gasto.monto || this.gasto.monto <= 0)) {
+      this.gasto.monto = resultado.monto;
+    }
+    if (resultado.fecha && !this.gasto.fecha) {
+      this.gasto.fecha = resultado.fecha;
+    }
+
+    if (resultado.cuotas && (!this.gasto.cantidadCuotas || this.gasto.cantidadCuotas <= 1)) {
+      this.gasto.cantidadCuotas = resultado.cuotas;
+      this.onCantidadCuotasChange(this.gasto.cantidadCuotas);
+    }
+  }
+
+  onOcrError(): void {
+    this.notificationService.warning(
+      'No pudimos leer el ticket. Podés ingresar los datos manualmente.'
+    );
   }
 
   onDescripcionChange(): void {
