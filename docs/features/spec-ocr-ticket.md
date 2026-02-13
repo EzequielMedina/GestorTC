@@ -49,11 +49,16 @@ Permitir al usuario **tomar una foto del ticket o recibo** (o subir una imagen) 
 
 ## 3. Criterios de aceptación
 
-- [ ] El usuario puede abrir “Escanear ticket” desde el formulario de gastos (o desde el FAB/diálogo rápido) y capturar una foto o subir una imagen.
-- [ ] Se ejecuta OCR sobre la imagen y se extrae al menos el monto (y opcionalmente fecha y descripción).
-- [ ] El formulario de gasto se abre con los campos prellenados; el usuario puede corregir y guardar.
-- [ ] Si el OCR falla, se informa y se ofrece ingresar datos manualmente.
-- [ ] (Opcional) La imagen se guarda asociada al gasto y se muestra en el detalle.
+- [x] **El usuario puede abrir “Escanear ticket” desde el formulario de gastos (o desde el FAB/diálogo rápido) y capturar una foto o subir una imagen.**  
+  **Cumple.** El botón “Escanear ticket” está en el formulario completo (`gasto-dialog`) y en el diálogo rápido (`gasto-rapido-dialog`). Usa un `input type="file" accept="image/*" capture="environment"`: en móvil permite abrir la cámara; en desktop permite elegir un archivo de imagen. No hay vista previa antes de procesar (la imagen se envía a OCR al seleccionarla).
+- [x] **Se ejecuta OCR sobre la imagen y se extrae al menos el monto (y opcionalmente fecha y descripción).**  
+  **Cumple.** `OcrTicketService` usa Tesseract.js (carga dinámica con `import('tesseract.js')`), idioma `spa`. `OcrTicketParser` extrae monto (patrones “Total”, montos con $ o decimales), fecha (dd/mm/yyyy y variantes), descripción/comercio y cantidad de cuotas.
+- [x] **El formulario de gasto se abre con los campos prellenados; el usuario puede corregir y guardar.**  
+  **Cumple.** En ambos diálogos, `onOcrCompletado(resultado)` asigna `descripcion`, `monto`, `fecha` y `cantidadCuotas` al modelo del gasto cuando están presentes. El formulario ya está abierto; el usuario puede editar cualquier campo y guardar.
+- [x] **Si el OCR falla, se informa y se ofrece ingresar datos manualmente.**  
+  **Cumple con matiz.** En el **diálogo rápido** se muestra el mensaje: “No pudimos leer el ticket. Podés ingresar los datos manualmente.” (`NotificationService.warning`). En el **formulario completo** (`gasto-dialog`), `onOcrError()` está vacío y no muestra mensaje al usuario; se recomienda reutilizar el mismo mensaje (p. ej. inyectando `NotificationService` y mostrando el warning) para consistencia.
+- [ ] **(Opcional) La imagen se guarda asociada al gasto y se muestra en el detalle.**  
+  **No implementado.** El modelo `Gasto` tiene el campo opcional `imagenBase64?: string`, pero el flujo OCR no asigna la imagen al gasto al guardar, y no existe vista de detalle del gasto que muestre miniatura de la imagen.
 
 ---
 
@@ -75,3 +80,19 @@ Permitir al usuario **tomar una foto del ticket o recibo** (o subir una imagen) 
 
 - **tesseract.js** (npm). Aumenta el tamaño del bundle; considerar lazy load del módulo OCR solo cuando el usuario abra “Escanear ticket”.
 - Cámara: API estándar del navegador (getUserMedia); permisos de cámara.
+
+---
+
+## 6. Verificación (actualizado)
+
+**Resumen:** La aplicación **cumple los criterios de aceptación obligatorios (1 a 4)**. El único criterio opcional (5, guardar y mostrar imagen) no está implementado.
+
+| Criterio | Estado | Notas |
+|----------|--------|--------|
+| 1. Abrir “Escanear ticket” y capturar/subir imagen | ✅ Cumple | Formulario completo + diálogo rápido; `input` con `capture="environment"` y `accept="image/*"`. |
+| 2. OCR y extracción (monto, fecha, descripción) | ✅ Cumple | Tesseract.js (spa), `OcrTicketParser` en `src/app/services/ocr/ocr-ticket.parser.ts`. |
+| 3. Formulario prellenado y editable | ✅ Cumple | `onOcrCompletado` en ambos diálogos prellena y el usuario puede corregir. |
+| 4. Si OCR falla, informar y ofrecer manual | ✅ Cumple | Mensaje en diálogo rápido; en formulario completo conviene mostrar el mismo mensaje en `onOcrError()`. |
+| 5. (Opcional) Imagen guardada y miniatura en detalle | ❌ No | Modelo tiene `imagenBase64` pero no se asigna desde OCR ni se muestra en UI. |
+
+**Recomendación:** En `gasto-dialog.ts`, implementar `onOcrError()` mostrando el mismo mensaje que en el diálogo rápido (p. ej. con `NotificationService.warning('No pudimos leer el ticket. Podés ingresar los datos manualmente.')`) para que el usuario siempre reciba feedback cuando el OCR falle.
